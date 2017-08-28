@@ -57,9 +57,8 @@ def runlua(caller, script, args):
 			try:
 				result = []
 				for line in data:
-					if line == "":
-						return
-					result.append(json.loads(line))
+					if line != "":
+						result.append(json.loads(line))
 			except e:
 				print(data)
 				print(prpipe_err.read())
