@@ -2,6 +2,7 @@ import signal
 import os
 import json
 from lupa import LuaRuntime
+import resource
 
 os.chdir("lua")
 lua = LuaRuntime(register_eval = False, register_builtins = False)
@@ -11,6 +12,7 @@ luaMain = luaProgs[1]
 luaFlushCaches = luaProgs[2]
 file.close()
 
+mem_limit = 1e4
 task_timeout = 7
 
 def runlua(caller, script, args):
@@ -53,14 +55,12 @@ def runlua(caller, script, args):
 			print(prpipe.read())
 			print(prpipe_err.read())
 		else:
-			data = prpipe.readlines()
 			try:
 				result = []
-				for line in data:
-					if line != "":
+				for line in prpipe:
+					if line != "\n":
 						result.append(json.loads(line))
-			except e:
-				print(data)
+			except json.decoder.JSONDecodeError as e:
 				print(prpipe_err.read())
 				print(e)
 				result = [{'ok': False, 'data': "Script caused internal error. Admins have been notified"}]
@@ -74,6 +74,7 @@ def runlua(caller, script, args):
 
 
 def main(socket):
+	resource.setrlimit(resource.RLIMIT_AS, (mem_limit, mem_limit))
 	while True:
 		msg = json.loads(socket.recv_string())
 		caller = msg['caller']
