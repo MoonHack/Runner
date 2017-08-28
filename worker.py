@@ -44,28 +44,28 @@ def runlua(caller, script, args):
 		signal.alarm(task_timeout)
 		errcode = os.waitpid(pid, 0)
 		task_alive = False
-		result_msg = ''
+		result = ''
 		luaFlushCaches()
 		if task_killed:
-			result_msg = [{'ok': False, 'data': "Script hard-killed after 5 second timeout"}]
+			result = [{'ok': False, 'data': "Script hard-killed after 5 second timeout"}]
 		elif errcode[1] != 0:
-			result_msg = [{'ok': False, 'data': "Script caused internal error. Admins have been notified"}]
+			result = [{'ok': False, 'data': "Script caused internal error. Admins have been notified"}]
 			print(prpipe.read())
 			print(prpipe_err.read())
 		else:
 			data = prpipe.readlines()
 			try:
-				result_msg = list(map(json.loads, data))
+				result = list(map(json.loads, data))
 			except e:
 				print(data)
 				print(prpipe_err.read())
 				print(e)
-				result_msg = [{'ok': False, 'data': "Script caused internal error. Admins have been notified"}]
+				result = [{'ok': False, 'data': "Script caused internal error. Admins have been notified"}]
 
 		os.close(rpipe)
 		os.close(rpipe_err)
 
-		return result_msg
+		return result
 	else:
 		exit(1)
 
@@ -77,5 +77,5 @@ def main(socket):
 		script = msg['script']
 		run_id = msg['run_id']
 		print("Got run", caller, script, run_id)
-		result_msg = runlua(caller, script, msg['args'])
-		socket.send_string(json.dumps({'caller': caller, 'run_id': run_id, 'script': script, 'result': result_msg}))
+		result = runlua(caller, script, msg['args'])
+		socket.send_string(json.dumps({'caller': caller, 'run_id': run_id, 'script': script, 'result': result}))
