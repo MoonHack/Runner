@@ -1,4 +1,4 @@
-﻿local function shallowCopy(tbl)
+local function shallowCopy(tbl)
 	local ret = {}
 	for k, v in next, tbl do
 		if v == tbl then

@@ -1,3 +1,5 @@
 zmq
-uuid4
+uuid
 lupa (compiled with LuaJIT 2)
+	lua-cjson
+	lua-mongo

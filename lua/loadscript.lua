@@ -1,4 +1,4 @@
-﻿local db = require("db")
+local db = require("db")
 local dbintf = require("dbintf")
 local util = require("util")
 local setfenv = setfenv
@@ -74,12 +74,12 @@ local function loadscriptInternal(script, compile)
 			local _ENV = {}
 			local func
 
-			if data.codeBinary then
+			--[[if data.codeBinary then
 				local ok, res = pcall(load, data.codeBinary, data.name, "b", {})
 				if ok then
 					func = res
 				end
-			end
+			end]]
 
 			if not func then
 				func = load("return " .. data.code, data.name, "t", {})

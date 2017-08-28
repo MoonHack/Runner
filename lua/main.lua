@@ -1,4 +1,4 @@
-﻿_G.python = nil
+_G.python = nil
 
 local error = error
 local write = io.write
