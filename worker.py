@@ -57,7 +57,7 @@ def runlua(caller, script, args):
 			try:
 				result = []
 				for line in data:
-					if (not line) or line == "":
+					if line == "":
 						return
 					result.append(json.loads(line))
 			except e:
