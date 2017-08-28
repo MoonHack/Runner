@@ -3,11 +3,13 @@ import os
 import signal
 from worker import main as worker_main
 
+# TODO: CONFIG THIS
 worker_count = 1
-ipc_socket = "ipc:///tmp/moonhack-master-to-workers"
 
 if __name__ != "__main__":
     raise 'Please run me, not import'
+
+ipc_socket = "ipc:///tmp/moonhack-master-to-workers"
 
 def zmq_setopt(socket):
 	socket.setsockopt(zmq.LINGER, 0)
