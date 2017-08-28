@@ -1,9 +1,9 @@
 ﻿_G.python = nil
 
 local error = error
-local print = io.write
-local function println(str)
-	print(str .. "\n")
+local write = io.write
+local function writeln(str)
+	write(str .. "\n")
 end
 local time = os.time
 local exit = os.exit
@@ -21,7 +21,7 @@ end
 
 function checkTimeout()
 	if CAN_SOFT_KILL and timeLeft() < 0 then
-		print('{"ok":false,"data":"Script killed after 5 second timeout"}')
+		writeln('{"ok":false,"data":"Script killed after 5 second timeout"}')
 		exit(0)
 	end
 end
@@ -92,7 +92,7 @@ local SUB_ENV = {
 		if #data == 1 then
 			data = data[1]
 		end
-		println(cjson.encode(data))
+		writeln(cjson.encode(data))
 		checkTimeout()
 	end,
 	pcall = function(func, ...)
@@ -211,7 +211,7 @@ local function __run(_caller, _script, args)
 	CALLER = _caller
 	ok, CORE_SCRIPT = loadMainScript(_script, false)
 	if not ok then
-		print(cjson.encode({
+		writeln(cjson.encode({
 			ok = false,
 			msg = CORE_SCRIPT
 		}))
@@ -237,9 +237,9 @@ local function __run(_caller, _script, args)
 		return main()
 	end, errorHandler, args)
 	if ok then
-		print(cjson.encode(res))
+		writeln(cjson.encode(res))
 	else
-		print(cjson.encode({
+		writeln(cjson.encode({
 			ok = false,
 			msg = res
 		}))
