@@ -3,6 +3,8 @@ from sys import argv
 import json
 import zmq
 
+# Dummy script to manually trigger a script run like: python3 run.py user user.script '{}'
+
 context = zmq.Context(1)
 socket = context.socket(zmq.REQ)
 socket.connect("tcp://127.0.0.1:5556")
