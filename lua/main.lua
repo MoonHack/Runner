@@ -1,8 +1,10 @@
 ﻿_G.python = nil
 
 local error = error
-local println = print
 local print = io.write
+local function println(str)
+	print(str .. "\n")
+end
 local time = os.time
 local exit = os.exit
 
