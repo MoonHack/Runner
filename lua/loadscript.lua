@@ -11,7 +11,7 @@ local scriptsDb = db.internal:getCollection("scripts")
 
 local scriptCache = {}
 
-_G.resetScriptCache = function()
+function resetScriptCache()
 	scriptCache = {}
 end
 
