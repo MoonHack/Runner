@@ -1,0 +1,3 @@
+zmq
+uuid4
+lupa (compiled with LuaJIT 2)
