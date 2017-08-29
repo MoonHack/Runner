@@ -191,11 +191,13 @@ int main() {
 		close(stdout_pipe[1]);
 
 		stdout_fd = fdopen(stdout_pipe[0], "r");
-		while(!feof(stdout_fd) && fgets(buffer, BUFFER_LEN, stdout_fd)) {
+		while(!feof(stdout_fd)) {
+			if (!fgets(buffer, BUFFER_LEN, stdout_fd)) {
+				break;
+			}
 			if (write(sockfd, buffer, strlen(buffer)) < 0) {
 				break;
 			}
-			//zmq_send(socket, buffer, strlen(buffer), ZMQ_SNDMORE);
 		}
 
 		waitpid(subworker, &exitstatus, 0);
