@@ -1,5 +1,6 @@
 #include <zmq.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -17,7 +18,6 @@
 #define BUFFER_LEN 65536
 #define ARGS_LEN BUFFER_LEN
 
-#define EXIT_MEMLIMIT 9
 #define EXIT_OK 0
 #define EXIT_TIMEOUT 5
 
@@ -30,14 +30,36 @@
 lua_State *L;
 int lua_main;
 int lua_prot_depth = 0;
+char *cgroup_mem_root;
+char *cgroup_mem_limit;
+char *cgroup_memsw_limit;
+char *cgroup_mem_tasks;
 
 void sigalrm_recvd() {
 	exit(EXIT_TIMEOUT);
 }
 
+static void set_memory_limit(const char *memlimit) {
+	FILE *fd;
+	
+	fd = fopen(cgroup_mem_limit, "w");
+	fputs(memlimit, fd);
+	fclose(fd);
+
+	fd = fopen(cgroup_memsw_limit, "w");
+	fputs(memlimit, fd);
+	fclose(fd);
+}
+
+static void add_task_to_cgroup() {
+	FILE *fd = fopen(cgroup_mem_tasks, "w");
+	fprintf(fd, "%d\n", getpid());
+	fclose(fd);
+}
+
 static int lua_enterprot(lua_State *L) {
 	if (++lua_prot_depth == 1) {
-		// Increase mem limit
+		set_memory_limit(TASK_MEMORY_LIMIT_HIGH);
 		signal(SIGTERM, SIG_IGN);
 	}
 	return 0;
@@ -48,7 +70,7 @@ static int lua_leaveprot(lua_State *L) {
 	if (lua_prot_depth < 0) {
 		exit(3);
 	} else if (lua_prot_depth == 0) {
-		// Reset mem limit
+		set_memory_limit(TASK_MEMORY_LIMIT);
 		signal(SIGTERM, SIG_DFL);
 	}
 	return 0;
@@ -65,6 +87,19 @@ static void lua_init() {
 	lua_main = luaL_ref(L, LUA_REGISTRYINDEX);
 }
 
+static void cgroup_init() {
+	cgroup_mem_root = malloc(256);
+	cgroup_mem_limit = malloc(256);
+	cgroup_memsw_limit = malloc(256);
+	cgroup_mem_tasks = malloc(256);
+	sprintf(cgroup_mem_root, "/sys/fs/cgroup/memory/%s/moonhack_cg_%d/", getenv("USER"), getpid());
+	sprintf(cgroup_mem_limit, "%s%s", cgroup_mem_root, "memory.limit_in_bytes");
+	sprintf(cgroup_memsw_limit, "%s%s", cgroup_mem_root, "memory.memsw.limit_in_bytes");
+	sprintf(cgroup_mem_tasks, "%s%s", cgroup_mem_root, "tasks");
+	mkdir(cgroup_mem_root, 0700);
+	set_memory_limit(TASK_MEMORY_LIMIT);
+}
+
 int main() {
 	int _zmq_rcvmore = 0;
 	size_t _zmq_rcvmore_size = sizeof(int);
@@ -73,6 +108,7 @@ int main() {
 	signal(SIGHUP, SIG_IGN);
 	signal(SIGCHLD, noop_hdlr);
 
+	cgroup_init();
 	lua_init();
 
 	void* ctx = zmq_init(1);
@@ -86,7 +122,7 @@ int main() {
 	int stdout_pipe[2];
 	int stderr_pipe[2];
 
-	int stat, exit_code;
+	int exitstatus;
 	FILE *stdout_fd, *stderr_fd;
 	char buffer[BUFFER_LEN + 1];
 
@@ -121,6 +157,8 @@ int main() {
 
 			signal(SIGALRM, sigalrm_recvd);
 			alarm(TASK_HARD_TIMEOUT);
+
+			add_task_to_cgroup();
 			
 			lua_rawgeti(L, LUA_REGISTRYINDEX, lua_main);
 			lua_pushstring(L, run_id);
@@ -138,25 +176,32 @@ int main() {
 		close(stdout_pipe[1]);
 		close(stderr_pipe[1]);
 
-		waitpid(subworker, &stat, 0);
-		exit_code = WEXITSTATUS(stat);
+		waitpid(subworker, &exitstatus, 0);
 
 		stdout_fd = fdopen(stdout_pipe[0], "r");
 		stderr_fd = fdopen(stdout_pipe[0], "r");
 
-		switch(exit_code) {
-			case EXIT_TIMEOUT:
-				zmq_send(socket, "HARD_TIMEOUT\n", 13, ZMQ_SNDMORE);
-				break;
-			case EXIT_MEMLIMIT:
-				zmq_send(socket, "MEMORY_LIMIT\n", 13, ZMQ_SNDMORE);
-				break;
-			case EXIT_OK:
-				zmq_send(socket, "OK\n", 3, ZMQ_SNDMORE);
-				break;
-			default:
-				zmq_send(socket, "INTERNAL\n", 9, ZMQ_SNDMORE);
-				break;
+		if (WIFSIGNALED(exitstatus)) {
+			switch(WTERMSIG(exitstatus)) {
+				case 9: // SIGKILL, really only happens when OOM
+					zmq_send(socket, "MEMORY_LIMIT\n", 13, ZMQ_SNDMORE);
+					break;
+				default:
+					zmq_send(socket, "INTERNAL\n", 9, ZMQ_SNDMORE);
+					break;
+			}
+		} else if(WIFEXITED(exitstatus)) {
+			switch(WEXITSTATUS(exitstatus)) {
+				case EXIT_TIMEOUT:
+					zmq_send(socket, "HARD_TIMEOUT\n", 13, ZMQ_SNDMORE);
+					break;
+				case EXIT_OK:
+					zmq_send(socket, "OK\n", 3, ZMQ_SNDMORE);
+					break;					
+				default:
+					zmq_send(socket, "INTERNAL\n", 9, ZMQ_SNDMORE);
+					break;
+			}
 		}
 
 		while(!feof(stdout_fd) && fgets(buffer, BUFFER_LEN, stdout_fd)) {
