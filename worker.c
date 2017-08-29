@@ -170,39 +170,37 @@ int main() {
 
 		close(stdout_pipe[1]);
 
-		waitpid(subworker, &exitstatus, 0);
-
 		stdout_fd = fdopen(stdout_pipe[0], "r");
+		while(!feof(stdout_fd) && fgets(buffer, BUFFER_LEN, stdout_fd)) {
+			zmq_send(socket, buffer, strlen(buffer), ZMQ_SNDMORE);
+		}
+
+		waitpid(subworker, &exitstatus, 0);
 
 		if (WIFSIGNALED(exitstatus)) {
 			switch(WTERMSIG(exitstatus)) {
 				case 9: // SIGKILL, really only happens when OOM
-					zmq_send(socket, "MEMORY_LIMIT\n", 13, ZMQ_SNDMORE);
+					zmq_send(socket, "MEMORY_LIMIT\n", 13, 0);
 					break;
 				default:
-					zmq_send(socket, "INTERNAL\n", 9, ZMQ_SNDMORE);
+					zmq_send(socket, "INTERNAL\n", 9, 0);
 					printf("KILLED %d\n", WTERMSIG(exitstatus));
 					break;
 			}
 		} else if(WIFEXITED(exitstatus)) {
 			switch(WEXITSTATUS(exitstatus)) {
 				case EXIT_TIMEOUT:
-					zmq_send(socket, "HARD_TIMEOUT\n", 13, ZMQ_SNDMORE);
+					zmq_send(socket, "HARD_TIMEOUT\n", 13, 0);
 					break;
 				case EXIT_OK:
-					zmq_send(socket, "OK\n", 3, ZMQ_SNDMORE);
+					zmq_send(socket, "OK\n", 3, 0);
 					break;					
 				default:
-					zmq_send(socket, "INTERNAL\n", 9, ZMQ_SNDMORE);
+					zmq_send(socket, "INTERNAL\n", 9, 0);
 					printf("EXITED %d\n", WEXITSTATUS(exitstatus));
 					break;
 			}
 		}
-
-		while(!feof(stdout_fd) && fgets(buffer, BUFFER_LEN, stdout_fd)) {
-			zmq_send(socket, buffer, strlen(buffer), ZMQ_SNDMORE);
-		}
-		zmq_send(socket, NULL, 0, 0);
 
 		fclose(stdout_fd);
 	}
