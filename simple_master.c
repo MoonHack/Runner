@@ -15,7 +15,12 @@ void all_exit() {
 pid_t spawn_worker() {
 	pid_t worker = fork();
 	if (worker == 0) {
-		execl("../bin/worker", "worker", ZMQ_SOCKET, NULL);
+		if (chdir("./lua") && chdir("../lua")) {
+			return 1;
+		}
+		signal(SIGINT, SIG_IGN);
+		signal(SIGHUP, SIG_IGN);
+		execl("../bin/worker", "worker", ZMQ_SOCKET_SIMPLE_MASTER, NULL);
 		_exit(1);
 	} else if (worker > 0) {
 		return worker;
@@ -50,17 +55,15 @@ int main(int argc, char **argv) {
 
 	backend_socket = argv[1];
 
-	if (chdir("./lua") && chdir("../lua")) {
-		return 1;
-	}
-
 	signal(SIGCHLD, sigchld_recvd);
 	signal(SIGINT, all_exit);
 	signal(SIGHUP, all_exit);
 
 	pid_t router = fork();
 	if (router == 0) {
-		execl("../bin/router", "router", "-bb", ZMQ_SOCKET, "-fb", argv[1], NULL);
+		signal(SIGINT, SIG_IGN);
+		signal(SIGHUP, SIG_IGN);
+		execl("./bin/router", "router", ZMQ_ROUTER_THREADS_SIMPLE_MASTER, "-bb", ZMQ_SOCKET_SIMPLE_MASTER, "-fb", argv[1], NULL);
 		_exit(1);
 	} else if(router < 0) {
 		all_exit();

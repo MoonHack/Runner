@@ -82,6 +82,7 @@ static void lua_init() {
 	L = luaL_newstate();
 	luaL_openlibs(L);
 	if(luaL_dofile(L, "main.lua")) {
+		printf("Please make sure to run this executable with the working directory set to the lua path\n");
 		exit(1);
 	}
 
@@ -102,12 +103,15 @@ static void cgroup_init() {
 	set_memory_limit(TASK_MEMORY_LIMIT);
 }
 
-int main() {
+int main(int argc, char **argv) {
+	if (argc < 2) {
+		printf("Usage: ./worker BACKEND");
+		return 1;
+	}
+
 	int _zmq_rcvmore = 0;
 	size_t _zmq_rcvmore_size = sizeof(int);
 
-	signal(SIGINT, SIG_IGN);
-	signal(SIGHUP, SIG_IGN);
 	signal(SIGCHLD, noop_hdlr);
 
 	cgroup_init();
@@ -116,7 +120,7 @@ int main() {
 	void* ctx = zmq_init(1);
 	void* zsocket = zmq_socket(ctx, ZMQ_REP);
 	zmq_setallopts(zsocket, -1, 5000);
-	zmq_connect(zsocket, ZMQ_SOCKET);
+	zmq_connect(zsocket, argv[1]);
 
 	struct sockaddr_in saddr;
 	saddr.sin_family = AF_INET;

@@ -1,5 +1,5 @@
-#define ZMQ_SOCKET "ipc:///tmp/moonhack-master-to-workers"
-#define ZMQ_THREADS 4
+#define ZMQ_SOCKET_SIMPLE_MASTER "ipc:///tmp/moonhack-master-to-workers"
+#define ZMQ_ROUTER_THREADS_SIMPLE_MASTER "4"
 #define WORKER_COUNT 64
 
 #define TASK_HARD_TIMEOUT 7
