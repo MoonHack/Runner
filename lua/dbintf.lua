@@ -1,23 +1,23 @@
 local db = require("db")
 local util = require("util")
 
+local function performBulk(bulk)
+	local res, err = bulk:execute()
+	if res then
+		res = res:value()
+	end		
+
+	if not res then
+		return false, { writeErrors = {err} }
+	elseif res.writeErrors and #res.writeErrors > 0 then
+		return false, res
+	else
+		return true, res
+	end
+end
+
 return function(script)
 	local collection = db.user:getCollection("user_" .. util.getUserFromScript(script))
-
-	local function performBulk(bulk)
-		local res, err = bulk:execute()
-		if res then
-			res = res:value()
-		end		
-
-		if not res then
-			return false, { writeErrors = {err} }
-		elseif res.writeErrors and #res.writeErrors > 0 then
-			return false, res
-		else
-			return true, res
-		end
-	end
 
 	return freeze({
 		ObjectID = function(value)
