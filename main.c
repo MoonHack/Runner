@@ -12,7 +12,7 @@ void all_exit() {
 }
 
 pid_t spawn_worker() {
-	pid_t worker = vfork();
+	pid_t worker = fork();
 	if (worker == 0) {
 		execl("../worker", "worker", NULL);
 		_exit(1);
@@ -50,7 +50,7 @@ int main() {
 	signal(SIGINT, all_exit);
 	signal(SIGHUP, all_exit);
 
-	pid_t router = vfork();
+	pid_t router = fork();
 	if (router == 0) {
 		execl("../router", "router", NULL);
 		_exit(1);

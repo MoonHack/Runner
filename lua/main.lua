@@ -1,5 +1,6 @@
 _G.python = nil
 
+local runId = "UNKNOWN"
 local unpack = unpack
 local error = error
 local write = io.write
@@ -16,6 +17,9 @@ local load = load
 local cjson = require("cjson")
 local xpcall = xpcall
 local debug = debug
+
+local function noop()
+end
 
 local function writeln(str)
 	write(str .. "\n")
@@ -38,9 +42,9 @@ function checkTimeout()
 	end
 end
 
-local pythonEnterProtected, pythonLeaveProtected
+local extEnterProtected, extLeaveProtected
 local function enterProtectedSection()
-	pythonEnterProtected()
+	extEnterProtected()
 	PROTECTION_DEPTH = PROTECTION_DEPTH + 1
 end
 
@@ -50,7 +54,7 @@ local function leaveProtectedSection()
 		exit(1)
 	end
 	checkTimeout()
-	pythonLeaveProtected()
+	extLeaveProtected()
 end
 
 function runProtected(code)
@@ -226,7 +230,10 @@ local function loadMainScript(script, isScriptor)
 	}, -1, script, false)
 end
 
-local function __run(_caller, _script, args)
+local function __run(_runId, _caller, _script, args, _extEnterProtected, _extLeaveProtected)
+	runId = _runId or "UNKNOWN"
+	extEnterProtected = _extLeaveProtected or noop
+	extLeaveProtected = _extLeaveProtected or noop
 	CAN_SOFT_KILL = true
 	START_TIME = time()
 	KILL_TIME = START_TIME + 6
@@ -272,13 +279,10 @@ local function __run(_caller, _script, args)
 	exit(0)
 end
 
-local resetScriptCache = resetScriptCache
-local collectgarbage = collectgarbage
+--local resetScriptCache = resetScriptCache
+--local collectgarbage = collectgarbage
 
-return {__run, --[[function()
+return __run --[[, function()
 	resetScriptCache()
 	collectgarbage()
-end,]] function(pyEnterProtected, pyLeaveProtected)
-	pythonEnterProtected = pyEnterProtected
-	pythonLeaveProtected = pyLeaveProtected
-end}
+end]]

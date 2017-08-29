@@ -1,5 +1,4 @@
 zmq
-uuid
-lupa (compiled with LuaJIT 2)
+luajit
 	lua-cjson
 	lua-mongo
