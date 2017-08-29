@@ -120,10 +120,11 @@ int main() {
 	int caller_len, script_len, run_id_len, args_len;
 
 	int stdout_pipe[2];
-	int stderr_pipe[2];
+	//int stderr_pipe[2];
 
 	int exitstatus;
-	FILE *stdout_fd, *stderr_fd;
+	FILE *stdout_fd;
+	//FILE *stderr_fd;
 	char buffer[BUFFER_LEN + 1];
 
 	while (1) {
@@ -142,18 +143,20 @@ int main() {
 		if(pipe(stdout_pipe)) {
 			exit(1);
 		}
-		if(pipe(stderr_pipe)) {
-			exit(1);
-		}
+		//if(pipe(stderr_pipe)) {
+		//	exit(1);
+		//}
 
 		pid_t subworker = fork();
 		if (subworker == 0) {
 			close(stdout_pipe[0]);
-			close(stderr_pipe[0]);
+			//close(stderr_pipe[0]);
 			dup2(stdout_pipe[1], 1);
 			close(stdout_pipe[1]);
-			dup2(stderr_pipe[1], 2);
-			close(stderr_pipe[1]);
+			//dup2(stderr_pipe[1], 2);
+			//close(stderr_pipe[1]);
+
+			lua_prot_depth = 0;
 
 			signal(SIGALRM, sigalrm_recvd);
 			alarm(TASK_HARD_TIMEOUT);
@@ -174,12 +177,12 @@ int main() {
 		}
 
 		close(stdout_pipe[1]);
-		close(stderr_pipe[1]);
+		//close(stderr_pipe[1]);
 
 		waitpid(subworker, &exitstatus, 0);
 
 		stdout_fd = fdopen(stdout_pipe[0], "r");
-		stderr_fd = fdopen(stdout_pipe[0], "r");
+		//stderr_fd = fdopen(stderr_pipe[0], "r");
 
 		if (WIFSIGNALED(exitstatus)) {
 			switch(WTERMSIG(exitstatus)) {
@@ -188,6 +191,7 @@ int main() {
 					break;
 				default:
 					zmq_send(socket, "INTERNAL\n", 9, ZMQ_SNDMORE);
+					printf("KILLED %d\n", WTERMSIG(exitstatus));
 					break;
 			}
 		} else if(WIFEXITED(exitstatus)) {
@@ -200,6 +204,7 @@ int main() {
 					break;					
 				default:
 					zmq_send(socket, "INTERNAL\n", 9, ZMQ_SNDMORE);
+					printf("EXITED %d\n", WEXITSTATUS(exitstatus));
 					break;
 			}
 		}
@@ -207,10 +212,10 @@ int main() {
 		while(!feof(stdout_fd) && fgets(buffer, BUFFER_LEN, stdout_fd)) {
 			zmq_send(socket, buffer, strlen(buffer), ZMQ_SNDMORE);
 		}
-		zmq_send(socket, "STOP\n", 5, 0);
+		zmq_send(socket, NULL, 0, 0);
 
 		fclose(stdout_fd);
-		fclose(stderr_fd);
+		//fclose(stderr_fd);
 	}
 
 	return 0;

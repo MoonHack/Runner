@@ -232,7 +232,7 @@ end
 
 local function __run(_runId, _caller, _script, args, _extEnterProtected, _extLeaveProtected)
 	runId = _runId or "UNKNOWN"
-	extEnterProtected = _extLeaveProtected or noop
+	extEnterProtected = _extEnterProtected or noop
 	extLeaveProtected = _extLeaveProtected or noop
 	CAN_SOFT_KILL = true
 	START_TIME = time()
