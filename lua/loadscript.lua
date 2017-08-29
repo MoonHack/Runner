@@ -7,14 +7,16 @@ local next = next
 local strdump = string.dump
 local checkTimeout = checkTimeout
 local io = io
+local function flagSet(flags, flag)
+	return bit.band(flags, flag) == flag
+end
 
 local scriptsDb = db.internal:getCollection("scripts")
 
 local scriptCache = {}
 
---[[function resetScriptCache()
-	scriptCache = {}
-end]]
+local LOAD_AS_OWNER = 1
+local LOAD_ONLY_INFORMATION = 2
 
 local function loadCoreScript(name, securityLevel)
 	local file = "corescripts/" .. name:gsub("%.", "/") .. ".lua"
@@ -37,12 +39,6 @@ local function loadscriptInternal(script, compile)
 		return false, "Script name must be a string"
 	end
 
-	--[[io.write("[\"sc\"")
-	for k,v in pairs(scriptCache) do
-		io.write(",\"" .. k .. "\"")
-	end
-	io.write("]\n")]]
-
 	local data = scriptCache[script]
 	if not data then
 		data = scriptsDb:findOne({
@@ -57,19 +53,23 @@ local function loadscriptInternal(script, compile)
 
 	if compile and not data.__func then
 		local callingScript = data.name
+		local callingScriptOwner = data.owner
 		local secLevel = data.securityLevel
 
 		local PROTECTED_SUB_ENV = util.shallowCopy(TEMPLATE_SUB_ENV)
 
 		PROTECTED_SUB_ENV.game = {
-			loadscript = function(script, onlyInformative)
+			LOAD_AS_OWNER = LOAD_AS_OWNER,
+			LOAD_ONLY_INFORMATION = LOAD_ONLY_INFORMATION,
+			loadscript = function(script, flags)
+				flags = flags or 0
 				checkTimeout()
 				return loadscript({
 					thisScript = script,
 					callingScript = callingScript,
 					isScriptor = false,
-					caller = CORE_SCRIPT.caller
-				}, secLevel, script, onlyInformative)
+					caller = flagSet(flags, LOAD_AS_OWNER) and callingScriptOwner or CORE_SCRIPT.caller
+				}, secLevel, script, flagSet(flags, LOAD_ONLY_INFORMATION))
 			end,
 			db = dbintf(data.name),
 			cache = {} -- Not protected on purpose, like #G
@@ -125,7 +125,8 @@ loadscript = function(ctx, parentSecLevel, script, onlyInformative)
 		securityLevel = data.securityLevel,
 		accessLevel = data.accessLevel,
 		trust = data.trust,
-		name = script
+		name = data.name,
+		owner = data.owner
 	}
 	if runnable then
 		if data.securityLevel < parentSecLevel then
