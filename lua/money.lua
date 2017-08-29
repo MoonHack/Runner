@@ -1,7 +1,8 @@
 local db = require("db")
 local userDb = db.internal:getCollection("users")
 local timeLeft = timeLeft
-local timeoutProtection = timeoutProtection
+local enterProtectedSection = enterProtectedSection
+local leaveProtectedSection = leaveProtectedSection
 local checkTimeout = checkTimeout
 
 local function give(user, amount)
@@ -27,20 +28,18 @@ local function transfer(from, to, amount)
 		checkTimeout()
 		return false, 'MU transfers require 1 second of runtime'
 	end
-	timeoutProtection(true)
-	local ok, tr = take(from, amount)
-	if not ok then
-		timeoutProtection(false)
-		return false, tr
-	end
-	ok, tr = give(to, amount)
-	if not ok then
-		give(from, amount)
-		timeoutProtection(false)
-		return false, tr
-	end
-	timeoutProtection(false)
-	return true
+	return runProtected(function()
+		local ok, tr = take(from, amount)
+		if not ok then
+			return false, tr
+		end
+		ok, tr = give(to, amount)
+		if not ok then
+			give(from, amount)
+			return false, tr
+		end
+		return true
+	end)
 end
 
 return {

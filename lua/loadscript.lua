@@ -10,6 +10,7 @@ local checkTimeout = checkTimeout
 local scriptsDb = db.internal:getCollection("scripts")
 
 local scriptCache = {}
+local coreScripts = {}
 
 function resetScriptCache()
 	scriptCache = {}
@@ -17,7 +18,7 @@ end
 
 local function loadCoreScript(name, securityLevel)
 	local file = "corescripts/" .. name:gsub("%.", "/") .. ".lua"
-	scriptCache[name] = {
+	coreScripts[name] = {
 		name = name,
 		__func = dofile(file),
 		accessLevel = 3,
@@ -27,6 +28,7 @@ local function loadCoreScript(name, securityLevel)
 end
 
 loadCoreScript("scripts.lib", 5)
+loadCoreScript("accts.xfer_mu_to", 3)
 
 local loadscript
 
@@ -35,7 +37,7 @@ local function loadscriptInternal(script, compile)
 		return false, "Script name must be a string"
 	end
 
-	local data = scriptCache[script]
+	local data = coreScripts[script] or scriptCache[script]
 	if not data then
 		data = scriptsDb:findOne({
 			name = script

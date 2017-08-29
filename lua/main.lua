@@ -1,31 +1,8 @@
 _G.python = nil
 
+local unpack = unpack
 local error = error
 local write = io.write
-local function writeln(str)
-	write(str .. "\n")
-end
-local time = os.time
-local exit = os.exit
-
-local CAN_SOFT_KILL = true
-local START_TIME = 0 --time()
-local KILL_TIME = 0 --START_TIME + 6
-function timeLeft()
-	return KILL_TIME - time()
-end
-
-function timeoutProtection(enable)
-	CAN_SOFT_KILL = not enable
-end
-
-function checkTimeout()
-	if CAN_SOFT_KILL and timeLeft() < 0 then
-		writeln('{"ok":false,"data":"Script killed after 5 second timeout"}')
-		exit(0)
-	end
-end
-
 local type = type
 local next = next
 local tinsert = table.insert
@@ -39,6 +16,53 @@ local load = load
 local cjson = require("cjson")
 local xpcall = xpcall
 local debug = debug
+
+local function writeln(str)
+	write(str .. "\n")
+end
+
+local time = os.time
+local exit = os.exit
+
+local PROTECTION_DEPTH = 0
+local START_TIME = 0 --time()
+local KILL_TIME = 0 --START_TIME + 6
+function timeLeft()
+	return KILL_TIME - time()
+end
+
+function checkTimeout()
+	if PROTECTION_DEPTH <= 0 and timeLeft() < 0 then
+		writeln('{"ok":false,"data":"Script killed after 5 second timeout"}')
+		exit(0)
+	end
+end
+
+local pythonEnterProtected, pythonLeaveProtected
+function enterProtectedSection()
+	pythonEnterProtected()
+	PROTECTION_DEPTH = PROTECTION_DEPTH + 1
+end
+
+function leaveProtectedSection()
+	PROTECTION_DEPTH = PROTECTION_DEPTH - 1
+	if PROTECTION_DEPTH < 0 then
+		exit(1)
+	end
+	checkTimeout()
+	pythonLeaveProtected()
+end
+
+function runProtected(code)
+	enterProtectedSection()
+	local res = {pcall(code)}
+	leaveProtectedSection()
+	if not res[1] then
+		error(res[2])
+	end
+	tremove(res, 1)
+	return unpack(res)
+end
 
 local function _errorReadOnly()
 	error("Read-Only")
@@ -230,18 +254,19 @@ local function __run(_caller, _script, args)
 		end
 	end
 
-	local main = CORE_SCRIPT.run
-
 	local _ENV = {}
-	local ok, res = xpcall(function()
-		return main()
-	end, errorHandler, args)
-	if ok then
-		writeln(cjson.encode(res))
+	local res = {xpcall(CORE_SCRIPT.run, errorHandler, args)}
+	if res[1] then
+		if #res == 2 then
+			writeln(cjson.encode(res[2]))
+		else
+			tremove(res, 1)
+			writeln(cjson.encode(res))
+		end
 	else
 		writeln(cjson.encode({
 			ok = false,
-			msg = res
+			msg = res[2]
 		}))
 	end
 end
@@ -252,4 +277,7 @@ local collectgarbage = collectgarbage
 return {__run, function()
 	resetScriptCache()
 	collectgarbage()
+end, function(pyEnterProtected, pyLeaveProtected)
+	pythonEnterProtected = pyEnterProtected
+	pythonLeaveProtected = pyLeaveProtected
 end}
