@@ -51,17 +51,15 @@ int main(int argc, char **argv) {
 	int sc = accept(s, NULL, NULL);
 	close(s);
 
-	FILE *sockfd = fdopen(sc, "r");
 	char buffer[65537];
+	int buf_len = zmq_recv(zsocket, &buffer, 65536, 0);
+	buffer[buf_len] = 0;
+	printf("RESULT: %s", buffer);
+
+	FILE *sockfd = fdopen(sc, "r");
 	while(!feof(sockfd) && fgets(buffer, 65536, sockfd)) {
 		printf("%s", buffer);
 	}
-
-	buffer[0] = 0;
-	int buf_len = zmq_recv(zsocket, &buffer, 65536, 0);
-	buffer[buf_len] = 0;
-
-	printf("FINAL: %s", buffer);
 
 	fclose(sockfd);
 

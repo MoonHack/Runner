@@ -147,6 +147,15 @@ int main() {
 		script[script_len] = 0;
 		run_id[run_id_len] = 0;
 		args[args_len] = 0;
+
+		int sockfd = socket(PF_INET, SOCK_STREAM, 0);
+		if (connect(sockfd, (struct sockaddr *)&saddr, sizeof(saddr)) < 0) {
+			zmq_send(zsocket, "NOCONNECT\n", 10, 0);
+			perror("connect");
+			continue;
+		}
+
+		zmq_send(zsocket, "STARTED\n", 8, 0);
 		
 		if(pipe(stdout_pipe)) {
 			exit(1);
@@ -154,6 +163,7 @@ int main() {
 
 		pid_t subworker = fork();
 		if (subworker == 0) {
+			close(sockfd);
 			close(stdout_pipe[0]);
 			dup2(stdout_pipe[1], 1);
 			close(stdout_pipe[1]);
@@ -180,13 +190,6 @@ int main() {
 
 		close(stdout_pipe[1]);
 
-		int sockfd = socket(PF_INET, SOCK_STREAM, 0);
-		if (connect(sockfd, (struct sockaddr *)&saddr, sizeof(saddr)) < 0) {
-			zmq_send(zsocket, "NOCONNECT\n", 10, 0);
-			perror("connect");
-			continue;
-		}
-
 		stdout_fd = fdopen(stdout_pipe[0], "r");
 		while(!feof(stdout_fd) && fgets(buffer, BUFFER_LEN, stdout_fd)) {
 			if (write(sockfd, buffer, strlen(buffer)) < 0) {
@@ -194,36 +197,46 @@ int main() {
 			}
 			//zmq_send(socket, buffer, strlen(buffer), ZMQ_SNDMORE);
 		}
-		close(sockfd);
 
 		waitpid(subworker, &exitstatus, 0);
 
 		if (WIFSIGNALED(exitstatus)) {
 			switch(WTERMSIG(exitstatus)) {
 				case 9: // SIGKILL, really only happens when OOM
-					zmq_send(zsocket, "MEMORY_LIMIT\n", 13, 0);
+					if (write(sockfd, "MEMORY_LIMIT\n", 13) < 0) {
+						perror("write");
+					}
 					break;
 				default:
-					zmq_send(zsocket, "INTERNAL\n", 9, 0);
+					if (write(sockfd, "INTERNAL\n", 9) < 0) {
+						perror("write");
+					}
 					printf("KILLED %d\n", WTERMSIG(exitstatus));
 					break;
 			}
 		} else if(WIFEXITED(exitstatus)) {
 			switch(WEXITSTATUS(exitstatus)) {
 				case EXIT_TIMEOUT:
-					zmq_send(zsocket, "HARD_TIMEOUT\n", 13, 0);
+					if (write(sockfd, "HARD_TIMEOUT\n", 13) < 0) {
+						perror("write");
+					}
 					break;
 				case EXIT_OK:
-					zmq_send(zsocket, "OK\n", 3, 0);
+					if (write(sockfd, "OK\n", 3) < 0) {
+						perror("write");
+					}
 					break;					
 				default:
-					zmq_send(zsocket, "INTERNAL\n", 9, 0);
+					if (write(sockfd, "INTERNAL\n", 9) < 0) {
+						perror("write");
+					}
 					printf("EXITED %d\n", WEXITSTATUS(exitstatus));
 					break;
 			}
 		}
 
 		fclose(stdout_fd);
+		close(sockfd);
 	}
 
 	return 0;
