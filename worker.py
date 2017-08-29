@@ -6,7 +6,7 @@ from cgroups import Cgroup
 
 #TODO: CONFIG THIS
 task_timeout = 7
-task_memory_limit = 32
+task_memory_limit = 32 # 8MB is about the baseline to be able to run simple scripts
 
 cgroup = Cgroup("moonhack_cg_%d" % os.getpid())
 cgroup.set_memory_limit(task_memory_limit)
