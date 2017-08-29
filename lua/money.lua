@@ -6,6 +6,8 @@ local leaveProtectedSection = leaveProtectedSection
 local checkTimeout = checkTimeout
 
 local function give(user, amount)
+	user = tostring(user)
+	amount = tonumber(amount)
 	checkTimeout()
 	local res = userDb:findAndModify({ name = user }, { update = { ['$inc'] = { balance = amount } } })
 	if not res then
@@ -15,6 +17,8 @@ local function give(user, amount)
 end
 
 local function take(user, amount)
+	user = tostring(user)
+	amount = tonumber(amount)
 	checkTimeout()
 	local res = userDb:findAndModify({ name = user, balance = { ['$gte'] = amount } }, { update = { ['$inc'] = { balance = -amount } } })
 	if not res then
@@ -24,6 +28,9 @@ local function take(user, amount)
 end
 
 local function transfer(from, to, amount)
+	from = tostring(from)
+	to = tostring(to)
+	amount = tonumber(amount)
 	if timeLeft() < 1 then
 		checkTimeout()
 		return false, 'MU transfers require 1 second of runtime'
@@ -38,7 +45,7 @@ local function transfer(from, to, amount)
 			give(from, amount)
 			return false, tr
 		end
-		return true
+		return true, 'Transferred ' .. amount .. ' MU from ' .. from .. ' to ' .. to
 	end)
 end
 
