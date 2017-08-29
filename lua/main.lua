@@ -39,12 +39,12 @@ function checkTimeout()
 end
 
 local pythonEnterProtected, pythonLeaveProtected
-function enterProtectedSection()
+local function enterProtectedSection()
 	pythonEnterProtected()
 	PROTECTION_DEPTH = PROTECTION_DEPTH + 1
 end
 
-function leaveProtectedSection()
+local function leaveProtectedSection()
 	PROTECTION_DEPTH = PROTECTION_DEPTH - 1
 	if PROTECTION_DEPTH < 0 then
 		exit(1)
