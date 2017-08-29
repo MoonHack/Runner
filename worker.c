@@ -200,6 +200,10 @@ int main() {
 
 		waitpid(subworker, &exitstatus, 0);
 
+		if (write(sockfd, "\0\n", 2) < 0) {
+			perror("write");
+		}
+
 		if (WIFSIGNALED(exitstatus)) {
 			switch(WTERMSIG(exitstatus)) {
 				case 9: // SIGKILL, really only happens when OOM
