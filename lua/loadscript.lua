@@ -62,8 +62,8 @@ local function loadscriptInternal(script, compile)
 			LOAD_AS_OWNER = LOAD_AS_OWNER,
 			LOAD_ONLY_INFORMATION = LOAD_ONLY_INFORMATION,
 			loadscript = function(script, flags)
-				flags = flags or 0
 				checkTimeout()
+				flags = flags or 0
 				return loadscript({
 					thisScript = script,
 					callingScript = callingScript,
