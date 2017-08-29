@@ -1,14 +1,19 @@
+#!/usr/bin/env python3
+
 import zmq
 import os
 import signal
 from worker import main as worker_main
 from time import sleep
+from sys import executable as sys_executable
+from gc import collect as gc_collect
+
+if __name__ != '__main__':
+    raise Exception('Please run me, not import')
 
 # TODO: CONFIG THIS
 worker_count = 64
-
-if __name__ != '__main__':
-    raise 'Please run me, not import'
+zmq_threads = 4
 
 ipc_socket = 'ipc:///tmp/moonhack-master-to-workers'
 
@@ -36,11 +41,12 @@ def spawn_worker():
 			context = zmq.Context(1)
 			socket = context.socket(zmq.REP)
 			socket.connect(ipc_socket)
-			zmq_setopt(socket)
+			socket.setsockopt(zmq.LINGER, 0)
 			socket.setsockopt(zmq.RCVTIMEO, -1)
 			socket.setsockopt(zmq.SNDTIMEO, 5000)
 
-			worker_main(socket)
+			gc_collect()
+			return worker_main(socket)
 		finally:
 			exit(1)
 	elif pid > 0:
@@ -59,37 +65,29 @@ def sigchld_recvd(signum, frame):
 		except ValueError:
 			pass
 
-pid = os.fork()
-if pid == 0:
-	context = zmq.Context(4)
+signal.signal(signal.SIGCHLD, sigchld_recvd)
+signal.signal(signal.SIGINT, all_exit)
+signal.signal(signal.SIGHUP, all_exit)
 
-	frontend = context.socket(zmq.XREP)
-	frontend.bind('tcp://*:5556')
-	zmq_setopt(frontend)
-	frontend.setsockopt(zmq.RCVTIMEO, -1)
-	frontend.setsockopt(zmq.SNDTIMEO, 5000)
+gc_collect()
 
-	backend = context.socket(zmq.XREQ)
-	backend.bind(ipc_socket)
-	zmq_setopt(backend)
-	backend.setsockopt(zmq.RCVTIMEO, 10000)
+for worker_id in range(0, worker_count):
+	worker_pids.append(spawn_worker())
 
-	signal.signal(signal.SIGINT, signal.SIG_IGN)
-	signal.signal(signal.SIGHUP, signal.SIG_IGN)
-	signal.signal(signal.SIGCHLD, noop_hdlr)
+# ZMQ listener
+print('Listening...')
+context = zmq.Context(zmq_threads)
 
-	zmq.device(zmq.QUEUE, frontend, backend)
-	exit(1)
-elif pid > 0:
-	signal.signal(signal.SIGCHLD, sigchld_recvd)
-	signal.signal(signal.SIGINT, all_exit)
-	signal.signal(signal.SIGHUP, all_exit)
+frontend = context.socket(zmq.XREP)
+frontend.bind('tcp://*:5556')
+zmq_setopt(frontend)
+frontend.setsockopt(zmq.RCVTIMEO, -1)
+frontend.setsockopt(zmq.SNDTIMEO, 5000)
 
-	for worker_id in range(0, worker_count):
-		worker_pids.append(spawn_worker())
+backend = context.socket(zmq.XREQ)
+backend.bind(ipc_socket)
+zmq_setopt(backend)
+backend.setsockopt(zmq.RCVTIMEO, 10000)
 
-	print('Listening...')
-	while True:
-		sleep(1000)
-else:
-	raise 'Could not fork'
+zmq.device(zmq.QUEUE, frontend, backend)
+exit(1)

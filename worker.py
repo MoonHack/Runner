@@ -3,7 +3,6 @@ import os
 import json
 from lupa import LuaRuntime
 from cgroups import Cgroup
-from gc import collect as gc_collect
 
 #TODO: CONFIG THIS
 task_timeout = 7
@@ -116,7 +115,6 @@ def runlua(caller, script, args):
 
 def main(socket):
 	lua.eval('collectgarbage()')
-	gc_collect()
 	while True:
 		msg = json.loads(socket.recv_string())
 		caller = msg['caller']
