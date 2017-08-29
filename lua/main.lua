@@ -4,6 +4,7 @@ local runId = "UNKNOWN"
 local unpack = unpack
 local error = error
 local write = io.write
+local flush = io.flush
 local type = type
 local next = next
 local tinsert = table.insert
@@ -23,6 +24,7 @@ end
 
 local function writeln(str)
 	write(str .. "\n")
+	flush()
 end
 
 local time = os.time

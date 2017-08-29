@@ -6,6 +6,8 @@
 #include <signal.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 #include <lua.h>
 #include <lauxlib.h>
@@ -21,9 +23,9 @@
 #define EXIT_OK 0
 #define EXIT_TIMEOUT 5
 
-#define ZMQ_NEEDMORE zmq_getsockopt(socket, ZMQ_RCVMORE, &_zmq_rcvmore, &_zmq_rcvmore_size); \
+#define ZMQ_NEEDMORE zmq_getsockopt(zsocket, ZMQ_RCVMORE, &_zmq_rcvmore, &_zmq_rcvmore_size); \
 	if (!_zmq_rcvmore) { \
-		zmq_send(socket, "BAD_INPUT\n", 10, 0); \
+		zmq_send(zsocket, "BAD_INPUT\n", 10, 0); \
 		continue; \
 	}
 
@@ -112,9 +114,12 @@ int main() {
 	lua_init();
 
 	void* ctx = zmq_init(1);
-	void* socket = zmq_socket(ctx, ZMQ_REP);
-	zmq_setallopts(socket, -1, 5000);
-	zmq_connect(socket, ZMQ_SOCKET);
+	void* zsocket = zmq_socket(ctx, ZMQ_REP);
+	zmq_setallopts(zsocket, -1, 5000);
+	zmq_connect(zsocket, ZMQ_SOCKET);
+
+	struct sockaddr_in saddr;
+	saddr.sin_family = AF_INET;
 
 	char caller[BASE_LEN + 1], script[BASE_LEN + 1], run_id[BASE_LEN + 1], args[ARGS_LEN + 1];
 	int caller_len, script_len, run_id_len, args_len;
@@ -126,13 +131,18 @@ int main() {
 	char buffer[BUFFER_LEN + 1];
 
 	while (1) {
-		run_id_len = zmq_recv(socket, &run_id, BASE_LEN, 0);
+		zmq_recv(zsocket, &saddr.sin_addr, sizeof(saddr.sin_addr), 0);
 		ZMQ_NEEDMORE;
-		caller_len = zmq_recv(socket, &caller, BASE_LEN, 0);
+		zmq_recv(zsocket, &saddr.sin_port, sizeof(saddr.sin_port), 0);
 		ZMQ_NEEDMORE;
-		script_len = zmq_recv(socket, &script, BASE_LEN, 0);
+		run_id_len = zmq_recv(zsocket, &run_id, BASE_LEN, 0);
 		ZMQ_NEEDMORE;
-		args_len = zmq_recv(socket, &args, ARGS_LEN, 0);
+		caller_len = zmq_recv(zsocket, &caller, BASE_LEN, 0);
+		ZMQ_NEEDMORE;
+		script_len = zmq_recv(zsocket, &script, BASE_LEN, 0);
+		ZMQ_NEEDMORE;
+		args_len = zmq_recv(zsocket, &args, ARGS_LEN, 0);
+
 		caller[caller_len] = 0;
 		script[script_len] = 0;
 		run_id[run_id_len] = 0;
@@ -170,33 +180,44 @@ int main() {
 
 		close(stdout_pipe[1]);
 
+		int sockfd = socket(PF_INET, SOCK_STREAM, 0);
+		if (connect(sockfd, (struct sockaddr *)&saddr, sizeof(saddr)) < 0) {
+			zmq_send(zsocket, "NOCONNECT\n", 10, 0);
+			perror("connect");
+			continue;
+		}
+
 		stdout_fd = fdopen(stdout_pipe[0], "r");
 		while(!feof(stdout_fd) && fgets(buffer, BUFFER_LEN, stdout_fd)) {
-			zmq_send(socket, buffer, strlen(buffer), ZMQ_SNDMORE);
+			if (write(sockfd, buffer, strlen(buffer)) < 0) {
+				break;
+			}
+			//zmq_send(socket, buffer, strlen(buffer), ZMQ_SNDMORE);
 		}
+		close(sockfd);
 
 		waitpid(subworker, &exitstatus, 0);
 
 		if (WIFSIGNALED(exitstatus)) {
 			switch(WTERMSIG(exitstatus)) {
 				case 9: // SIGKILL, really only happens when OOM
-					zmq_send(socket, "MEMORY_LIMIT\n", 13, 0);
+					zmq_send(zsocket, "MEMORY_LIMIT\n", 13, 0);
 					break;
 				default:
-					zmq_send(socket, "INTERNAL\n", 9, 0);
+					zmq_send(zsocket, "INTERNAL\n", 9, 0);
 					printf("KILLED %d\n", WTERMSIG(exitstatus));
 					break;
 			}
 		} else if(WIFEXITED(exitstatus)) {
 			switch(WEXITSTATUS(exitstatus)) {
 				case EXIT_TIMEOUT:
-					zmq_send(socket, "HARD_TIMEOUT\n", 13, 0);
+					zmq_send(zsocket, "HARD_TIMEOUT\n", 13, 0);
 					break;
 				case EXIT_OK:
-					zmq_send(socket, "OK\n", 3, 0);
+					zmq_send(zsocket, "OK\n", 3, 0);
 					break;					
 				default:
-					zmq_send(socket, "INTERNAL\n", 9, 0);
+					zmq_send(zsocket, "INTERNAL\n", 9, 0);
 					printf("EXITED %d\n", WEXITSTATUS(exitstatus));
 					break;
 			}
