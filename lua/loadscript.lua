@@ -101,6 +101,10 @@ local function loadscriptInternal(script, compile)
 					}
 				})
 			end
+
+			if setfenv then
+				setfenv(func, {})
+			end
 			data.__func = func()
 		end
 		data.__ENV = PROTECTED_SUB_ENV
