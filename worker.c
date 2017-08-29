@@ -200,19 +200,15 @@ int main() {
 
 		waitpid(subworker, &exitstatus, 0);
 
-		if (write(sockfd, "\0\n", 2) < 0) {
-			perror("write");
-		}
-
 		if (WIFSIGNALED(exitstatus)) {
 			switch(WTERMSIG(exitstatus)) {
 				case 9: // SIGKILL, really only happens when OOM
-					if (write(sockfd, "MEMORY_LIMIT\n", 13) < 0) {
+					if (write(sockfd, "\0\nMEMORY_LIMIT\n", 15) < 0) {
 						perror("write");
 					}
 					break;
 				default:
-					if (write(sockfd, "INTERNAL\n", 9) < 0) {
+					if (write(sockfd, "\0\nINTERNAL\n", 11) < 0) {
 						perror("write");
 					}
 					printf("KILLED %d\n", WTERMSIG(exitstatus));
@@ -221,17 +217,17 @@ int main() {
 		} else if(WIFEXITED(exitstatus)) {
 			switch(WEXITSTATUS(exitstatus)) {
 				case EXIT_TIMEOUT:
-					if (write(sockfd, "HARD_TIMEOUT\n", 13) < 0) {
+					if (write(sockfd, "\0\nHARD_TIMEOUT\n", 15) < 0) {
 						perror("write");
 					}
 					break;
 				case EXIT_OK:
-					if (write(sockfd, "OK\n", 3) < 0) {
+					if (write(sockfd, "\0\nOK\n", 5) < 0) {
 						perror("write");
 					}
 					break;					
 				default:
-					if (write(sockfd, "INTERNAL\n", 9) < 0) {
+					if (write(sockfd, "\0\nINTERNAL\n", 11) < 0) {
 						perror("write");
 					}
 					printf("EXITED %d\n", WEXITSTATUS(exitstatus));
