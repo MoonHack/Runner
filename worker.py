@@ -9,12 +9,12 @@ from gc import collect as gc_collect
 task_timeout = 7
 task_memory_limit = 32 # 8MB is about the baseline to be able to run simple scripts
 
-cgroup = Cgroup("moonhack_cg_%d" % os.getpid())
+cgroup = Cgroup('moonhack_cg_%d' % os.getpid())
 cgroup.set_memory_limit(task_memory_limit)
 
-os.chdir("lua")
+os.chdir('lua')
 lua = LuaRuntime(register_eval = False, register_builtins = False)
-file = open("main.lua", "r")
+file = open('main.lua', 'r')
 lua_progs = lua.execute(file.read())
 lua_main = lua_progs[1]
 #lua_flush_caches = lua_progs[2]
@@ -87,22 +87,22 @@ def runlua(caller, script, args):
 		result = ''
 
 		if task_killed:
-			result = [{'ok': False, 'data': "Script hard-killed after 5 second timeout"}]
+			result = [{'ok': False, 'data': 'Script hard-killed after 5 second timeout'}]
 		elif errcode[1] != 0:
 			if errcode[1] == 9:
-				result = [{'ok': False, 'data': "Script used too much memory and was terminated"}]
+				result = [{'ok': False, 'data': 'Script used too much memory and was terminated'}]
 			else:
-				result = [{'ok': False, 'data': "Script caused internal error. Admins have been notified"}]
+				result = [{'ok': False, 'data': 'Script caused internal error. Admins have been notified'}]
 				print(prpipe.read())
 				print(prpipe_err.read())
 		else:
 			try:
 				result = []
 				for line in prpipe:
-					if line != "\n":
+					if line != '\n':
 						result.append(json.loads(line))
 			except json.decoder.JSONDecodeError as e:
-				result = [{'ok': False, 'data': "Script caused internal error. Admins have been notified"}]
+				result = [{'ok': False, 'data': 'Script caused internal error. Admins have been notified'}]
 				print(prpipe_err.read())
 				print(e)
 
@@ -114,7 +114,7 @@ def runlua(caller, script, args):
 		exit(1)
 
 def main(socket):
-	lua.eval("collectgarbage()")
+	lua.eval('collectgarbage()')
 	gc_collect()
 	while True:
 		msg = json.loads(socket.recv_string())
