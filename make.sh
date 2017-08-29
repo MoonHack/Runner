@@ -6,7 +6,7 @@ compile() {
 	gcc "$x.c" -O3 -Wall -o "./bin/$x" -lzmq $@
 	strip "./bin/$x"
 }
-compile main
+compile simple_master
 compile router
 compile worker -I/usr/include/luajit-2.0 -L/usr/lib/luajit-2.0 -lluajit-5.1
 compile run
