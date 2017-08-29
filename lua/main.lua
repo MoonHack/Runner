@@ -274,10 +274,10 @@ end
 local resetScriptCache = resetScriptCache
 local collectgarbage = collectgarbage
 
-return {__run, function()
+return {__run, --[[function()
 	resetScriptCache()
 	collectgarbage()
-end, function(pyEnterProtected, pyLeaveProtected)
+end,]] function(pyEnterProtected, pyLeaveProtected)
 	pythonEnterProtected = pyEnterProtected
 	pythonLeaveProtected = pyLeaveProtected
 end}

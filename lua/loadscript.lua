@@ -6,19 +6,19 @@ local load = load
 local next = next
 local strdump = string.dump
 local checkTimeout = checkTimeout
+local io = io
 
 local scriptsDb = db.internal:getCollection("scripts")
 
 local scriptCache = {}
-local coreScripts = {}
 
-function resetScriptCache()
+--[[function resetScriptCache()
 	scriptCache = {}
-end
+end]]
 
 local function loadCoreScript(name, securityLevel)
 	local file = "corescripts/" .. name:gsub("%.", "/") .. ".lua"
-	coreScripts[name] = {
+	scriptCache[name] = {
 		name = name,
 		__func = dofile(file),
 		accessLevel = 3,
@@ -37,7 +37,13 @@ local function loadscriptInternal(script, compile)
 		return false, "Script name must be a string"
 	end
 
-	local data = coreScripts[script] or scriptCache[script]
+	--[[io.write("[\"sc\"")
+	for k,v in pairs(scriptCache) do
+		io.write(",\"" .. k .. "\"")
+	end
+	io.write("]\n")]]
+
+	local data = scriptCache[script]
 	if not data then
 		data = scriptsDb:findOne({
 			name = script

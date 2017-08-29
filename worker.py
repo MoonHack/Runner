@@ -3,6 +3,7 @@ import os
 import json
 from lupa import LuaRuntime
 from cgroups import Cgroup
+from gc import collect as gc_collect
 
 #TODO: CONFIG THIS
 task_timeout = 7
@@ -14,9 +15,9 @@ cgroup.set_memory_limit(task_memory_limit)
 os.chdir("lua")
 lua = LuaRuntime(register_eval = False, register_builtins = False)
 file = open("main.lua", "r")
-luaProgs = lua.execute(file.read())
-luaMain = luaProgs[1]
-luaFlushCaches = luaProgs[2]
+lua_progs = lua.execute(file.read())
+lua_main = lua_progs[1]
+#lua_flush_caches = lua_progs[2]
 file.close()
 
 lua_is_protected = 0
@@ -46,7 +47,8 @@ def lua_leave_protected():
 	elif lua_is_protected < 0:
 		raise 'Protection level subzero'
 
-luaProgs[3](lua_enter_protected, lua_leave_protected)
+lua_progs[2](lua_enter_protected, lua_leave_protected)
+lua_progs = None
 
 def runlua(caller, script, args):
 	global task_alive
@@ -65,7 +67,7 @@ def runlua(caller, script, args):
 		os.close(wpipe_err)
 
 		cgroup.add(os.getpid())
-		luaMain(caller, script, args)
+		lua_main(caller, script, args)
 		exit(0)
 	elif pid > 0:
 		os.close(wpipe)
@@ -83,8 +85,6 @@ def runlua(caller, script, args):
 		signal.alarm(0)
 		task_alive = False
 		result = ''
-
-		luaFlushCaches()
 
 		if task_killed:
 			result = [{'ok': False, 'data': "Script hard-killed after 5 second timeout"}]
@@ -114,11 +114,12 @@ def runlua(caller, script, args):
 		exit(1)
 
 def main(socket):
+	lua.eval("collectgarbage()")
+	gc_collect()
 	while True:
 		msg = json.loads(socket.recv_string())
 		caller = msg['caller']
 		script = msg['script']
 		run_id = msg['run_id']
-		print("Got run", caller, script, run_id)
 		result = runlua(caller, script, msg['args'])
 		socket.send_string(json.dumps({'caller': caller, 'run_id': run_id, 'script': script, 'result': result}))
