@@ -82,23 +82,24 @@ local function loadscriptInternal(script, compile)
 			local _ENV = {}
 			local func
 
-			--[[if data.codeBinary then
+			if data.codeBinary and data.codeDate == data.codeBinaryDate then
 				local ok, res = pcall(load, data.codeBinary, data.name, "b", {})
 				if ok then
 					func = res
 				end
-			end]]
+			end
 
 			if not func then
 				func = load("return " .. data.code, data.name, "t", {})
-				--[[data.codeBinary = strdump(func)
+				data.codeBinary = strdump(func)
 				scriptsDb:update({
 					name = data.name
 				}, {
 					["$set"] = {
-						codeBinary = data.codeBinary
+						codeBinary = data.codeBinary,
+						codeBinaryDate = data.codeDate
 					}
-				})]]
+				})
 			end
 			data.__func = func()
 		end
