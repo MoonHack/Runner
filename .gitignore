@@ -1,4 +1,2 @@
-/main
-/router
-/worker
-/run
+/bin/*
+!/bin/.keep

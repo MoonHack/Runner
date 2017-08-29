@@ -3,8 +3,8 @@ set -e
 compile() {
 	x="$1"
 	shift 1
-	gcc "$x.c" -O3 -o "$x" -lzmq $@
-	strip "$x"
+	gcc "$x.c" -O3 -o "./bin/$x" -lzmq $@
+	strip "./bin/$x"
 }
 compile main
 compile router

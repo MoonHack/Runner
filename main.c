@@ -14,7 +14,7 @@ void all_exit() {
 pid_t spawn_worker() {
 	pid_t worker = fork();
 	if (worker == 0) {
-		execl("../worker", "worker", NULL);
+		execl("../bin/worker", "worker", NULL);
 		_exit(1);
 	} else if (worker > 0) {
 		return worker;
@@ -42,7 +42,7 @@ void sigchld_recvd() {
 }
 
 int main() {
-	if (chdir("lua")) {
+	if (chdir("./lua") && chdir("../lua")) {
 		return 1;
 	}
 
@@ -52,7 +52,7 @@ int main() {
 
 	pid_t router = fork();
 	if (router == 0) {
-		execl("../router", "router", NULL);
+		execl("../bin/router", "router", NULL);
 		_exit(1);
 	} else if(router < 0) {
 		all_exit();
