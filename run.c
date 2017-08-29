@@ -21,10 +21,16 @@ int main(int argc, char **argv) {
 	struct sockaddr_in myaddr;
 	int s;
 
+	struct timeval timeout;
+	timeout.tv_sec = 10;
+	timeout.tv_usec = 0;
+
 	myaddr.sin_family = AF_INET;
 	myaddr.sin_port = 0;
 	inet_aton("127.0.0.1", &myaddr.sin_addr);
 	s = socket(PF_INET, SOCK_STREAM, 0);
+	setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
+	setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout));
 	if (bind(s, (struct sockaddr*)&myaddr, sizeof(myaddr)) < 0) {
 		perror("bind");
 		return 1;
@@ -49,6 +55,8 @@ int main(int argc, char **argv) {
 	zmq_send(zsocket, args, strlen(args), 0);
 
 	int sc = accept(s, NULL, NULL);
+	setsockopt(sc, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
+	setsockopt(sc, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout));
 	close(s);
 
 	char buffer[65537];

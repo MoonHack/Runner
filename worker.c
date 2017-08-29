@@ -125,6 +125,10 @@ int main(int argc, char **argv) {
 	struct sockaddr_in saddr;
 	saddr.sin_family = AF_INET;
 
+	struct timeval timeout;
+	timeout.tv_sec = 10;
+	timeout.tv_usec = 0;
+
 	char caller[BASE_LEN + 1], script[BASE_LEN + 1], run_id[BASE_LEN + 1], args[ARGS_LEN + 1];
 	int caller_len, script_len, run_id_len, args_len;
 
@@ -153,6 +157,8 @@ int main(int argc, char **argv) {
 		args[args_len] = 0;
 
 		int sockfd = socket(PF_INET, SOCK_STREAM, 0);
+		setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
+		setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout));
 		if (connect(sockfd, (struct sockaddr *)&saddr, sizeof(saddr)) < 0) {
 			zmq_send(zsocket, "NOCONNECT\n", 10, 0);
 			perror("connect");
