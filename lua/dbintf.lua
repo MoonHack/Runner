@@ -102,6 +102,13 @@ return function(script)
 				return res:value()
 			end
 		end,
+		fm = function(query, replace)
+			checkTimeout()
+			local res = collection:findAndModify(query, replace)
+			if res then
+				return res:value()
+			end
+		end,
 		r = function(query)
 			checkTimeout()
 			local bulk = collection:createBulkOperation()
