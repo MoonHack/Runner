@@ -1,4 +1,5 @@
 zmq
+mongoc 1.7.0 (./configure --disable-automatic-init-and-cleanup --disable-shm-counters)
 luajit
 	lua-cjson
 	lua-mongo
