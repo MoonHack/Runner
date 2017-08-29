@@ -103,7 +103,7 @@ local function loadscriptInternal(script, compile)
 			end
 
 			if setfenv then
-				setfenv(func, {})
+				setfenv(func, _ENV)
 			end
 			data.__func = func()
 		end
