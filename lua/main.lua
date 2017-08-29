@@ -269,6 +269,7 @@ local function __run(_caller, _script, args)
 			msg = res[2]
 		}))
 	end
+	exit(0)
 end
 
 local resetScriptCache = resetScriptCache

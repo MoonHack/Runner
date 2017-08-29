@@ -68,7 +68,7 @@ def runlua(caller, script, args):
 
 		cgroup.add(os.getpid())
 		lua_main(caller, script, args)
-		exit(0)
+		exit(1)
 	elif pid > 0:
 		os.close(wpipe)
 		os.close(wpipe_err)
@@ -93,6 +93,7 @@ def runlua(caller, script, args):
 				result = [{'ok': False, 'data': 'Script used too much memory and was terminated'}]
 			else:
 				result = [{'ok': False, 'data': 'Script caused internal error. Admins have been notified'}]
+				print(errcode[1])
 				print(prpipe.read())
 				print(prpipe_err.read())
 		else:
