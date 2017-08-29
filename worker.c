@@ -200,6 +200,8 @@ int main() {
 			}
 		}
 
+		fclose(stdout_fd);
+
 		waitpid(subworker, &exitstatus, 0);
 
 		if (WIFSIGNALED(exitstatus)) {
@@ -237,7 +239,6 @@ int main() {
 			}
 		}
 
-		fclose(stdout_fd);
 		close(sockfd);
 	}
 
