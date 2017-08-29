@@ -40,6 +40,7 @@ static int lua_enterprot(lua_State *L) {
 		// Increase mem limit
 		signal(SIGTERM, SIG_IGN);
 	}
+	return 0;
 }
 
 static int lua_leaveprot(lua_State *L) {
@@ -50,12 +51,15 @@ static int lua_leaveprot(lua_State *L) {
 		// Reset mem limit
 		signal(SIGTERM, SIG_DFL);
 	}
+	return 0;
 }
 
 static void lua_init() {
 	L = luaL_newstate();
 	luaL_openlibs(L);
-	luaL_dofile(L, "main.lua");
+	if(luaL_dofile(L, "main.lua")) {
+		exit(1);
+	}
 
 	// run_id, caller, script, args, enterProt, leaveProt
 	lua_main = luaL_ref(L, LUA_REGISTRYINDEX);
