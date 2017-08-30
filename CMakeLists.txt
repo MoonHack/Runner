@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.8.11)
 project (MoonHack_Runner)
 
-macro(runner_add_lib lib)
+macro(simple_add_lib lib)
 	foreach(arg IN ITEMS ${ARGN})
 		target_link_libraries(${arg} ${${lib}_LIBRARIES})
 		target_include_directories(${arg} PUBLIC ${${lib}_INCLUDE_DIRS})
@@ -18,5 +18,5 @@ add_executable (router router.c)
 add_executable (worker worker.c)
 add_executable (run run.c)
 
-runner_add_lib(ZMQ router worker run)
-runner_add_lib(LUAJIT worker)
+simple_add_lib(ZMQ router worker run)
+simple_add_lib(LUAJIT worker)
