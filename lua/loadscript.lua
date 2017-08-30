@@ -30,8 +30,8 @@ local function loadCoreScript(name, securityLevel)
 end
 
 loadCoreScript("scripts.lib", 5)
-loadCoreScript("accts.xfer_mu_to", 3)
-loadCoreScript("accts.balance", 4)
+loadCoreScript("money.xfer", 3)
+loadCoreScript("money.balance", 4)
 
 local loadscript
 
