@@ -229,7 +229,7 @@ local TEMPLATE_SUB_ENV = TEMPLATE_SUB_ENV
 
 local CALLER
 
-local loadscript = dofile("loadscript.lua")
+local loadscript = require("loadscript")
 
 string.dump = nil
 

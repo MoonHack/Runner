@@ -19,10 +19,10 @@ local LOAD_AS_OWNER = 1
 local LOAD_ONLY_INFORMATION = 2
 
 local function loadCoreScript(name, securityLevel)
-	local file = "corescripts/" .. name:gsub("%.", "/") .. ".lua"
+	local file = "corescripts/" .. name:gsub("%.", "/")
 	scriptCache[name] = {
 		name = name,
-		__func = dofile(file),
+		__func = require(file),
 		accessLevel = 3,
 		securityLevel = securityLevel,
 		privileged = true
