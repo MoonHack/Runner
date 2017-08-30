@@ -14,6 +14,7 @@ local logDb = db.internal:getCollection("program_log")
 local timeLeft = timeLeft
 local checkTimeout = checkTimeout
 local tinsert = table.insert
+local tremove = table.remove
 local next = next
 local type = type
 local ObjectID = db.mongo.ObjectID
@@ -68,7 +69,8 @@ local function _fixUser(name, list, toFix)
 		v = programsStored[k]
 		if programsShould[v.id] then
 			programsShould[v.id] = nil
-			tinsert(programsStored, v)
+			tremove(programsStored, k)
+			k = k - 1
 		end
 	end
 
