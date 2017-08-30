@@ -59,9 +59,9 @@ local function leaveProtectedSection()
 	extLeaveProtected()
 end
 
-function runProtected(code)
+function runProtected(...)
 	enterProtectedSection()
-	local res = {pcall(code)}
+	local res = {pcall(...)}
 	leaveProtectedSection()
 	if not res[1] then
 		error(res[2])
@@ -69,6 +69,15 @@ function runProtected(code)
 	tremove(res, 1)
 	return unpack(res)
 end
+
+local runProtected = runProtected
+
+function makeProtectedFunc(func)
+	return function(...)
+		return runProtected(func, ...)
+	end
+end
+
 
 local function _errorReadOnly()
 	error("Read-Only")
