@@ -1,6 +1,6 @@
 local mongo = require("mongo")
 -- TODO: CONFIG VARIABLE THIS
-local client = mongo.Client("mongodb://127.0.0.1")
+local client = mongo.Client(require("config").mongo.main)
 local time = os.time
 local tinsert = table.insert
 
