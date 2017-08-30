@@ -29,7 +29,7 @@ local function _fixSerials(name, _serials)
 		if tv == "number" then
 			tinsert(serials, ObjectID(userObj[v].id))
 		else
-			tinsert(serials, ObjectID(tostring(v))
+			tinsert(serials, ObjectID(tostring(v)))
 		end
 	end
 	return serials, userObj
@@ -141,8 +141,6 @@ local function load(name, serials, load)
 	_save(ctx.caller, stored)
 	
 	return true, load and 'Programs have been loaded' or 'Programs have been unloaded', affected
-end
-
 end
 
 local function list(name)
