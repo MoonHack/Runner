@@ -31,6 +31,7 @@ end
 
 loadCoreScript("scripts.lib", 5)
 loadCoreScript("accts.xfer_mu_to", 3)
+loadCoreScript("accts.balance", 4)
 
 local loadscript
 

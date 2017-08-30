@@ -5,6 +5,16 @@ local enterProtectedSection = enterProtectedSection
 local leaveProtectedSection = leaveProtectedSection
 local checkTimeout = checkTimeout
 
+local function balance(user)
+	user = tostring(user)
+	checkTimeout()
+	local res = userDb:findOne({ name = user })
+	if not res then
+		return false, 'User not found'
+	end
+	return res:value().balance
+end
+
 local function give(user, amount)
 	user = tostring(user)
 	amount = tonumber(amount)
@@ -52,5 +62,6 @@ end
 return {
 	give = give,
 	take = take,
-	transfer = transfer
+	transfer = transfer,
+	balance = balance
 }

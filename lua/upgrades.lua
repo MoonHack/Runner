@@ -1,10 +1,6 @@
---[[
-	old = findAndModify -> upgradesLockedUntil = NOW + 10 where upgradesLockedUntil < now
-	if old and old.upgradesLockedUntil < now then
-		CAN DO
-	else
-		sleep(150ms)
-		retry
-	end
-	update upgradesLockedUntil = NOW
-]]
+-- db.upgrades store owner, can be updated atomically by serial
+-- db.user stores array of serials that gets auto-fixed on every op
+
+-- changes by position get serials from user, then push atomic updates by serial (race condition, so script access by serial preferred!)
+-- changes by serial just update atomically
+
