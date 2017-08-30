@@ -14,7 +14,7 @@ local function logs(user, skip, limit)
 	if not skip or skip < 0 then
 		skip = 0
 	end
-	return db.cursorToArray(logDb:find(user, { sort = { date = -1 }, skip = skip, limit = limit }))
+	return db.cursorToArray(logDb:find({ ['$or'] = {{ from = user }, { to = user }} }, { sort = { date = -1 }, skip = skip, limit = limit }))
 end
 
 local function balance(user)
@@ -67,7 +67,7 @@ local function transfer(from, to, amount)
 			give(from, amount)
 			return false, tr
 		end
-		logDb:insert({ source = from, destination = to, amount = amount, date = db.now() })
+		logDb:insert({ from = from, to = to, amount = amount, date = db.now() })
 		return true, 'Transferred ' .. amount .. ' MU from ' .. from .. ' to ' .. to
 	end)
 end
