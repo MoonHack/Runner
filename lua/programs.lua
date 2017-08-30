@@ -94,6 +94,8 @@ local function delete(name, serials)
 		return false, 'Program deletions require 1 second of runtime'
 	end
 
+	local txn = uuid()
+
 	programsDb:updateMany({ owner = from, _id = { ['$in'] = serials } }, { ['$set'] = { owner = "", lastTransaction = txn } })
 	local affected = db.cursorToArray(programsDb:find({ lastTransaction = txn }, { projection = { _id = 1, name = 1 } }))
 	programsDb:delete({ lastTransaction = txn })
@@ -111,6 +113,8 @@ local function transfer(from, to, serials)
 		checkTimeout()
 		return false, 'Program transfers require 1 second of runtime'
 	end
+
+	local txn = uuid()
 	
 	programsDb:updateMany({ owner = from, _id = { ['$in'] = serials } }, { ['$set'] = { owner = to, lastTransaction = txn } })
 	local affected = db.cursorToArray(programsDb:find({ lastTransaction = txn }, { projection = { _id = 1, name = 1 } }))
