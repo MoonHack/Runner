@@ -75,6 +75,8 @@ int main(int argc, char **argv) {
 		workers[i] = spawn_worker();
 	}
 
+	printf("Simple master startup done\n");
+
 	int stat;
 	waitpid(router, &stat, 0);
 	all_exit();

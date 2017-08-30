@@ -52,6 +52,8 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	printf("Router startup done\n");
+
 	zmq_device(ZMQ_QUEUE, frontend, backend);
 	return 1;
 }
