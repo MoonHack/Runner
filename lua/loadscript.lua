@@ -53,17 +53,17 @@ local function loadscriptInternal(script, compile)
 	local data = scriptCache[script]
 	if not data then
 		data = scriptsDb:findOne({
-			name = script
+			_id = script
 		})
 		if not data then
 			return false, "Script not found"
 		end
 		data = data:value()
-		scriptCache[data.name] = data
+		scriptCache[data._id] = data
 	end
 
 	if compile and not data.__func then
-		local callingScript = data.name
+		local callingScript = data._id
 		local callingScriptOwner = data.owner
 		local secLevel = data.securityLevel
 
@@ -82,7 +82,7 @@ local function loadscriptInternal(script, compile)
 					caller = flagSet(flags, LOAD_AS_OWNER) and callingScriptOwner or CORE_SCRIPT.caller
 				}, secLevel, script, flagSet(flags, LOAD_ONLY_INFORMATION))
 			end,
-			db = dbintf(data.name),
+			db = dbintf(data._id),
 			cache = {} -- Not protected on purpose, like #G
 		}
 
@@ -94,17 +94,17 @@ local function loadscriptInternal(script, compile)
 			local func
 
 			if data.codeBinary and data.codeDate == data.codeBinaryDate then
-				local ok, res = pcall(load, data.codeBinary, data.name, "b", {})
+				local ok, res = pcall(load, data.codeBinary, data._id, "b", {})
 				if ok then
 					func = res
 				end
 			end
 
 			if not func then
-				func = load("return " .. data.code, data.name, "t", {})
+				func = load("return " .. data.code, data._id, "t", {})
 				data.codeBinary = strdump(func)
 				scriptsDb:update({
-					name = data.name
+					name = data._id
 				}, {
 					["$set"] = {
 						codeBinary = data.codeBinary,
@@ -136,7 +136,7 @@ loadscript = function(ctx, parentSecLevel, script, onlyInformative)
 		securityLevel = data.securityLevel,
 		accessLevel = data.accessLevel,
 		privileged = data.privileged,
-		name = data.name,
+		name = data._id,
 		owner = data.owner
 	}
 	if runnable then
@@ -147,7 +147,7 @@ loadscript = function(ctx, parentSecLevel, script, onlyInformative)
 		if ctx.callingScript then
 			parentOwner = util.getUserFromScript(ctx.callingScript)
 		end
-		if data.accessLevel < 2 and parentOwner ~= getUserFromScript(data.name) then
+		if data.accessLevel < 2 and parentOwner ~= getUserFromScript(data._id) then
 			return false, "Cannot load private script of different user"
 		end
 
