@@ -7,4 +7,4 @@ then
 fi
 ./make.sh
 rmdir "/sys/fs/cgroup/memory/$USER/moonhack_cg_"* || true
-exec ./bin/simple_master "tcp://*:5556"
+exec ./bin/simple_master 64 "tcp://*:5556"

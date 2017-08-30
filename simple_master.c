@@ -2,10 +2,12 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <sys/wait.h>
 #include "./config.h"
 
-pid_t workers[WORKER_COUNT];
+int worker_count;
+pid_t *workers;
 char *backend_socket;
 
 void all_exit() {
@@ -38,7 +40,7 @@ void sigchld_recvd() {
 	}
 	if (WIFSIGNALED(status) || WIFEXITED(status)) {
 		int i;
-		for (i = 0; i < WORKER_COUNT; i++) {
+		for (i = 0; i < worker_count; i++) {
 			if (workers[i] == pid) {
 				workers[i] = spawn_worker();
 				break;
@@ -48,10 +50,13 @@ void sigchld_recvd() {
 }
 
 int main(int argc, char **argv) {
-	if (argc < 2) {
-		printf("./simple_master FRONTEND\n");
+	if (argc < 3) {
+		printf("./simple_master COUNT FRONTEND\n");
 		return 1;
 	}
+
+	worker_count = atoi(argv[1]);
+	workers = malloc(sizeof(pid_t) * worker_count);
 
 	backend_socket = argv[1];
 
@@ -71,7 +76,7 @@ int main(int argc, char **argv) {
 	}
 
 	int i;
-	for (i = 0; i < WORKER_COUNT; ++i) {
+	for (i = 0; i < worker_count; ++i) {
 		workers[i] = spawn_worker();
 	}
 
