@@ -1,9 +1,21 @@
 local db = require("db")
 local userDb = db.internal:getCollection("users")
+local logDb = db.internal:getCollection("money_log")
 local timeLeft = timeLeft
 local enterProtectedSection = enterProtectedSection
 local leaveProtectedSection = leaveProtectedSection
 local checkTimeout = checkTimeout
+local tinsert = table.insert
+
+local function logs(user, skip, limit)
+	if not limit or limit > 50 then
+		limit = 50
+	end
+	if not skip or skip < 0 then
+		skip = 0
+	end
+	return db.cursorToArray(logDb:find(user, { sort = { date = -1 }, skip = skip, limit = limit }))
+end
 
 local function balance(user)
 	user = tostring(user)
@@ -55,6 +67,7 @@ local function transfer(from, to, amount)
 			give(from, amount)
 			return false, tr
 		end
+		logDb:insert({ source = from, destination = to, amount = amount, date = db.now() })
 		return true, 'Transferred ' .. amount .. ' MU from ' .. from .. ' to ' .. to
 	end)
 end

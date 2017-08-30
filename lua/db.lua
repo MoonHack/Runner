@@ -1,8 +1,31 @@
 local mongo = require("mongo")
 -- TODO: CONFIG VARIABLE THIS
 local client = mongo.Client("mongodb://127.0.0.1")
+local time = os.time
+local tinsert = table.insert
+
+local function now()
+	return time()
+end
+
+local function cursorToArray(cursor)
+	local res = {}
+	if not cursor then
+		return res
+	end
+	while true do
+		local val = cursor:next()
+		if not val then
+			break
+		end
+		tinsert(res, val:value())
+	end
+	return res
+end
 
 return {
+	now = now,
+	cursorToArray = cursorToArray,
 	mongo = mongo,
 	client = client,
 	internal = client:getDatabase("moonhack_core"),

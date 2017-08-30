@@ -1,5 +1,6 @@
 local db = require("db")
 local util = require("util")
+local tinsert = table.insert
 
 local function performBulk(bulk)
 	local res, err = bulk:execute()
@@ -77,6 +78,10 @@ return function(script)
 					if val then
 						return val:value()
 					end
+				end,
+				array = function()
+					checkTimeout()
+					return db.cursorToArray(cursor)
 				end,
 				each = function(func)
 					checkTimeout()
