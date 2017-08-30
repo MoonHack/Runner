@@ -192,6 +192,8 @@ int main(int argc, char **argv) {
 
 			signal(SIGALRM, sigalrm_recvd);
 			signal(SIGTERM, SIG_IGN);
+			signal(SIGINT, SIG_IGN);
+			signal(SIGHUP, SIG_IGN);
 			alarm(TASK_HARD_TIMEOUT);
 
 			add_task_to_cgroup();
