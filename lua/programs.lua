@@ -15,7 +15,8 @@ local checkTimeout = checkTimeout
 local tinsert = table.insert
 local next = next
 
-function fixUser(name, list)
+local function fixUser(name, list)
+	name = tostring(name)
 	local toFix = user:getByName(name, { _id = 1, programs = 1 })
 	if not user then
 		return false, 'User not found'
@@ -32,13 +33,13 @@ function fixUser(name, list)
 
 	local programsShould = {}
 	for _,v in next, programsAuth do
-		programsShould[v] = true
+		programsShould[tostring(v._id)] = v
 	end
 
 	local programsStore = {}
 	for _,v in next, programsStored do
-		if programsShould[v] then
-			programsShould[v] = nil
+		if programsShould[v.id] then
+			programsShould[v.id] = nil
 			tinsert(programsStore, v)
 		end
 	end
@@ -46,18 +47,18 @@ function fixUser(name, list)
 	for k,v in next, programsShould do
 		if v then
 			dirty = true
-			tinsert(programsStore, k)
+			tinsert(programsStore, { id = k, loaded = false })
 		end
 	end
 
 	if dirty then
-		userDb:updateOne({ _id = user._id }, { ['$set'] = { programs = programs }})
+		userDb:updateOne({ _id = name }, { ['$set'] = { programs = programs }})
 	end
 
-	return programsStore, programsAuth
+	return true, programsStore, programsShould
 end
 
-function transfer(from, to, _serials)
+local function transfer(from, to, _serials)
 	from = tostring(from)
 	to = tostring(to)
 	local serials = {}
@@ -71,14 +72,18 @@ function transfer(from, to, _serials)
 	
 	local query = { owner = from, _id = { ['$in'] = serials } }
 	local affected = db.cursorToArray(programsDb:find(query, { projection = { _id = 1, name = 1 } }))
-	programsDb:update(query, { ['$set'] = { owner = to, loaded = false } })
+	programsDb:update(query, { ['$set'] = { owner = to } })
 	logDb:insert({ action = "transfer", from = from, to = to, programs = affected, date = db.now() })
 	fixUser(from)
 	fixUser(to)
 	return true, 'Programs have been transferred'
 end
 
+local function list(name)
+	return fixUser(tostring(name), true)
+end
+
 return {
 	transfer = makeProtectedFunc(transfer),
-	fixUser = makeProtectedFunc(fixUser)
+	list = makeProtectedFunc(list)
 }

@@ -13,17 +13,13 @@ local function logs(user, skip, limit)
 	if not skip or skip < 0 then
 		skip = 0
 	end
-	local uid = user.getIdByName(user)
-	if not uid then
-		return
-	end
-	return db.cursorToArray(logDb:find({ ['$or'] = {{ from = uid }, { to = uid }} }, { sort = { date = -1 }, skip = skip, limit = limit }))
+	return db.cursorToArray(logDb:find({ ['$or'] = {{ from = user }, { to = user }} }, { sort = { date = -1 }, skip = skip, limit = limit }))
 end
 
 local function balance(user)
 	user = tostring(user)
 	checkTimeout()
-	local res = userDb:findOne({ name = user })
+	local res = userDb:findOne({ _id = user })
 	if not res then
 		return false, 'User not found'
 	end
@@ -34,7 +30,7 @@ local function give(user, amount)
 	user = tostring(user)
 	amount = tonumber(amount)
 	checkTimeout()
-	local res = userDb:findAndModify({ name = user }, { fields = { balance = 1 }, update = { ['$inc'] = { balance = amount } } })
+	local res = userDb:findAndModify({ _id = user }, { fields = { balance = 1 }, update = { ['$inc'] = { balance = amount } } })
 	if not res then
 		return false, 'Target cannot store that much MU'
 	end
@@ -45,7 +41,7 @@ local function take(user, amount)
 	user = tostring(user)
 	amount = tonumber(amount)
 	checkTimeout()
-	local res = userDb:findAndModify({ name = user, balance = { ['$gte'] = amount } }, { fields = { balance = 1 }, update = { ['$inc'] = { balance = -amount } } })
+	local res = userDb:findAndModify({ _id = user, balance = { ['$gte'] = amount } }, { fields = { balance = 1 }, update = { ['$inc'] = { balance = -amount } } })
 	if not res then
 		return false, 'Source does not have enough MU'
 	end
@@ -69,9 +65,7 @@ local function transfer(from, to, amount)
 		give(from, amount)
 		return false, tr
 	end
-	local uidFrom = user.getIdByName(from)
-	local uidTo = user.getIdByName(to)
-	logDb:insert({ action = "transfer", from = uidFrom, to = uidTo, amount = amount, date = db.now() })
+	logDb:insert({ action = "transfer", from = from, to = to, amount = amount, date = db.now() })
 	return true, 'Transferred ' .. amount .. ' MU from ' .. from .. ' to ' .. to
 end
 
