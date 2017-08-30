@@ -63,8 +63,9 @@ local function _fixUser(name, list, toFix)
 		programsShould[tostring(v._id)] = v
 	end
 
-	local programsStored = {}
-	for _,v in next, programsStored do
+	local v
+	for k = 1, #programsStored do
+		v = programsStored[k]
 		if programsShould[v.id] then
 			programsShould[v.id] = nil
 			tinsert(programsStored, v)
