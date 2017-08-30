@@ -5,6 +5,9 @@ then
 	U="$USER"
 	sudo user_cgroups "$U"
 fi
-./make.sh
+cd build
+cmake ..
+make
+cd ..
 rmdir "/sys/fs/cgroup/memory/$USER/moonhack_cg_"* || true
-exec ./bin/simple_master 64 "tcp://*:5556"
+exec ./simple_master 64 "tcp://*:5556"
