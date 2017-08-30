@@ -32,16 +32,15 @@ local time = os.time
 local exit = os.exit
 
 local PROTECTION_DEPTH = 0
-local START_TIME = 0 --time()
-local KILL_TIME = 0 --START_TIME + 6
+local START_TIME = 0
+local KILL_TIME = 0
 function timeLeft()
 	return KILL_TIME - time()
 end
 
 function checkTimeout()
 	if PROTECTION_DEPTH <= 0 and timeLeft() < 0 then
-		writeln('{"ok":false,"data":"Script killed after 5 second timeout"}')
-		exit(0)
+		exit(6) -- EXIT_SOFT_TIMEOUT
 	end
 end
 

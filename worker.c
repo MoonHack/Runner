@@ -21,7 +21,9 @@
 #define ARGS_LEN BUFFER_LEN
 
 #define EXIT_OK 0
-#define EXIT_TIMEOUT 5
+#define EXIT_HARD_TIMEOUT 5
+#define EXIT_SOFT_TIMEOUT 6
+#define EXIT_FORCED 7
 
 #define ZMQ_NEEDMORE zmq_getsockopt(zsocket, ZMQ_RCVMORE, &_zmq_rcvmore, &_zmq_rcvmore_size); \
 	if (!_zmq_rcvmore) { \
@@ -32,17 +34,20 @@
 lua_State *L;
 int lua_main;
 int lua_prot_depth = 0;
+int lua_exit_on_prot_leave = 0;
+int lua_alarm_delayed = 0;
 char *cgroup_mem_root;
 char *cgroup_mem_limit;
 char *cgroup_memsw_limit;
 char *cgroup_mem_tasks;
 
 void sigalrm_recvd() {
-	if (lua_prot_depth > 0) {
-		alarm(1);
+	if (lua_prot_depth > 0 && lua_exit_on_prot_leave == 0) {
+		lua_exit_on_prot_leave = EXIT_HARD_TIMEOUT;
+		alarm(30);
 		return;
 	}
-	exit(EXIT_TIMEOUT);
+	exit(EXIT_HARD_TIMEOUT);
 }
 
 static void set_memory_limit(const char *memlimit) {
@@ -75,6 +80,9 @@ static int lua_leaveprot(lua_State *L) {
 	if (lua_prot_depth < 0) {
 		exit(3);
 	} else if (lua_prot_depth == 0) {
+		if (lua_exit_on_prot_leave) {
+			exit(lua_exit_on_prot_leave);
+		}
 		set_memory_limit(TASK_MEMORY_LIMIT);
 	}
 	return 0;
@@ -183,6 +191,7 @@ int main(int argc, char **argv) {
 			lua_prot_depth = 0;
 
 			signal(SIGALRM, sigalrm_recvd);
+			signal(SIGTERM, SIG_IGN);
 			alarm(TASK_HARD_TIMEOUT);
 
 			add_task_to_cgroup();
@@ -232,11 +241,21 @@ int main(int argc, char **argv) {
 			}
 		} else if(WIFEXITED(exitstatus)) {
 			switch(WEXITSTATUS(exitstatus)) {
-				case EXIT_TIMEOUT:
+				case EXIT_SOFT_TIMEOUT:
+					if (write(sockfd, "\1\nSOFT_TIMEOUT\n", 15) < 0) {
+						perror("write");
+					}
+					break;
+				case EXIT_HARD_TIMEOUT:
 					if (write(sockfd, "\1\nHARD_TIMEOUT\n", 15) < 0) {
 						perror("write");
 					}
 					break;
+				//case EXIT_FORCED:
+				//	if (write(sockfd, "\1\nHARD_KILLED\n", 14) < 0) {
+				//		perror("write");
+				//	}					
+				//	break;
 				case EXIT_OK:
 					if (write(sockfd, "\1\nOK\n", 5) < 0) {
 						perror("write");
