@@ -38,6 +38,10 @@ char *cgroup_memsw_limit;
 char *cgroup_mem_tasks;
 
 void sigalrm_recvd() {
+	if (lua_prot_depth > 0) {
+		alarm(1);
+		return;
+	}
 	exit(EXIT_TIMEOUT);
 }
 
@@ -62,7 +66,6 @@ static void add_task_to_cgroup() {
 static int lua_enterprot(lua_State *L) {
 	if (++lua_prot_depth == 1) {
 		set_memory_limit(TASK_MEMORY_LIMIT_HIGH);
-		signal(SIGTERM, SIG_IGN);
 	}
 	return 0;
 }
@@ -73,7 +76,6 @@ static int lua_leaveprot(lua_State *L) {
 		exit(3);
 	} else if (lua_prot_depth == 0) {
 		set_memory_limit(TASK_MEMORY_LIMIT);
-		signal(SIGTERM, SIG_DFL);
 	}
 	return 0;
 }
