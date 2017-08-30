@@ -25,17 +25,23 @@ local function loadCoreScript(name, securityLevel)
 		__func = dofile(file),
 		accessLevel = 3,
 		securityLevel = securityLevel,
-		trust = true
+		privileged = true
 	}
 end
 
 loadCoreScript("scripts.lib", 5)
 
-loadCoreScript("money.transfer", 3)
+loadCoreScript("money.balance", 3)
 loadCoreScript("money.log", 4)
-loadCoreScript("money.balance", 4)
+loadCoreScript("money.transfer", 4)
 
+loadCoreScript("programs.delete", 2)
 loadCoreScript("programs.list", 4)
+loadCoreScript("programs.load", 3)
+loadCoreScript("programs.log", 4)
+loadCoreScript("programs.reorder", 3)
+loadCoreScript("programs.transfer", 2)
+loadCoreScript("programs.unload", 3)
 
 local loadscript
 
@@ -129,7 +135,7 @@ loadscript = function(ctx, parentSecLevel, script, onlyInformative)
 	local info = {
 		securityLevel = data.securityLevel,
 		accessLevel = data.accessLevel,
-		trust = data.trust,
+		privileged = data.privileged,
 		name = data.name,
 		owner = data.owner
 	}
