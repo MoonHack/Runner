@@ -1,4 +1,6 @@
 _G.python = nil
+_G.ffi = nil
+_G.jit = nil
 
 local runId = "UNKNOWN"
 local unpack = unpack
