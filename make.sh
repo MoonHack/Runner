@@ -1,4 +1,5 @@
 #!/bin/sh
+#TODO: cmake this
 set -e
 compile() {
 	x="$1"
