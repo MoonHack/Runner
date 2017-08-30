@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
 	if (router == 0) {
 		signal(SIGINT, SIG_IGN);
 		signal(SIGHUP, SIG_IGN);
-		execl("./build/router", "router", ZMQ_ROUTER_THREADS_SIMPLE_MASTER, "-bb", ZMQ_SOCKET_SIMPLE_MASTER, "-fb", argv[1], NULL);
+		execl("../build/router", "router", ZMQ_ROUTER_THREADS_SIMPLE_MASTER, "-bb", ZMQ_SOCKET_SIMPLE_MASTER, "-fb", argv[1], NULL);
 		_exit(1);
 	} else if(router < 0) {
 		all_exit();
