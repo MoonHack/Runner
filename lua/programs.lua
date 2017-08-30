@@ -7,6 +7,7 @@
 
 local db = require("db")
 local user = require("user")
+local uuid = require("uuid")
 local userDb = db.internal:getCollection("users")
 local programsDb = db.internal:getCollection("programs")
 local logDb = db.internal:getCollection("program_log")
@@ -92,9 +93,10 @@ local function delete(name, serials)
 		checkTimeout()
 		return false, 'Program deletions require 1 second of runtime'
 	end
-	local query = { owner = name, _id = { ['$in'] = serials } }
-	local affected = db.cursorToArray(programsDb:find(query, { projection = { _id = 1, name = 1 } }))
-	programsDb:delete(query)
+
+	programsDb:updateMany({ owner = from, _id = { ['$in'] = serials } }, { ['$set'] = { owner = "", lastTransaction = txn } })
+	local affected = db.cursorToArray(programsDb:find({ lastTransaction = txn }, { projection = { _id = 1, name = 1 } }))
+	programsDb:delete({ lastTransaction = txn })
 	logDb:insert({ action = "delete", from = name, programs = affected, date = db.now() })
 	_fixUser(name, userProgs)
 	return true, 'Programs have been deleted', affected
@@ -110,9 +112,8 @@ local function transfer(from, to, serials)
 		return false, 'Program transfers require 1 second of runtime'
 	end
 	
-	local query = { owner = from, _id = { ['$in'] = serials } }
-	local affected = db.cursorToArray(programsDb:find(query, { projection = { _id = 1, name = 1 } }))
-	programsDb:update(query, { ['$set'] = { owner = to } })
+	programsDb:updateMany({ owner = from, _id = { ['$in'] = serials } }, { ['$set'] = { owner = to, lastTransaction = txn } })
+	local affected = db.cursorToArray(programsDb:find({ lastTransaction = txn }, { projection = { _id = 1, name = 1 } }))
 	logDb:insert({ action = "transfer", from = from, to = to, programs = affected, date = db.now() })
 	_fixUser(from, userProgs)
 	_fixUser(to)

@@ -6,7 +6,7 @@ local function performBulk(bulk)
 	local res, err = bulk:execute()
 	if res then
 		res = res:value()
-	end		
+	end
 
 	if not res then
 		return false, { writeErrors = {err} }

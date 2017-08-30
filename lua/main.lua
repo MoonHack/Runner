@@ -18,6 +18,7 @@ local load = load
 local cjson = require("cjson")
 local xpcall = xpcall
 local debug = debug
+local uuid = require("uuid")
 
 local function noop()
 end
@@ -242,6 +243,8 @@ local function loadMainScript(script, isScriptor)
 end
 
 local function __run(_runId, _caller, _script, args, _extEnterProtected, _extLeaveProtected)
+	uuid.seed()
+
 	runId = _runId or "UNKNOWN"
 	extEnterProtected = _extEnterProtected or noop
 	extLeaveProtected = _extLeaveProtected or noop
