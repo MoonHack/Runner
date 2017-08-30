@@ -27,8 +27,7 @@ local function _fixSerials(name, _serials)
 	userObj = userObj.programs
 	local serials = {}
 	for _, v in next, _serials do
-		local tv = type(v)
-		if tv == "number" then
+		if type(v) == "number" then
 			tinsert(serials, ObjectID(userObj[v].id))
 		else
 			tinsert(serials, ObjectID(tostring(v)))
