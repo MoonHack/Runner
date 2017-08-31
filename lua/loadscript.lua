@@ -95,6 +95,7 @@ local function loadscriptInternal(script, compile)
 			cache = {} -- Not protected on purpose, like #G
 		}
 
+		freeze(PROTECTED_SUB_ENV.game.script)
 		freeze(PROTECTED_SUB_ENV.game)
 		freeze(PROTECTED_SUB_ENV)
 
