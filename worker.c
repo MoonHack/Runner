@@ -41,10 +41,9 @@ int lua_main;
 int lua_prot_depth = 0;
 int lua_exit_on_prot_leave = 0;
 int lua_alarm_delayed = 0;
-char *cgroup_mem_root;
-char *cgroup_mem_limit;
-char *cgroup_memsw_limit;
-char *cgroup_mem_tasks;
+#define cgroup_mem_limit "/var/cg_mem/memory.limit_in_bytes"
+#define cgroup_memsw_limit "/var/cg_mem/memory.memsw.limit_in_bytes"
+#define cgroup_mem_tasks "/var/cg_mem/tasks"
 
 void sigalrm_recvd() {
 	if (lua_prot_depth > 0 && lua_exit_on_prot_leave == 0) {
@@ -97,7 +96,6 @@ static void lua_init() {
 	L = luaL_newstate();
 	luaL_openlibs(L);
 	if(luaL_dofile(L, "main.luac")) {
-		//luaL_traceback(L, L, NULL, 1);
 		printf("Error loading Lua: %s\n", lua_tostring(L, -1));
 		exit(1);
 	}
@@ -107,15 +105,20 @@ static void lua_init() {
 }
 
 static void cgroup_init() {
-	cgroup_mem_root = malloc(256);
-	cgroup_mem_limit = malloc(256);
-	cgroup_memsw_limit = malloc(256);
-	cgroup_mem_tasks = malloc(256);
+	char cgroup_mem_root[256];
 	sprintf(cgroup_mem_root, "/sys/fs/cgroup/memory/%s/moonhack_cg_%d/", getenv("USER"), getpid());
-	sprintf(cgroup_mem_limit, "%s%s", cgroup_mem_root, "memory.limit_in_bytes");
-	sprintf(cgroup_memsw_limit, "%s%s", cgroup_mem_root, "memory.memsw.limit_in_bytes");
-	sprintf(cgroup_mem_tasks, "%s%s", cgroup_mem_root, "tasks");
+
 	mkdir(cgroup_mem_root, 0700);
+	if (mkdir("/var/cg_mem", 0700)) {
+		perror("mkdir_cg_mem");
+		exit(1);
+	}
+
+	if (mount(cgroup_mem_root, "/var/cg_mem", "bind", MS_BIND, "")) {
+		perror("mount_cg_mem");
+		exit(1);
+	}
+
 	set_memory_limit(TASK_MEMORY_LIMIT);
 }
 
@@ -165,8 +168,13 @@ static int secure_me(int uid, int gid) {
 		return 1;
 	}
 
-	if (mount("none", "/var", "tmpfs", 0, "size=1,nr_inodes=1")) {
+	if (mount("none", "/var", "tmpfs", 0, "size=1,nr_inodes=3")) {
 		perror("mount_var");
+		return 1;
+	}
+
+	if (symlink(".", "/var/var")) {
+		perror("symlink_var_var");
 		return 1;
 	}
 
@@ -210,8 +218,8 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	lua_init();
 	cgroup_init();
+	lua_init();
 
 	int _zmq_rcvmore = 0;
 	size_t _zmq_rcvmore_size = sizeof(int);
