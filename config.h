@@ -1,4 +1,4 @@
-#define ZMQ_SOCKET_SIMPLE_MASTER "ipc:///tmp/moonhack-master-to-workers"
+#define ZMQ_SOCKET_SIMPLE_MASTER "tcp://127.0.0.1:5553"
 #define ZMQ_ROUTER_THREADS_SIMPLE_MASTER "4"
 
 #define TASK_HARD_TIMEOUT 7

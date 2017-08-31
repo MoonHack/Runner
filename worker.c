@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <zmq.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -8,6 +10,9 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <sched.h>
+#include <fcntl.h>
+#include <sys/mount.h>
 
 #include <lua.h>
 #include <lauxlib.h>
@@ -108,26 +113,116 @@ static void cgroup_init() {
 	cgroup_memsw_limit = malloc(256);
 	cgroup_mem_tasks = malloc(256);
 	sprintf(cgroup_mem_root, "/sys/fs/cgroup/memory/%s/moonhack_cg_%d/", getenv("USER"), getpid());
-	sprintf(cgroup_mem_limit, "%s%s", cgroup_mem_root, "memory.limit_in_bytes");
-	sprintf(cgroup_memsw_limit, "%s%s", cgroup_mem_root, "memory.memsw.limit_in_bytes");
-	sprintf(cgroup_mem_tasks, "%s%s", cgroup_mem_root, "tasks");
+	sprintf(cgroup_mem_limit, "/cg_mem/%s", "memory.limit_in_bytes");
+	sprintf(cgroup_memsw_limit, "/cg_mem/%s", "memory.memsw.limit_in_bytes");
+	sprintf(cgroup_mem_tasks, "/cg_mem/%s", "tasks");
 	mkdir(cgroup_mem_root, 0700);
-	set_memory_limit(TASK_MEMORY_LIMIT);
+}
+
+static int secure_me(int uid, int gid) {
+	int err;
+
+	if (unshare(CLONE_NEWUSER)) {
+		perror("CLONE_NEWUSER");
+		return 1;
+	}
+
+	int fd = open("/proc/self/uid_map", O_WRONLY);
+	if(fd < 0) {
+		perror("uid_map_open");
+		return 1;
+	}
+	if(dprintf(fd, "%d %d 1\n", uid, uid) < 0) {
+		perror("uid_map_dprintf");
+		return 1;
+	}
+	close(fd);
+
+	fd = open("/proc/self/setgroups", O_WRONLY);
+	if(fd < 0) {
+		perror("setgroups_open");
+		return 1;
+	}
+	if (dprintf(fd, "deny\n") < 0) {
+		perror("setgroups_dprintf");
+		return 1;
+	}
+	close(fd);
+
+	fd = open("/proc/self/gid_map", O_WRONLY);
+	if(fd < 0) {
+		perror("gid_map_open");
+		return 1;
+	}
+	if (dprintf(fd, "%d %d 1\n", gid, gid) < 0) {
+		perror("gid_map_dprintf");
+		return 1;
+	}
+	close(fd);
+
+	if (unshare(CLONE_NEWNS)) {
+		perror("CLONE_NEWNS");
+		return 1;
+	}
+
+	if (mount("none", "/var", "tmpfs", 0, "size=1,nr_inodes=2")) {
+		perror("mount_var");
+		return 1;
+	}
+
+	if (mkdir("/var/cg_mem", 0755)) {
+		perror("mkdir_cg_mem");
+		return 1;
+	}
+
+	if (mount(cgroup_mem_root, "/var/cg_mem", "bind", MS_BIND, "rw")) {
+		perror("mount_cg_mem");
+		return 1;
+	}
+
+	if (chroot("/var")) {
+		perror("chroot");
+		return 1;
+	}
+
+	if (chdir("/")) {
+		perror("chdir_root");
+		return 1;
+	}
+
+	if (setresuid(uid, uid, uid)) {
+		perror("setresuid");
+		return 1;
+	}
+	if (setresgid(gid, gid, gid)) {
+		perror("setresgid");
+		return 1;
+	}
+
+	return 0;
 }
 
 int main(int argc, char **argv) {
 	if (argc < 2) {
-		printf("Usage: ./worker BACKEND");
+		printf("Usage: ./worker BACKEND\n");
 		return 1;
 	}
+
+	int uid = getuid();
+	int gid = getgid();
+
+	lua_init();
+	cgroup_init();
+
+	if (secure_me(uid, gid)) {
+		return 1;
+	}
+	set_memory_limit(TASK_MEMORY_LIMIT);
 
 	int _zmq_rcvmore = 0;
 	size_t _zmq_rcvmore_size = sizeof(int);
 
 	signal(SIGCHLD, noop_hdlr);
-
-	cgroup_init();
-	lua_init();
 
 	void* ctx = zmq_init(1);
 	void* zsocket = zmq_socket(ctx, ZMQ_REP);
