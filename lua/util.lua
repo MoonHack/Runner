@@ -19,6 +19,12 @@ end
 
 local function compileScript(code, name)
 	local _ENV = {}
+	if not code:find("^function *(") then
+		error('Code must begin with "function("')
+	end
+	if not code:find("end$") then
+		error('Code must end with "end"')
+	end
 	func = load("return " .. code, name, "t", {})
 	return strdump(func), func
 end
