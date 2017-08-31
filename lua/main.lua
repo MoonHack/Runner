@@ -242,7 +242,6 @@ local function loadMainScript(script, isScriptor)
 end
 
 _G.os = nil
-_G.python = nil
 _G.ffi = nil
 _G.jit = nil
 _G.debug = nil
