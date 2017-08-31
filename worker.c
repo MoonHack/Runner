@@ -49,7 +49,7 @@ int lua_alarm_delayed = 0;
 void sigalrm_recvd() {
 	if (lua_prot_depth > 0 && lua_exit_on_prot_leave == 0) {
 		lua_exit_on_prot_leave = EXIT_HARD_TIMEOUT;
-		alarm(30);
+		alarm(20);
 		return;
 	}
 	exit(EXIT_HARD_TIMEOUT);
@@ -347,7 +347,7 @@ int main(int argc, char **argv) {
 
 		worker_pid = subworker;
 		signal(SIGALRM, sigalrm_killchild_rcvd);
-		alarm(60);
+		alarm(30);
 
 		stdout_fd = fdopen(stdout_pipe[0], "r");
 		while(!feof(stdout_fd)) {
