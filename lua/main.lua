@@ -231,8 +231,6 @@ local CALLER
 
 local loadscript = require("loadscript")
 
-string.dump = nil
-
 local function loadMainScript(script, isScriptor)
 	return loadscript({
 		thisScript = script,
@@ -241,6 +239,7 @@ local function loadMainScript(script, isScriptor)
 	}, -1, script, false)
 end
 
+string.dump = nil
 _G.os = nil
 _G.ffi = nil
 _G.jit = nil
