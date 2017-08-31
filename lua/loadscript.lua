@@ -43,6 +43,7 @@ local function loadCoreScript(name, securityLevel, accessLevel)
 	end
 end
 
+loadCoreScript("scripts.sleep", 5)
 loadCoreScript("scripts.lib", 5)
 loadCoreScript("scripts.upload", 1)
 loadCoreScript("scripts.delete", 1)
