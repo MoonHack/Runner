@@ -1,6 +1,3 @@
-_G.python = nil
-_G.ffi = nil
-_G.jit = nil
 package.path = "./?.luac;" .. package.path
 
 local runId = "UNKNOWN"
@@ -22,6 +19,11 @@ local cjson = require("cjson")
 local xpcall = xpcall
 local debug = debug
 local uuid = require("uuid")
+
+_G.python = nil
+_G.ffi = nil
+_G.jit = nil
+_G.debug = nil
 
 local function noop()
 end
