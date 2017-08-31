@@ -189,6 +189,7 @@ static int secure_me_sub(int uid, int gid) {
 		perror("setresuid");
 		return 1;
 	}
+
 	if (setresgid(gid, gid, gid)) {
 		perror("setresgid");
 		return 1;
