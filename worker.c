@@ -43,9 +43,9 @@ int lua_main;
 int lua_prot_depth = 0;
 int lua_exit_on_prot_leave = 0;
 int lua_alarm_delayed = 0;
-#define cgroup_mem_limit "/var/cg_mem/memory.limit_in_bytes"
-#define cgroup_memsw_limit "/var/cg_mem/memory.memsw.limit_in_bytes"
-#define cgroup_mem_tasks "/var/cg_mem/tasks"
+#define cgroup_mem_limit "/var/root/cg_mem/memory.limit_in_bytes"
+#define cgroup_memsw_limit "/var/root/cg_mem/memory.memsw.limit_in_bytes"
+#define cgroup_mem_tasks "/var/root/cg_mem/tasks"
 
 void sigalrm_recvd() {
 	if (lua_prot_depth > 0 && lua_exit_on_prot_leave == 0) {
@@ -113,12 +113,12 @@ static int cgroup_init() {
 	sprintf(cgroup_mem_root, "/sys/fs/cgroup/memory/%s/moonhack_cg_%d/", getenv("USER"), getpid());
 
 	mkdir(cgroup_mem_root, 0700);
-	if (mkdir("/var/cg_mem", 0700)) {
+	if (mkdir("/var/root/cg_mem", 0700)) {
 		perror("mkdir_cg_mem");
 		return 1;
 	}
 
-	if (mount(cgroup_mem_root, "/var/cg_mem", "bind", MS_BIND, "")) {
+	if (mount(cgroup_mem_root, "/var/root/cg_mem", "bind", MS_BIND, "")) {
 		perror("mount_cg_mem");
 		return 1;
 	}
@@ -173,13 +173,28 @@ static int secure_me(int uid, int gid) {
 		return 1;
 	}
 
-	if (mount("none", "/var", "tmpfs", MS_NODEV | MS_NOSUID | MS_NOEXEC | MS_NOATIME, "")) {
+	if (mount("none", "/var", "tmpfs", MS_NOSUID | MS_NOEXEC | MS_NOATIME, "")) {
 		perror("mount_var");
 		return 1;
 	}
 
-	if (symlink(".", "/var/var")) {
-		perror("symlink_var_var");
+	if (mkdir("/var/root", 0755)) {
+		perror("mkdir_root");
+		return 1;
+	}
+
+	if (symlink(".", "/var/root/root")) {
+		perror("symlink_var_root_root");
+		return 1;
+	}
+
+	if (symlink(".", "/var/root/var")) {
+		perror("symlink_var_root_var");
+		return 1;
+	}
+
+	if (mkdir("/var/root/dev", 0755)) {
+		perror("mkdir_dev");
 		return 1;
 	}
 
@@ -187,7 +202,7 @@ static int secure_me(int uid, int gid) {
 		return 1;
 	}
 
-	if (mount("none", "/var", "tmpfs", MS_RDONLY | MS_REMOUNT | MS_NODEV | MS_NOSUID | MS_NOEXEC | MS_NOATIME, "")) {
+	if (mount("none", "/var", "tmpfs", MS_RDONLY | MS_REMOUNT | MS_NOSUID | MS_NOEXEC | MS_NOATIME, "")) {
 		perror("remount_ro_var");
 		return 1;
 	}
@@ -196,7 +211,7 @@ static int secure_me(int uid, int gid) {
 }
 
 static int secure_me_sub(int uid, int gid) {
-	if (chroot("/var")) {
+	if (chroot("/var/root")) {
 		perror("chroot");
 		return 1;
 	}
