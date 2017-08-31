@@ -250,6 +250,7 @@ _G.require = nil
 _G.dofile = nil
 _G.loadfile = nil
 _G.load = nil
+_G.package = nil
 
 local function __run(_runId, _caller, _script, args, _extEnterProtected, _extLeaveProtected)
 	uuid.seed()
