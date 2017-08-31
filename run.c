@@ -8,11 +8,10 @@
 
 // Dummy script to manually trigger a script run like: ./run user user.script '{}'
 
-int main(int argc, char **argv) {
-	void* ctx = zmq_init(1);
-	void* zsocket = zmq_socket(ctx, ZMQ_REQ);
-	zmq_connect(zsocket, "tcp://127.0.0.1:5556");
-	zmq_setallopts(zsocket, 60000, 60000);
+void *ctx;
+void *zsocket;
+
+int _main(int argc, char **argv) {
 	char *run_id = "1337";
 	char *caller = argv[1];
 	char *script = argv[2];
@@ -29,6 +28,10 @@ int main(int argc, char **argv) {
 	myaddr.sin_port = 0;
 	inet_aton("127.0.0.1", &myaddr.sin_addr);
 	s = socket(PF_INET, SOCK_STREAM, 0);
+	if (!s) {
+		perror("socket");
+		return 1;
+	}
 	setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
 	setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout));
 	if (bind(s, (struct sockaddr*)&myaddr, sizeof(myaddr)) < 0) {
@@ -70,6 +73,20 @@ int main(int argc, char **argv) {
 	}
 
 	fclose(sockfd);
+	close(sc);
 
+	return 0;
+}
+
+int main(int argc, char **argv) {
+	ctx = zmq_init(1);
+	zsocket = zmq_socket(ctx, ZMQ_REQ);
+	zmq_connect(zsocket, "tcp://127.0.0.1:5556");
+	zmq_setallopts(zsocket, 60000, 60000);
+	while (1) {
+		if (_main(argc, argv)) {
+			return 1;
+		}
+	}
 	return 0;
 }
