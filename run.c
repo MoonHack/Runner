@@ -83,7 +83,13 @@ int main(int argc, char **argv) {
 	zsocket = zmq_socket(ctx, ZMQ_REQ);
 	zmq_connect(zsocket, "tcp://127.0.0.1:5556");
 	zmq_setallopts(zsocket, 60000, 60000);
-	while (1) {
+	if (strcmp(argv[1], "1") == 0) {
+		while (1) {
+			if (_main(argc - 1, argv + 1)) {
+				return 1;
+			}
+		}
+	} else {
 		if (_main(argc, argv)) {
 			return 1;
 		}
