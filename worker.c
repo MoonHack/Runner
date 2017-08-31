@@ -113,10 +113,11 @@ static void cgroup_init() {
 	cgroup_memsw_limit = malloc(256);
 	cgroup_mem_tasks = malloc(256);
 	sprintf(cgroup_mem_root, "/sys/fs/cgroup/memory/%s/moonhack_cg_%d/", getenv("USER"), getpid());
-	sprintf(cgroup_mem_limit, "/cg_mem/%s", "memory.limit_in_bytes");
-	sprintf(cgroup_memsw_limit, "/cg_mem/%s", "memory.memsw.limit_in_bytes");
-	sprintf(cgroup_mem_tasks, "/cg_mem/%s", "tasks");
+	sprintf(cgroup_mem_limit, "%s%s", cgroup_mem_root, "memory.limit_in_bytes");
+	sprintf(cgroup_memsw_limit, "%s%s", cgroup_mem_root, "memory.memsw.limit_in_bytes");
+	sprintf(cgroup_mem_tasks, "%s%s", cgroup_mem_root, "tasks");
 	mkdir(cgroup_mem_root, 0700);
+	set_memory_limit(TASK_MEMORY_LIMIT);
 }
 
 static int secure_me(int uid, int gid) {
@@ -165,21 +166,15 @@ static int secure_me(int uid, int gid) {
 		return 1;
 	}
 
-	if (mount("none", "/var", "tmpfs", 0, "size=1,nr_inodes=2")) {
+	if (mount("none", "/var", "tmpfs", 0, "size=1,nr_inodes=1")) {
 		perror("mount_var");
 		return 1;
 	}
 
-	if (mkdir("/var/cg_mem", 0755)) {
-		perror("mkdir_cg_mem");
-		return 1;
-	}
+	return 0;
+}
 
-	if (mount(cgroup_mem_root, "/var/cg_mem", "bind", MS_BIND, "rw")) {
-		perror("mount_cg_mem");
-		return 1;
-	}
-
+static int secure_me_sub(int uid, int gid) {
 	if (chroot("/var")) {
 		perror("chroot");
 		return 1;
@@ -211,13 +206,12 @@ int main(int argc, char **argv) {
 	int uid = getuid();
 	int gid = getgid();
 
-	lua_init();
-	cgroup_init();
-
 	if (secure_me(uid, gid)) {
 		return 1;
 	}
-	set_memory_limit(TASK_MEMORY_LIMIT);
+
+	lua_init();
+	cgroup_init();
 
 	int _zmq_rcvmore = 0;
 	size_t _zmq_rcvmore_size = sizeof(int);
@@ -294,6 +288,10 @@ int main(int argc, char **argv) {
 			alarm(TASK_HARD_TIMEOUT);
 
 			add_task_to_cgroup();
+
+			if (secure_me_sub(uid, gid)) {
+				return 1;
+			}
 			
 			lua_rawgeti(L, LUA_REGISTRYINDEX, lua_main);
 			lua_pushstring(L, run_id);
