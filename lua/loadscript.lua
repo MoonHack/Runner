@@ -30,6 +30,8 @@ local function loadCoreScript(name, securityLevel)
 end
 
 loadCoreScript("scripts.lib", 5)
+loadCoreScript("scripts.upload", 1)
+loadCoreScript("scripts.delete", 1)
 
 loadCoreScript("money.balance", 3)
 loadCoreScript("money.log", 4)
@@ -101,8 +103,11 @@ local function loadscriptInternal(script, compile)
 			end
 
 			if not func then
-				func = load("return " .. data.code, data._id, "t", {})
-				data.codeBinary = strdump(func)
+				local ok
+				ok, data.codeBinary, func = pcall(util.compileScript, data.code, data._id)
+				if not ok then
+					return false, 'Compile error\n' .. data.codeBinary
+				end
 				scriptsDb:update({
 					name = data._id
 				}, {
