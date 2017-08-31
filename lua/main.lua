@@ -302,10 +302,6 @@ local function __run(_runId, _caller, _script, args, _extEnterProtected, _extLea
 	exit(0)
 end
 
---local resetScriptCache = resetScriptCache
---local collectgarbage = collectgarbage
+collectgarbage()
 
-return __run --[[, function()
-	resetScriptCache()
-	collectgarbage()
-end]]
+return __run
