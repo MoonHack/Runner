@@ -71,19 +71,26 @@ local function loadscriptInternal(script, compile)
 
 		local PROTECTED_SUB_ENV = util.shallowCopy(TEMPLATE_SUB_ENV)
 
+		local function loadScriptGame(script, flags)
+			checkTimeout()
+			flags = flags or 0
+			return loadscript({
+				thisScript = script,
+				callingScript = callingScript,
+				isScriptor = false,
+				caller = flagSet(flags, LOAD_AS_OWNER) and callingScriptOwner or CORE_SCRIPT.caller
+			}, secLevel, script, flagSet(flags, LOAD_ONLY_INFORMATION))
+		end
+
 		PROTECTED_SUB_ENV.game = {
 			LOAD_AS_OWNER = LOAD_AS_OWNER,
 			LOAD_ONLY_INFORMATION = LOAD_ONLY_INFORMATION,
-			loadscript = function(script, flags)
-				checkTimeout()
-				flags = flags or 0
-				return loadscript({
-					thisScript = script,
-					callingScript = callingScript,
-					isScriptor = false,
-					caller = flagSet(flags, LOAD_AS_OWNER) and callingScriptOwner or CORE_SCRIPT.caller
-				}, secLevel, script, flagSet(flags, LOAD_ONLY_INFORMATION))
-			end,
+			script = {
+				load = loadScriptGame,
+				info = function(script)
+					return loadScriptGame(script, LOAD_ONLY_INFORMATION)
+				end
+			},
 			db = dbintf(data._id),
 			cache = {} -- Not protected on purpose, like #G
 		}
