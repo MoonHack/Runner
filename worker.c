@@ -33,6 +33,7 @@
 
 #define ZMQ_NEEDMORE zmq_getsockopt(zsocket, ZMQ_RCVMORE, &_zmq_rcvmore, &_zmq_rcvmore_size); \
 	if (!_zmq_rcvmore) { \
+		zmq_send(zsocket, "BAD_INPUT\n", 10, 0); \
 		continue; \
 	}
 
@@ -267,7 +268,7 @@ int main(int argc, char **argv) {
 	signal(SIGCHLD, noop_hdlr);
 
 	void* ctx = zmq_init(1);
-	void* zsocket = zmq_socket(ctx, ZMQ_PULL);
+	void* zsocket = zmq_socket(ctx, ZMQ_REP);
 	zmq_setallopts(zsocket, -1, 5000);
 	zmq_connect(zsocket, argv[1]);
 
@@ -304,6 +305,8 @@ int main(int argc, char **argv) {
 		script[script_len] = 0;
 		run_id[run_id_len] = 0;
 		args[args_len] = 0;
+
+		zmq_send(zsocket, "STARTED\n", 8, 0);
 		
 		pid_t subworker_master = fork();
 		if (subworker_master > 0) {

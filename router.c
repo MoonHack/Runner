@@ -16,8 +16,8 @@ int main(int argc, char **argv) {
 	}
 
 	void* ctx = zmq_init(atoi(argv[1]));
-	void* frontend = zmq_socket(ctx, ZMQ_PULL);
-	void* backend = zmq_socket(ctx, ZMQ_PUSH);
+	void* frontend = zmq_socket(ctx, ZMQ_XREP);
+	void* backend = zmq_socket(ctx, ZMQ_XREQ);
 
 	zmq_setallopts(frontend, -1, 5000);
 
@@ -54,6 +54,6 @@ int main(int argc, char **argv) {
 
 	printf("Router startup done\n");
 
-	zmq_device(ZMQ_STREAMER, frontend, backend);
+	zmq_device(ZMQ_QUEUE, frontend, backend);
 	return 1;
 }
