@@ -246,6 +246,10 @@ _G.ffi = nil
 _G.jit = nil
 _G.debug = nil
 _G.io = nil
+_G.require = nil
+_G.dofile = nil
+_G.loadfile = nil
+_G.load = nil
 
 local function __run(_runId, _caller, _script, args, _extEnterProtected, _extLeaveProtected)
 	uuid.seed()
