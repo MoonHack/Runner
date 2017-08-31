@@ -25,6 +25,7 @@ ffi.cdef[[
 	void lua_enterprot();
 	void lua_leaveprot();
 	int poll(struct pollfd *fds, unsigned long nfds, int timeout);
+	size_t read_random(void *buffer, size_t len);
 ]]
 
 local function writeln(str)
@@ -40,6 +41,14 @@ local START_TIME = 0
 local KILL_TIME = 0
 function timeLeft()
 	return KILL_TIME - time()
+end
+
+function secureRandom(len)
+	local res = ffi.new("char[?]", len)
+	if ffi.C.read_random(res, len) ~= 1 then
+		error("Could not get random")
+	end
+	return ffi.string(res, len)
 end
 
 function sleep(seconds)
@@ -192,6 +201,7 @@ local SUB_ENV = {
 		startTime = START_TIME
 	}
 }
+SUB_ENV.math.secureRandom = secureRandom
 
 SUB_ENV._G = SUB_ENV
 
@@ -263,32 +273,36 @@ _G.package = nil
 _G.print = nil
 
 local function __run(_runId, _caller, _script, args)
-	uuid.randomseed(time())
+	do
+		local a, b, c, d = secureRandom(4):byte(1,4)
+		local seed = a*0x1000000 + b*0x10000 + c *0x100 + d
+		uuid.randomseed(seed)
 
-	runId = _runId or "UNKNOWN"
-	CAN_SOFT_KILL = true
-	START_TIME = time()
-	KILL_TIME = START_TIME + 6
+		runId = _runId or "UNKNOWN"
+		CAN_SOFT_KILL = true
+		START_TIME = time()
+		KILL_TIME = START_TIME + 6
 
-	local ok
-	CALLER = _caller
-	ok, CORE_SCRIPT = loadMainScript(_script, false)
-	if not ok then
-		writeln(cjson.encode({
-			ok = false,
-			msg = CORE_SCRIPT
-		}))
-		return
-	end
+		local ok
+		CALLER = _caller
+		ok, CORE_SCRIPT = loadMainScript(_script, false)
+		if not ok then
+			writeln(cjson.encode({
+				ok = false,
+				msg = CORE_SCRIPT
+			}))
+			return
+		end
 
-	if args and args ~= '' then
-		args = cjson.decode(args)
-	end
+		if args and args ~= '' then
+			args = cjson.decode(args)
+		end
 
-	if args and type(args) == "table" then
-		for k, v in next, args do
-			if type(v) == "table" and v.__scriptor then
-				args[k] = loadMainScript(v.__scriptor, true)
+		if args and type(args) == "table" then
+			for k, v in next, args do
+				if type(v) == "table" and v.__scriptor then
+					args[k] = loadMainScript(v.__scriptor, true)
+				end
 			end
 		end
 	end

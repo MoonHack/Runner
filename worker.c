@@ -37,6 +37,7 @@
 		continue; \
 	}
 
+FILE *urandom_fh;
 pid_t worker_pid;
 lua_State *L;
 int lua_main;
@@ -47,7 +48,7 @@ int lua_alarm_delayed = 0;
 #define cgroup_memsw_limit "/var/root/cg_mem/memory.memsw.limit_in_bytes"
 #define cgroup_mem_tasks "/var/root/cg_mem/tasks"
 
-void sigalrm_recvd() {
+static void sigalrm_recvd() {
 	if (lua_prot_depth > 0 && lua_exit_on_prot_leave == 0) {
 		lua_exit_on_prot_leave = EXIT_HARD_TIMEOUT;
 		alarm(20);
@@ -56,8 +57,16 @@ void sigalrm_recvd() {
 	exit(EXIT_HARD_TIMEOUT);
 }
 
-void sigalrm_killchild_rcvd() {
+static void sigalrm_killchild_rcvd() {
 	kill(worker_pid, SIGKILL);
+}
+
+size_t read_random(void *buffer, size_t len) {
+	if (!urandom_fh) {
+		return 0;
+	}
+	size_t res = fread(buffer, len, 1, urandom_fh);
+	return res;
 }
 
 static void set_memory_limit(const char *memlimit) {
@@ -77,6 +86,8 @@ static void add_task_to_cgroup(pid_t pid) {
 	fprintf(fd, "%d\n", pid);
 	fclose(fd);
 }
+
+
 
 void lua_enterprot() {
 	if (++lua_prot_depth == 1) {
@@ -247,6 +258,8 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
+	urandom_fh = fopen("/dev/urandom", "rb");
+
 	lua_init();
 
 	int _zmq_rcvmore = 0;
@@ -339,6 +352,8 @@ int main(int argc, char **argv) {
 			alarm(TASK_HARD_TIMEOUT);
 
 			add_task_to_cgroup(getpid());
+
+			urandom_fh = fopen("/dev/urandom", "rb");
 
 			if (secure_me_sub(uid, gid)) {
 				exit(1);

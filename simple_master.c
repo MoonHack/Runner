@@ -10,11 +10,11 @@ int worker_count;
 pid_t *workers;
 char *backend_socket;
 
-void all_exit() {
+static void all_exit() {
 	kill(-getpid(), SIGTERM);
 }
 
-pid_t spawn_worker() {
+static pid_t spawn_worker() {
 	pid_t worker = fork();
 	if (worker == 0) {
 		if (chdir("./lua")) {
@@ -33,7 +33,7 @@ pid_t spawn_worker() {
 	}
 }
 
-void sigchld_recvd() {
+static void sigchld_recvd() {
 	int status;
 	pid_t pid = waitpid(-1, &status, WNOHANG | WUNTRACED | WCONTINUED);
 	if (WIFCONTINUED(status) || WIFSTOPPED(status)) {
