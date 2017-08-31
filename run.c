@@ -63,9 +63,6 @@ int _main(int argc, char **argv) {
 	close(s);
 
 	char buffer[65537];
-	int buf_len = zmq_recv(zsocket, &buffer, 65536, 0);
-	buffer[buf_len] = 0;
-	printf("RESULT: %s", buffer);
 
 	FILE *sockfd = fdopen(sc, "r");
 	while(!feof(sockfd) && fgets(buffer, 65536, sockfd)) {
@@ -80,13 +77,19 @@ int _main(int argc, char **argv) {
 
 int main(int argc, char **argv) {
 	ctx = zmq_init(1);
-	zsocket = zmq_socket(ctx, ZMQ_REQ);
+	zsocket = zmq_socket(ctx, ZMQ_PUSH);
 	zmq_connect(zsocket, "tcp://127.0.0.1:5556");
 	zmq_setallopts(zsocket, 60000, 60000);
-	while (1) {
+	if (strcmp(argv[1], "1") == 0) {
+		while (1) {
+			if (_main(argc - 1, argv + 1)) {
+				return 1;
+			}
+		}
+	} else {
 		if (_main(argc, argv)) {
 			return 1;
-		}
+		}		
 	}
 	return 0;
 }
