@@ -36,6 +36,7 @@
 		continue; \
 	}
 
+pid_t worker_pid;
 lua_State *L;
 int lua_main;
 int lua_prot_depth = 0;
@@ -54,6 +55,10 @@ void sigalrm_recvd() {
 	exit(EXIT_HARD_TIMEOUT);
 }
 
+void sigalrm_killchild_rcvd() {
+	kill(worker_pid, SIGKILL);
+}
+
 static void set_memory_limit(const char *memlimit) {
 	FILE *fd;
 	
@@ -66,9 +71,9 @@ static void set_memory_limit(const char *memlimit) {
 	fclose(fd);
 }
 
-static void add_task_to_cgroup() {
+static void add_task_to_cgroup(pid_t pid) {
 	FILE *fd = fopen(cgroup_mem_tasks, "w");
-	fprintf(fd, "%d\n", getpid());
+	fprintf(fd, "%d\n", pid);
 	fclose(fd);
 }
 
@@ -274,18 +279,33 @@ int main(int argc, char **argv) {
 		run_id[run_id_len] = 0;
 		args[args_len] = 0;
 
+		zmq_send(zsocket, "STARTED\n", 8, 0);
+		
+		pid_t subworker_master = fork();
+		if (subworker_master > 0) {
+			waitpid(subworker_master, &exitstatus, 0);
+			continue;
+		} else if (subworker_master < 0) {
+			exit(1);
+		}
+
+		// This all runs INSIDE THE FORK
+		if (unshare(CLONE_NEWPID | CLONE_FILES)) {
+			perror("CLONE_NEWPID_FILES");
+			exit(1);
+		}
+
 		int sockfd = socket(PF_INET, SOCK_STREAM, 0);
 		setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
 		setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout));
 		if (connect(sockfd, (struct sockaddr *)&saddr, sizeof(saddr)) < 0) {
-			zmq_send(zsocket, "NOCONNECT\n", 10, 0);
+			//zmq_send(zsocket, "NOCONNECT\n", 10, 0);
 			perror("connect");
-			continue;
+			exit(1);
 		}
 
-		zmq_send(zsocket, "STARTED\n", 8, 0);
-		
 		if(pipe(stdout_pipe)) {
+			perror("stdout_pipe");
 			exit(1);
 		}
 
@@ -304,10 +324,10 @@ int main(int argc, char **argv) {
 			signal(SIGHUP, SIG_IGN);
 			alarm(TASK_HARD_TIMEOUT);
 
-			add_task_to_cgroup();
+			add_task_to_cgroup(getpid());
 
 			if (secure_me_sub(uid, gid)) {
-				return 1;
+				exit(1);
 			}
 			
 			lua_rawgeti(L, LUA_REGISTRYINDEX, lua_main);
@@ -324,6 +344,10 @@ int main(int argc, char **argv) {
 		}
 
 		close(stdout_pipe[1]);
+
+		worker_pid = subworker;
+		signal(SIGALRM, sigalrm_killchild_rcvd);
+		alarm(60);
 
 		stdout_fd = fdopen(stdout_pipe[0], "r");
 		while(!feof(stdout_fd)) {
@@ -385,6 +409,7 @@ int main(int argc, char **argv) {
 		}
 
 		close(sockfd);
+		exit(0);
 	}
 
 	return 0;

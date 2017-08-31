@@ -239,6 +239,8 @@ local function loadMainScript(script, isScriptor)
 	}, -1, CALLER, script, false)
 end
 
+uuid.seed()
+
 string.dump = nil
 _G.os = nil
 _G.ffi = nil
@@ -253,7 +255,7 @@ _G.package = nil
 _G.print = nil
 
 local function __run(_runId, _caller, _script, args, _extEnterProtected, _extLeaveProtected)
-	uuid.seed()
+	uuid.randomseed(time())
 
 	runId = _runId or "UNKNOWN"
 	extEnterProtected = _extEnterProtected or noop
