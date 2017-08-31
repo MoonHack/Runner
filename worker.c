@@ -104,22 +104,23 @@ static void lua_init() {
 	lua_main = luaL_ref(L, LUA_REGISTRYINDEX);
 }
 
-static void cgroup_init() {
+static int cgroup_init() {
 	char cgroup_mem_root[256];
 	sprintf(cgroup_mem_root, "/sys/fs/cgroup/memory/%s/moonhack_cg_%d/", getenv("USER"), getpid());
 
 	mkdir(cgroup_mem_root, 0700);
 	if (mkdir("/var/cg_mem", 0700)) {
 		perror("mkdir_cg_mem");
-		exit(1);
+		return 1;
 	}
 
 	if (mount(cgroup_mem_root, "/var/cg_mem", "bind", MS_BIND, "")) {
 		perror("mount_cg_mem");
-		exit(1);
+		return 1;
 	}
 
 	set_memory_limit(TASK_MEMORY_LIMIT);
+	return 0;
 }
 
 static int secure_me(int uid, int gid) {
@@ -168,13 +169,22 @@ static int secure_me(int uid, int gid) {
 		return 1;
 	}
 
-	if (mount("none", "/var", "tmpfs", 0, "size=1,nr_inodes=3")) {
+	if (mount("none", "/var", "tmpfs", MS_NODEV | MS_NOSUID | MS_NOEXEC | MS_NOATIME, "")) {
 		perror("mount_var");
 		return 1;
 	}
 
 	if (symlink(".", "/var/var")) {
 		perror("symlink_var_var");
+		return 1;
+	}
+
+	if (cgroup_init()) {
+		return 1;
+	}
+
+	if (mount("none", "/var", "tmpfs", MS_RDONLY | MS_REMOUNT | MS_NODEV | MS_NOSUID | MS_NOEXEC | MS_NOATIME, "")) {
+		perror("remount_ro_var");
 		return 1;
 	}
 
@@ -218,7 +228,6 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	cgroup_init();
 	lua_init();
 
 	int _zmq_rcvmore = 0;
