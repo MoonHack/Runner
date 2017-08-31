@@ -98,8 +98,7 @@ static void lua_init() {
 	luaL_openlibs(L);
 	if(luaL_dofile(L, "main.luac")) {
 		//luaL_traceback(L, L, NULL, 1);
-		printf("%s\n", lua_tostring(L, -1));
-		printf("Please make sure to run this executable with the working directory set to the lua path\n");
+		printf("Error loading Lua: %s\n", lua_tostring(L, -1));
 		exit(1);
 	}
 

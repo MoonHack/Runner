@@ -20,11 +20,6 @@ local xpcall = xpcall
 local debug = debug
 local uuid = require("uuid")
 
-_G.python = nil
-_G.ffi = nil
-_G.jit = nil
-_G.debug = nil
-
 local function noop()
 end
 
@@ -245,6 +240,13 @@ local function loadMainScript(script, isScriptor)
 		isScriptor = isScriptor
 	}, -1, script, false)
 end
+
+_G.os = nil
+_G.python = nil
+_G.ffi = nil
+_G.jit = nil
+_G.debug = nil
+_G.io = nil
 
 local function __run(_runId, _caller, _script, args, _extEnterProtected, _extLeaveProtected)
 	uuid.seed()
