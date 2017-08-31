@@ -106,7 +106,7 @@ local function loadscriptInternal(script, compile)
 				local ok
 				ok, data.codeBinary, func = pcall(util.compileScript, data.code, data._id)
 				if not ok then
-					return false, 'Compile error\n' .. data.codeBinary
+					return false, 'Compile error in ' .. data._id
 				end
 				scriptsDb:update({
 					name = data._id
