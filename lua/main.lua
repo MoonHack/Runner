@@ -236,7 +236,7 @@ local function loadMainScript(script, isScriptor)
 		thisScript = script,
 		caller = CALLER,
 		isScriptor = isScriptor
-	}, -1, script, false)
+	}, -1, CALLER, script, false)
 end
 
 string.dump = nil

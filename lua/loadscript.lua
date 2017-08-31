@@ -98,7 +98,7 @@ local function loadscriptInternal(script, compile)
 				callingScript = callingScript,
 				isScriptor = false,
 				caller = asOwner and callingScriptOwner or CORE_SCRIPT.caller
-			}, asOwner and 0 or secLevel, script, flagSet(flags, LOAD_ONLY_INFORMATION))
+			}, asOwner and 0 or secLevel, callingScriptOwner, script, flagSet(flags, LOAD_ONLY_INFORMATION))
 		end
 
 		PROTECTED_SUB_ENV.game = {
@@ -158,7 +158,7 @@ local function loadscriptInternal(script, compile)
 	return true, data
 end
 
-loadscript = function(ctx, parentSecLevel, script, onlyInformative)
+loadscript = function(ctx, parentSecLevel, parentOwner, script, onlyInformative)
 	local runnable = ctx and not onlyInformative
 	local ok, data = loadscriptInternal(script, runnable)
 	if not ok then
@@ -175,11 +175,7 @@ loadscript = function(ctx, parentSecLevel, script, onlyInformative)
 		if data.securityLevel < parentSecLevel then
 			return false, "Cannot load script with lower security level than parent script"
 		end
-		local parentOwner = ctx.caller
-		if ctx.callingScript then
-			parentOwner = util.getUserFromScript(ctx.callingScript)
-		end
-		if data.accessLevel < 2 and parentOwner ~= getUserFromScript(data._id) then
+		if data.accessLevel < 2 and parentOwner ~= data.owner then
 			return false, "Cannot load private script of different user"
 		end
 
@@ -192,6 +188,6 @@ loadscript = function(ctx, parentSecLevel, script, onlyInformative)
 	return true, info
 end
 
-_G.loadscript = loadscript
+--_G.loadscript = loadscript
 
 return loadscript
