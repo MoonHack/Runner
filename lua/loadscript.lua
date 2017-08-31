@@ -34,14 +34,13 @@ local function loadCoreScript(name, securityLevel, accessLevel)
 	}
 
 	if accessLevel == 3 then
-		tinsert({
+		tinsert(coreScripts, {
 			name = name,
 			accessLevel = accessLevel,
 			securityLevel = securityLevel,
 			system = true
 		})
 	end
-}
 end
 
 loadCoreScript("scripts.lib", 5)
