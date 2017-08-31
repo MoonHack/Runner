@@ -24,6 +24,7 @@ foreach(in_f IN LISTS LUAFILES)
 				OUTPUT ${out_f}
 				DEPENDS ${in_f}
 				COMMAND mkdir -p ${out_d}
+				#COMMAND cp ${in_f} ${out_f}
 				COMMAND luajit -b ${in_f} ${out_f}
 				)
 	list(APPEND LUAFILES_OUT ${out_f})

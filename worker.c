@@ -13,6 +13,7 @@
 #include <sched.h>
 #include <fcntl.h>
 #include <sys/mount.h>
+#include <sys/time.h>
 
 #include <lua.h>
 #include <lauxlib.h>
@@ -77,14 +78,13 @@ static void add_task_to_cgroup(pid_t pid) {
 	fclose(fd);
 }
 
-static int lua_enterprot(lua_State *L) {
+void lua_enterprot() {
 	if (++lua_prot_depth == 1) {
 		set_memory_limit(TASK_MEMORY_LIMIT_HIGH);
 	}
-	return 0;
 }
 
-static int lua_leaveprot(lua_State *L) {
+void lua_leaveprot() {
 	--lua_prot_depth;
 	if (lua_prot_depth < 0) {
 		exit(3);
@@ -94,7 +94,6 @@ static int lua_leaveprot(lua_State *L) {
 		}
 		set_memory_limit(TASK_MEMORY_LIMIT);
 	}
-	return 0;
 }
 
 static void lua_init() {
@@ -335,9 +334,7 @@ int main(int argc, char **argv) {
 			lua_pushstring(L, caller);
 			lua_pushstring(L, script);
 			lua_pushstring(L, args);
-			lua_pushcfunction(L, lua_enterprot);
-			lua_pushcfunction(L, lua_leaveprot);
-			lua_call(L, 6, 0);
+			lua_call(L, 4, 0);
 			exit(0);
 		} else if(subworker < 0) {
 			exit(1);

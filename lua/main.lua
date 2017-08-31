@@ -19,9 +19,13 @@ local cjson = require("cjson")
 local xpcall = xpcall
 local debug = debug
 local uuid = require("uuid")
+local ffi = require("ffi")
 
-local function noop()
-end
+ffi.cdef[[
+	void lua_enterprot();
+	void lua_leaveprot();
+	int poll(struct pollfd *fds, unsigned long nfds, int timeout);
+]]
 
 local function writeln(str)
 	write(str .. "\n")
@@ -38,15 +42,18 @@ function timeLeft()
 	return KILL_TIME - time()
 end
 
+function sleep(seconds)
+	ffi.C.poll(nil, 0, seconds * 1000)
+end
+
 function checkTimeout()
 	if PROTECTION_DEPTH <= 0 and timeLeft() < 0 then
 		exit(6) -- EXIT_SOFT_TIMEOUT
 	end
 end
 
-local extEnterProtected, extLeaveProtected
 local function enterProtectedSection()
-	extEnterProtected()
+	ffi.C.lua_enterprot()
 	PROTECTION_DEPTH = PROTECTION_DEPTH + 1
 end
 
@@ -56,7 +63,7 @@ local function leaveProtectedSection()
 		exit(1)
 	end
 	checkTimeout()
-	extLeaveProtected()
+	ffi.C.lua_leaveprot()
 end
 
 function runProtected(...)
@@ -126,6 +133,7 @@ local SUB_ENV = {
 	tostring = tostring,
 	tonumber = tonumber,
 	ipairs = ipairs,
+	sleep = sleep,
 	print = function(...)
 		local data = {...}
 		if #data == 1 then
@@ -254,12 +262,10 @@ _G.load = nil
 _G.package = nil
 _G.print = nil
 
-local function __run(_runId, _caller, _script, args, _extEnterProtected, _extLeaveProtected)
+local function __run(_runId, _caller, _script, args)
 	uuid.randomseed(time())
 
 	runId = _runId or "UNKNOWN"
-	extEnterProtected = _extEnterProtected or noop
-	extLeaveProtected = _extLeaveProtected or noop
 	CAN_SOFT_KILL = true
 	START_TIME = time()
 	KILL_TIME = START_TIME + 6

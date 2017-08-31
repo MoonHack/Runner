@@ -18,7 +18,6 @@ end
 
 local function balance(user)
 	user = tostring(user)
-	checkTimeout()
 	local res = userDb:findOne({ _id = user })
 	if not res then
 		return false, 'User not found'
@@ -29,7 +28,6 @@ end
 local function give(user, amount)
 	user = tostring(user)
 	amount = tonumber(amount)
-	checkTimeout()
 	local res = userDb:findAndModify({ _id = user }, { fields = { balance = 1 }, update = { ['$inc'] = { balance = amount } } })
 	if not res then
 		return false, 'Target cannot store that much MU'
@@ -40,7 +38,6 @@ end
 local function take(user, amount)
 	user = tostring(user)
 	amount = tonumber(amount)
-	checkTimeout()
 	local res = userDb:findAndModify({ _id = user, balance = { ['$gte'] = amount } }, { fields = { balance = 1 }, update = { ['$inc'] = { balance = -amount } } })
 	if not res then
 		return false, 'Source does not have enough MU'
@@ -52,9 +49,8 @@ local function transfer(from, to, amount)
 	from = tostring(from)
 	to = tostring(to)
 	amount = tonumber(amount)
-	if timeLeft() < 1 then
-		checkTimeout()
-		return false, 'MU transfers require 1 second of runtime'
+	if not from or not to or not amount then
+		return false, 'Missing parameters'
 	end
 	local ok, tr = take(from, amount)
 	if not ok then
