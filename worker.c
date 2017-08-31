@@ -91,7 +91,9 @@ static int lua_leaveprot(lua_State *L) {
 static void lua_init() {
 	L = luaL_newstate();
 	luaL_openlibs(L);
-	if(luaL_dofile(L, "main.lua")) {
+	if(luaL_dofile(L, "main.luac")) {
+		//luaL_traceback(L, L, NULL, 1);
+		printf("%s\n", lua_tostring(L, -1));
 		printf("Please make sure to run this executable with the working directory set to the lua path\n");
 		exit(1);
 	}

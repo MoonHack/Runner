@@ -1,6 +1,7 @@
 _G.python = nil
 _G.ffi = nil
 _G.jit = nil
+package.path = "./?.luac;" .. package.path
 
 local runId = "UNKNOWN"
 local unpack = unpack
