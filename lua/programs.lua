@@ -96,7 +96,7 @@ local function delete(name, serials)
 	programsDb:delete({ lastTransaction = txn })
 	logDb:insert({ action = "delete", from = name, programs = affected, date = db.now() })
 	_fixUser(name, userProgs)
-	return true, 'Programs have been deleted', affected
+	return true, affected
 end
 
 local function transfer(from, to, serials)
@@ -116,7 +116,7 @@ local function transfer(from, to, serials)
 	logDb:insert({ action = "transfer", from = from, to = to, programs = affected, date = db.now() })
 	_fixUser(from, userProgs)
 	_fixUser(to)
-	return true, 'Programs have been transferred', affected
+	return true, affected
 end
 
 local function load(name, serials, load)
@@ -140,7 +140,7 @@ local function load(name, serials, load)
 	
 	_save(ctx.caller, stored)
 	
-	return true, load and 'Programs have been loaded' or 'Programs have been unloaded', affected
+	return true, affected
 end
 
 local function list(name)

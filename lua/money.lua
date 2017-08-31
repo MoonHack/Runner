@@ -62,7 +62,7 @@ local function transfer(from, to, amount)
 		return false, tr
 	end
 	logDb:insert({ action = "transfer", from = from, to = to, amount = amount, date = db.now() })
-	return true, 'Transferred ' .. amount .. ' MU from ' .. from .. ' to ' .. to
+	return true
 end
 
 return {
