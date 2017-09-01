@@ -12,8 +12,6 @@ amqp_socket_t *asocket = NULL;
 amqp_connection_state_t aconn;
 
 struct command_request_t {
-	struct in_addr sin_addr;
-	unsigned short sin_port;
 	int run_id_len;
 	int caller_len;
 	int script_len;

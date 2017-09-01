@@ -249,6 +249,19 @@ static int secure_me_sub(int uid, int gid) {
 	return 0;
 }
 
+#define WRITE_AMQP(_str, _len) \
+	message_bytes.bytes = _str; \
+	message_bytes.len = _len; \
+	amqp_basic_publish(aconn, \
+			1, \
+			amqp_empty_bytes, \
+			arepqueue, \
+			0, \
+			0, \
+			&props, \
+			message_bytes \
+		)
+
 int main() {
 	int uid = getuid();
 	int gid = getgid();
@@ -269,14 +282,7 @@ int main() {
 	amqp_basic_consume(aconn, 1, aqueue, amqp_empty_bytes, 0, 1, 0, amqp_empty_table);
 	die_on_amqp_error(amqp_get_rpc_reply(aconn), "Consuming");
 
-	struct sockaddr_in saddr;
-	saddr.sin_family = AF_INET;
-
-	struct timeval timeout;
-	timeout.tv_sec = 10;
-	timeout.tv_usec = 0;
-
-	char caller[BASE_LEN + 1], script[BASE_LEN + 1], run_id[BASE_LEN + 1], args[ARGS_LEN + 1];
+	char caller[BASE_LEN + 1], script[BASE_LEN + 1], run_id[BASE_LEN + 1], args[ARGS_LEN + 1], queue_name[BASE_LEN + 1];
 	int caller_len, script_len, run_id_len, args_len;
 
 	int stdout_pipe[2];
@@ -288,6 +294,22 @@ int main() {
 	amqp_rpc_reply_t res;
 	amqp_envelope_t envelope;
 	struct command_request_t *command;
+
+	amqp_bytes_t arepqueue;
+	amqp_bytes_t message_bytes;
+	amqp_basic_properties_t props;
+	props._flags = AMQP_BASIC_DELIVERY_MODE_FLAG;
+	props.delivery_mode = 2;
+
+	amqp_table_t queue_attributes;
+	queue_attributes.num_entries = 1;
+	queue_attributes.entries = malloc(sizeof(amqp_table_entry_t) * queue_attributes.num_entries);
+	queue_attributes.entries[0].key = amqp_cstring_bytes("x-expires");
+	queue_attributes.entries[0].value.kind = AMQP_FIELD_KIND_I32;
+	queue_attributes.entries[0].value.value.i32 = 60000;
+	//queue_attributes.entries[1].key = amqp_cstring_bytes("x-message-ttl");
+	//queue_attributes.entries[1].value.kind = AMQP_FIELD_KIND_I32;
+	//queue_attributes.entries[1].value.value.i32 = 60000;
 
 	while (1) {
 		amqp_envelope_t envelope;
@@ -314,9 +336,6 @@ int main() {
 		COPYIN(script);
 		COPYIN(args);
 
-		saddr.sin_addr = command->sin_addr;
-		saddr.sin_port = command->sin_port;
-
 		caller[command->caller_len] = 0;
 		script[command->script_len] = 0;
 		run_id[command->run_id_len] = 0;
@@ -333,19 +352,22 @@ int main() {
 		}
 
 		// This all runs INSIDE THE FORK
-		if (unshare(CLONE_NEWPID | CLONE_FILES)) {
-			perror("CLONE_NEWPID_FILES");
+		if (unshare(CLONE_NEWPID)) {
+			perror("CLONE_NEWPID");
 			exit(1);
 		}
 
-		int sockfd = socket(PF_INET, SOCK_STREAM, 0);
-		setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
-		setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout));
-		if (connect(sockfd, (struct sockaddr *)&saddr, sizeof(saddr)) < 0) {
-			//zmq_send(zsocket, "NOCONNECT\n", 10, 0);
-			perror("connect");
-			exit(1);
-		}
+		sprintf(queue_name, "moonhack_command_results_%s", run_id);
+		arepqueue.bytes = queue_name;
+		arepqueue.len = strlen(queue_name);
+
+		amqp_queue_declare(aconn, 1,
+			arepqueue,
+			0,
+			1,
+			0,
+			0,
+			queue_attributes);
 
 		if(pipe(stdout_pipe)) {
 			perror("stdout_pipe");
@@ -354,10 +376,14 @@ int main() {
 
 		pid_t subworker = fork();
 		if (subworker == 0) {
-			close(sockfd);
 			close(stdout_pipe[0]);
 			dup2(stdout_pipe[1], 1);
 			close(stdout_pipe[1]);
+
+			if (unshare(CLONE_FILES)) {
+				perror("CLONE_FILES");
+				exit(1);
+			}
 
 			lua_prot_depth = 0;
 
@@ -397,9 +423,7 @@ int main() {
 			if (!fgets(buffer, BUFFER_LEN, stdout_fd)) {
 				break;
 			}
-			if (write(sockfd, buffer, strlen(buffer)) < 0) {
-				break;
-			}
+			WRITE_AMQP(buffer, strlen(buffer));
 		}
 
 		fclose(stdout_fd);
@@ -409,49 +433,33 @@ int main() {
 		if (WIFSIGNALED(exitstatus)) {
 			switch(WTERMSIG(exitstatus)) {
 				case 9: // SIGKILL, really only happens when OOM
-					if (write(sockfd, "\1\nMEMORY_LIMIT\n", 15) < 0) {
-						perror("write");
-					}
+					WRITE_AMQP("\1MEMORY_LIMIT\n", 14);
 					break;
 				default:
-					if (write(sockfd, "\1\nINTERNAL\n", 11) < 0) {
-						perror("write");
-					}
-					printf("KILLED %d\n", WTERMSIG(exitstatus));
+					WRITE_AMQP("\1INTERNAL\n", 10);
 					break;
 			}
 		} else if(WIFEXITED(exitstatus)) {
 			switch(WEXITSTATUS(exitstatus)) {
 				case EXIT_SOFT_TIMEOUT:
-					if (write(sockfd, "\1\nSOFT_TIMEOUT\n", 15) < 0) {
-						perror("write");
-					}
+					WRITE_AMQP("\1SOFT_TIMEOUT\n", 14);
 					break;
 				case EXIT_HARD_TIMEOUT:
-					if (write(sockfd, "\1\nHARD_TIMEOUT\n", 15) < 0) {
-						perror("write");
-					}
+					WRITE_AMQP("\1HARD_TIMEOUT\n", 14);
 					break;
 				//case EXIT_FORCED:
-				//	if (write(sockfd, "\1\nHARD_KILLED\n", 14) < 0) {
-				//		perror("write");
-				//	}					
+				//	WRITE_AMQP("\1HARD_KILLED\n", 13);
 				//	break;
 				case EXIT_OK:
-					if (write(sockfd, "\1\nOK\n", 5) < 0) {
-						perror("write");
-					}
+					WRITE_AMQP("\1OK\n", 4);
 					break;					
 				default:
-					if (write(sockfd, "\1\nINTERNAL\n", 11) < 0) {
-						perror("write");
-					}
+					WRITE_AMQP("\1INTERNAL\n", 10);
 					printf("EXITED %d\n", WEXITSTATUS(exitstatus));
 					break;
 			}
 		}
 
-		close(sockfd);
 		exit(0);
 	}
 

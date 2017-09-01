@@ -22,46 +22,11 @@ int _main(int argc, char **argv) {
 	char *script = argv[2];
 	char *args = argv[3];
 
-	struct sockaddr_in myaddr;
-	int s;
-
-	struct timeval timeout;
-	timeout.tv_sec = 10;
-	timeout.tv_usec = 0;
-
-	myaddr.sin_family = AF_INET;
-	myaddr.sin_port = 0;
-	inet_aton("127.0.0.1", &myaddr.sin_addr);
-	s = socket(PF_INET, SOCK_STREAM, 0);
-	if (!s) {
-		perror("socket");
-		return 1;
-	}
-	setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
-	setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout));
-	if (bind(s, (struct sockaddr*)&myaddr, sizeof(myaddr)) < 0) {
-		perror("bind");
-		return 1;
-	}
-
-	socklen_t len_inet = sizeof(myaddr);
-	if (getsockname(s, (struct sockaddr *)&myaddr, &len_inet) < 0) {
-		perror("getsockname");
-		return 1;
-	}
-
-	if (listen(s, 5) < 0) {
-		perror("listen");
-		return 1;
-	}
-
 	struct command_request_t command;
 	command.run_id_len = strlen(run_id);
 	command.caller_len = strlen(caller);
 	command.script_len = strlen(script);
 	command.args_len = strlen(args);
-	command.sin_addr = myaddr.sin_addr;
-	command.sin_port = myaddr.sin_port;
 
 	int pos = sizeof(command);
 	int msg_len = pos + command.run_id_len + command.caller_len + command.script_len + command.args_len + 4;
@@ -93,20 +58,8 @@ int _main(int argc, char **argv) {
 						)
 		);
 
-	int sc = accept(s, NULL, NULL);
-	setsockopt(sc, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
-	setsockopt(sc, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout));
-	close(s);
-
 	char buffer[65537];
-
-	FILE *sockfd = fdopen(sc, "r");
-	while(!feof(sockfd) && fgets(buffer, 65536, sockfd)) {
-		printf("%s", buffer);
-	}
-
-	fclose(sockfd);
-	close(sc);
+	
 
 	return 0;
 }
