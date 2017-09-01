@@ -3,7 +3,8 @@ set -e
 if [ ! -d "/sys/fs/cgroup/memory/$USER" ];
 then
 	U="$USER"
-	sudo user_cgroups "$U"
+	sudo mkdir -p "/sys/fs/cgroup/memory/$U"
+	sudo chown -R "$U:$U" "/sys/fs/cgroup/memory/$U"
 fi
 cd build
 cmake ..
