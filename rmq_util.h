@@ -2,6 +2,8 @@
 #include <amqp.h>
 #include <amqp_framing.h>
 
+#include "./config.h"
+
 #ifndef _MH_RMQ_UTIL_H
 #define _MH_RMQ_UTIL_H 1
 
@@ -72,13 +74,13 @@ void _util_init_rmq() {
 		exit(1);
 	}
 
-	status = amqp_socket_open(asocket, "127.0.0.1", 5672);
+	status = amqp_socket_open(asocket, RMQ_HOST, RMQ_PORT);
 	if (status) {
 		printf("Cannot open socket\n");
 		exit(1);
 	}
 
-	die_on_amqp_error(amqp_login(aconn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"), "Logging in");
+	die_on_amqp_error(amqp_login(aconn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, RMQ_USER, RMQ_PASS), "Logging in");
 	amqp_channel_open(aconn, 1);
 	die_on_amqp_error(amqp_get_rpc_reply(aconn), "Opening channel");
 }

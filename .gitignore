@@ -1,3 +1,4 @@
 /build/*
 !/build/.keep
 /lua/config.lua
+/config.h

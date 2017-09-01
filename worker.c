@@ -249,12 +249,7 @@ static int secure_me_sub(int uid, int gid) {
 	return 0;
 }
 
-int main(int argc, char **argv) {
-	if (argc < 2) {
-		printf("Usage: ./worker BACKEND\n");
-		return 1;
-	}
-
+int main() {
 	int uid = getuid();
 	int gid = getgid();
 

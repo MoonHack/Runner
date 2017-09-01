@@ -22,7 +22,7 @@ static pid_t spawn_worker() {
 		}
 		signal(SIGINT, SIG_IGN);
 		signal(SIGHUP, SIG_IGN);
-		execl("../worker", "worker", ZMQ_SOCKET_SIMPLE_MASTER, NULL);
+		execl("../worker", "worker", NULL);
 		perror("execl_worker");
 		_exit(1);
 	} else if (worker > 0) {
