@@ -83,7 +83,7 @@ int _main(int argc, char **argv) {
 	printf("Send: %s\n", amqp_error_string2(
 							amqp_basic_publish(aconn,
 								1,
-								aexchange,
+								amqp_empty_bytes,
 								aqueue,
 								0,
 								0,
