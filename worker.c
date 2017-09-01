@@ -1,6 +1,8 @@
 #define _GNU_SOURCE
 
-#include <zmq.h>
+#include <amqp_tcp_socket.h>
+#include <amqp.h>
+#include <amqp_framing.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -19,7 +21,7 @@
 #include <lauxlib.h>
 #include <lualib.h>
 
-#include "./util.h"
+#include "./rmq_util.h"
 #include "./config.h"
 
 #define BASE_LEN 256
@@ -31,11 +33,6 @@
 #define EXIT_SOFT_TIMEOUT 6
 #define EXIT_FORCED 7
 
-#define ZMQ_NEEDMORE zmq_getsockopt(zsocket, ZMQ_RCVMORE, &_zmq_rcvmore, &_zmq_rcvmore_size); \
-	if (!_zmq_rcvmore) { \
-		continue; \
-	}
-
 FILE *urandom_fh;
 pid_t worker_pid;
 lua_State *L;
@@ -46,6 +43,14 @@ int lua_alarm_delayed = 0;
 #define cgroup_mem_limit "/var/root/cg_mem/memory.limit_in_bytes"
 #define cgroup_memsw_limit "/var/root/cg_mem/memory.memsw.limit_in_bytes"
 #define cgroup_mem_tasks "/var/root/cg_mem/tasks"
+
+#define COPYIN(VAR) \
+	memcpy(VAR, envelope.message.body.bytes + pos, command-> VAR ## _len + 1); \
+	pos += command-> VAR ## _len + 1;
+
+static void noop_hdlr() {
+
+}
 
 static void sigalrm_recvd() {
 	if (lua_prot_depth > 0 && lua_exit_on_prot_leave == 0) {
@@ -261,15 +266,13 @@ int main(int argc, char **argv) {
 
 	lua_init();
 
-	int _zmq_rcvmore = 0;
-	size_t _zmq_rcvmore_size = sizeof(int);
-
 	signal(SIGCHLD, noop_hdlr);
 
-	void* ctx = zmq_init(1);
-	void* zsocket = zmq_socket(ctx, ZMQ_PULL);
-	zmq_setallopts(zsocket, -1, 5000);
-	zmq_connect(zsocket, argv[1]);
+	_util_init_rmq();
+	//amqp_queue_bind(aconn, 1, aqueue, aexchange, amqp_empty_bytes, amqp_empty_table);
+	//die_on_amqp_error(amqp_get_rpc_reply(aconn), "Binding queue");
+	amqp_basic_consume(aconn, 1, aqueue, amqp_empty_bytes, 0, 1, 0, amqp_empty_table);
+	die_on_amqp_error(amqp_get_rpc_reply(aconn), "Consuming");
 
 	struct sockaddr_in saddr;
 	saddr.sin_family = AF_INET;
@@ -287,23 +290,44 @@ int main(int argc, char **argv) {
 	FILE *stdout_fd;
 	char buffer[BUFFER_LEN + 1];
 
-	while (1) {
-		zmq_recv(zsocket, &saddr.sin_addr, sizeof(saddr.sin_addr), 0);
-		ZMQ_NEEDMORE;
-		zmq_recv(zsocket, &saddr.sin_port, sizeof(saddr.sin_port), 0);
-		ZMQ_NEEDMORE;
-		run_id_len = zmq_recv(zsocket, &run_id, BASE_LEN, 0);
-		ZMQ_NEEDMORE;
-		caller_len = zmq_recv(zsocket, &caller, BASE_LEN, 0);
-		ZMQ_NEEDMORE;
-		script_len = zmq_recv(zsocket, &script, BASE_LEN, 0);
-		ZMQ_NEEDMORE;
-		args_len = zmq_recv(zsocket, &args, ARGS_LEN, 0);
+	amqp_rpc_reply_t res;
+	amqp_envelope_t envelope;
+	struct command_request_t *command;
 
-		caller[caller_len] = 0;
-		script[script_len] = 0;
-		run_id[run_id_len] = 0;
-		args[args_len] = 0;
+	while (1) {
+		amqp_envelope_t envelope;
+		amqp_maybe_release_buffers(aconn);
+		res = amqp_consume_message(aconn, &envelope, NULL, 0);
+		if (AMQP_RESPONSE_NORMAL != res.reply_type) {
+			return 1;
+		}
+
+		//envelope.message.body.bytes, envelope.message.body.len
+
+		command = envelope.message.body.bytes;
+		if (command->run_id_len > BASE_LEN ||
+			command->caller_len > BASE_LEN ||
+			command->script_len > BASE_LEN ||
+			command->args_len > ARGS_LEN) {
+			amqp_destroy_envelope(&envelope);
+			continue;
+		}
+
+		int pos = sizeof(struct command_request_t);
+		COPYIN(run_id);
+		COPYIN(caller);
+		COPYIN(script);
+		COPYIN(args);
+
+		saddr.sin_addr = command->sin_addr;
+		saddr.sin_port = command->sin_port;
+
+		caller[command->caller_len] = 0;
+		script[command->script_len] = 0;
+		run_id[command->run_id_len] = 0;
+		args[command->args_len] = 0;
+
+		amqp_destroy_envelope(&envelope);
 		
 		pid_t subworker_master = fork();
 		if (subworker_master > 0) {

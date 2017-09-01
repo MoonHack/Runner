@@ -65,17 +65,6 @@ int main(int argc, char **argv) {
 	signal(SIGINT, all_exit);
 	signal(SIGHUP, all_exit);
 
-	pid_t router = fork();
-	if (router == 0) {
-		signal(SIGINT, SIG_IGN);
-		signal(SIGHUP, SIG_IGN);
-		execl("./router", "router", ZMQ_ROUTER_THREADS_SIMPLE_MASTER, "-bb", ZMQ_SOCKET_SIMPLE_MASTER, "-fb", argv[2], NULL);
-		_exit(1);
-	} else if(router < 0) {
-		all_exit();
-		return 1;
-	}
-
 	int i;
 	for (i = 0; i < worker_count; ++i) {
 		workers[i] = spawn_worker();
@@ -83,8 +72,9 @@ int main(int argc, char **argv) {
 
 	printf("Simple master startup done\n");
 
-	int stat;
-	waitpid(router, &stat, 0);
+	while (1) {
+		sleep(60);
+	}
 	all_exit();
 
 	return 0;

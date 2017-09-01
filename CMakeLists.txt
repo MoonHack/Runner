@@ -10,7 +10,7 @@ macro(simple_add_lib lib)
 endmacro()
 
 find_package(PkgConfig REQUIRED)
-pkg_search_module(ZMQ REQUIRED libzmq)
+pkg_search_module(RABBITMQ REQUIRED librabbitmq)
 pkg_search_module(LUAJIT REQUIRED luajit)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lua)
@@ -31,9 +31,9 @@ foreach(in_f IN LISTS LUAFILES)
 endforeach()
 
 add_executable (simple_master simple_master.c)
-add_executable (router router.c)
 add_executable (worker worker.c ${LUAFILES_OUT})
 add_executable (run run.c)
 
-simple_add_lib(ZMQ router worker run)
+#simple_add_lib(RABBITMQ run)
+simple_add_lib(RABBITMQ worker run)
 simple_add_lib(LUAJIT worker)
