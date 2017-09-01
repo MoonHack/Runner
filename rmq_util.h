@@ -12,10 +12,10 @@ amqp_socket_t *asocket = NULL;
 amqp_connection_state_t aconn;
 
 struct command_request_t {
-	int run_id_len;
-	int caller_len;
-	int script_len;
-	int args_len;
+	unsigned int run_id_len;
+	unsigned int caller_len;
+	unsigned int script_len;
+	unsigned int args_len;
 };
 
 void die_on_amqp_error(amqp_rpc_reply_t x, char const *context) {
