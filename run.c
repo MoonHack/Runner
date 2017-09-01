@@ -59,6 +59,10 @@ int _main(int argc, char **argv) {
 	COPYIN(script);
 	COPYIN(args);
 
+	struct timeval timeout;
+	timeout.tv_usec = 0;
+	timeout.tv_sec = 30;
+
 	amqp_bytes_t message_bytes;
 	message_bytes.len = msg_len;
 	message_bytes.bytes = message;
@@ -95,7 +99,7 @@ int _main(int argc, char **argv) {
 	while (1) {
 		amqp_envelope_t envelope;
 		amqp_maybe_release_buffers(aconn);
-		res = amqp_consume_message(aconn, &envelope, NULL, 0);
+		res = amqp_consume_message(aconn, &envelope, &timeout, 0);
 		if (AMQP_RESPONSE_NORMAL != res.reply_type) {
 			break;
 		}
