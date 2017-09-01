@@ -278,7 +278,7 @@ int main() {
 
 	_util_init_rmq();
 
-	amqp_basic_consume(aconn, 1, aqueue, amqp_empty_bytes, 0, 1, 0, amqp_empty_table);
+	amqp_basic_consume(aconn, 1, aqueue, amqp_empty_bytes, 0, 0, 0, amqp_empty_table);
 	die_on_amqp_error(amqp_get_rpc_reply(aconn), "Consuming");
 
 	char caller[BASE_LEN + 1], script[BASE_LEN + 1], run_id[BASE_LEN + 1], args[ARGS_LEN + 1], queue_name[BASE_LEN + 1];
@@ -299,13 +299,20 @@ int main() {
 	props._flags = AMQP_BASIC_DELIVERY_MODE_FLAG;
 	props.delivery_mode = 2;
 
+	uint64_t delivery_tag = 0;
+
 	while (1) {
+		if (delivery_tag) {
+			amqp_basic_ack(aconn, 1, delivery_tag, 0);
+		}
 		amqp_envelope_t envelope;
 		amqp_maybe_release_buffers(aconn);
 		res = amqp_consume_message(aconn, &envelope, NULL, 0);
 		if (AMQP_RESPONSE_NORMAL != res.reply_type) {
 			return 1;
 		}
+
+		delivery_tag = envelope.delivery_tag;
 
 		command = envelope.message.body.bytes;
 		if (command->run_id_len > BASE_LEN ||
