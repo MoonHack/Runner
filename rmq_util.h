@@ -11,12 +11,14 @@ amqp_bytes_t aqueue;
 amqp_socket_t *asocket = NULL;
 amqp_connection_state_t aconn;
 
-struct __attribute__((__packed__)) command_request_t {
+#pragma pack(push, 1)
+struct command_request_t {
 	uint32_t run_id_len;
 	uint32_t caller_len;
 	uint32_t script_len;
 	uint32_t args_len;
 };
+#pragma pack(pop)
 
 void die_on_amqp_error(amqp_rpc_reply_t x, char const *context) {
 	switch (x.reply_type) {
