@@ -11,7 +11,7 @@ amqp_bytes_t aqueue;
 amqp_socket_t *asocket = NULL;
 amqp_connection_state_t aconn;
 
-struct command_request_t {
+struct __attribute__((__packed__)) command_request_t {
 	uint32_t run_id_len;
 	uint32_t caller_len;
 	uint32_t script_len;
