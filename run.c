@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <uuid/uuid.h>
 #include "./rmq_util.h"
 
 // Dummy script to manually trigger a script run like: ./run user user.script '{}'
@@ -17,8 +18,11 @@
 	pos += command. VAR ## _len + 1;
 
 int _main(int argc, char **argv) {
+	uuid_t uuid;
+	uuid_generate_random(uuid);
 	amqp_bytes_t consumer_tag = amqp_cstring_bytes("run_consumer");
-	char *run_id = "1337";
+	char run_id[64];
+	uuid_unparse(uuid, run_id);
 	char *caller = argv[1];
 	char *script = argv[2];
 	char *args = argv[3];
@@ -27,6 +31,8 @@ int _main(int argc, char **argv) {
 	sprintf(queue_name, "moonhack_command_results_%s", run_id);
 	arepqueue.bytes = queue_name;
 	arepqueue.len = strlen(queue_name);
+
+	printf("Q: %s\n", queue_name);
 
 	amqp_table_t queue_attributes;
 	queue_attributes.num_entries = 1;
