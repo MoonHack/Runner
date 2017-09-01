@@ -341,6 +341,10 @@ int main() {
 
 		pid_t subworker_master = fork();
 		if (subworker_master > 0) {
+			free(run_id);
+			free(caller);
+			free(script);
+			free(args);
 			waitpid(subworker_master, &exitstatus, 0);
 			continue;
 		} else if (subworker_master < 0) {
@@ -405,11 +409,6 @@ int main() {
 			free(args);
 			exit(0);
 		} else if(subworker < 0) {
-			free(run_id);
-			free(caller);
-			free(script);
-			free(args);
-			free(queue_name);
 			exit(1);
 		}
 
