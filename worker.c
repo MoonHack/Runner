@@ -290,7 +290,6 @@ int main() {
 	FILE *stdout_fd;
 	char buffer[BUFFER_LEN + 1];
 
-	amqp_rpc_reply_t res;
 	struct command_request_t *command;
 
 	amqp_bytes_t arepqueue;
@@ -307,10 +306,7 @@ int main() {
 		}
 		amqp_envelope_t envelope;
 		amqp_maybe_release_buffers(aconn);
-		res = amqp_consume_message(aconn, &envelope, NULL, 0);
-		if (AMQP_RESPONSE_NORMAL != res.reply_type) {
-			return 1;
-		}
+		die_on_amqp_error(amqp_consume_message(aconn, &envelope, NULL, 0), "Consume");
 
 		delivery_tag = envelope.delivery_tag;
 
