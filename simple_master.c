@@ -1,8 +1,8 @@
-#include <zmq.h>
 #include <sys/types.h>
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <sys/wait.h>
 #include "./config.h"
 
