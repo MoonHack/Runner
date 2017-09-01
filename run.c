@@ -14,8 +14,8 @@
 // Dummy script to manually trigger a script run like: ./run user user.script '{}'
 
 #define COPYIN(VAR) \
-	memcpy(message + pos, VAR, command. VAR ## _len + 1); \
-	pos += command. VAR ## _len + 1;
+	memcpy(message + pos, VAR, command. VAR ## _len); \
+	pos += command. VAR ## _len;
 
 int _main(int argc, char **argv) {
 	uuid_t uuid;
@@ -51,7 +51,7 @@ int _main(int argc, char **argv) {
 	command.args_len = strlen(args);
 
 	int pos = sizeof(command);
-	int msg_len = pos + command.run_id_len + command.caller_len + command.script_len + command.args_len + 4;
+	int msg_len = pos + command.run_id_len + command.caller_len + command.script_len + command.args_len;
 	char *message = malloc(msg_len);
 	memcpy(message, &command, sizeof(struct command_request_t));
 	COPYIN(run_id);

@@ -45,8 +45,8 @@ int lua_alarm_delayed = 0;
 #define cgroup_mem_tasks "/var/root/cg_mem/tasks"
 
 #define COPYIN(VAR) \
-	memcpy(VAR, envelope.message.body.bytes + pos, command-> VAR ## _len + 1); \
-	pos += command-> VAR ## _len + 1;
+	memcpy(VAR, envelope.message.body.bytes + pos, command-> VAR ## _len); \
+	pos += command-> VAR ## _len;
 
 static void noop_hdlr() {
 
