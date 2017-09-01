@@ -313,6 +313,7 @@ int main() {
 		}
 
 		delivery_tag = envelope.delivery_tag;
+
 		command = envelope.message.body.bytes;
 		if (command->run_id_len > BASE_LEN ||
 			command->caller_len > BASE_LEN ||
@@ -335,6 +336,15 @@ int main() {
 
 		amqp_destroy_envelope(&envelope);
 
+		sprintf(queue_name, "moonhack_command_results_%s", run_id);
+		arepqueue.bytes = queue_name;
+		arepqueue.len = strlen(queue_name);
+
+		if (envelope.redelivered) {
+			WRITE_AMQP("\1CRASH\n", 7);
+			continue;
+		}
+
 		pid_t subworker_master = fork();
 		if (subworker_master > 0) {
 			waitpid(subworker_master, &exitstatus, 0);
@@ -348,10 +358,6 @@ int main() {
 			perror("CLONE_NEWPID");
 			exit(1);
 		}
-
-		sprintf(queue_name, "moonhack_command_results_%s", run_id);
-		arepqueue.bytes = queue_name;
-		arepqueue.len = strlen(queue_name);
 
 		if(pipe(stdout_pipe)) {
 			perror("stdout_pipe");
