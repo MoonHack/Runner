@@ -17,10 +17,26 @@
 	pos += command. VAR ## _len + 1;
 
 int _main(int argc, char **argv) {
+	amqp_bytes_t consumer_tag = amqp_cstring_bytes("run_consumer");
 	char *run_id = "1337";
 	char *caller = argv[1];
 	char *script = argv[2];
 	char *args = argv[3];
+	char queue_name[65536];
+	amqp_bytes_t arepqueue;
+	sprintf(queue_name, "moonhack_command_results_%s", run_id);
+	arepqueue.bytes = queue_name;
+	arepqueue.len = strlen(queue_name);
+
+	amqp_table_t queue_attributes;
+	queue_attributes.num_entries = 1;
+	queue_attributes.entries = malloc(sizeof(amqp_table_entry_t) * queue_attributes.num_entries);
+	queue_attributes.entries[0].key = amqp_cstring_bytes("x-expires");
+	queue_attributes.entries[0].value.kind = AMQP_FIELD_KIND_I32;
+	queue_attributes.entries[0].value.value.i32 = 60000;
+	//queue_attributes.entries[1].key = amqp_cstring_bytes("x-message-ttl");
+	//queue_attributes.entries[1].value.kind = AMQP_FIELD_KIND_I32;
+	//queue_attributes.entries[1].value.value.i32 = 60000;
 
 	struct command_request_t command;
 	command.run_id_len = strlen(run_id);
@@ -45,6 +61,14 @@ int _main(int argc, char **argv) {
 	props._flags = AMQP_BASIC_DELIVERY_MODE_FLAG;
 	props.delivery_mode = 1;
 
+	amqp_queue_declare(aconn, 1,
+		arepqueue,
+		0,
+		0,
+		0,
+		1,
+		queue_attributes);
+
 	printf("Send: %s\n", amqp_error_string2(
 							amqp_basic_publish(aconn,
 								1,
@@ -58,8 +82,25 @@ int _main(int argc, char **argv) {
 						)
 		);
 
-	char buffer[65537];
-	
+	char buffer[65536];
+	amqp_basic_consume(aconn, 1, arepqueue, consumer_tag, 0, 1, 0, amqp_empty_table);
+	die_on_amqp_error(amqp_get_rpc_reply(aconn), "Consuming");
+	amqp_rpc_reply_t res;
+	while (1) {
+		amqp_envelope_t envelope;
+		amqp_maybe_release_buffers(aconn);
+		res = amqp_consume_message(aconn, &envelope, NULL, 0);
+		if (AMQP_RESPONSE_NORMAL != res.reply_type) {
+			break;
+		}
+		memcpy(buffer, envelope.message.body.bytes, envelope.message.body.len);
+		buffer[envelope.message.body.len] = 0;
+		printf("%s", buffer);
+		if (buffer[0] == '\1') {
+			break;
+		}
+	}
+	amqp_basic_cancel(aconn, 1, consumer_tag);
 
 	return 0;
 }

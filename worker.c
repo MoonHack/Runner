@@ -292,7 +292,6 @@ int main() {
 	char buffer[BUFFER_LEN + 1];
 
 	amqp_rpc_reply_t res;
-	amqp_envelope_t envelope;
 	struct command_request_t *command;
 
 	amqp_bytes_t arepqueue;
@@ -300,16 +299,6 @@ int main() {
 	amqp_basic_properties_t props;
 	props._flags = AMQP_BASIC_DELIVERY_MODE_FLAG;
 	props.delivery_mode = 2;
-
-	amqp_table_t queue_attributes;
-	queue_attributes.num_entries = 1;
-	queue_attributes.entries = malloc(sizeof(amqp_table_entry_t) * queue_attributes.num_entries);
-	queue_attributes.entries[0].key = amqp_cstring_bytes("x-expires");
-	queue_attributes.entries[0].value.kind = AMQP_FIELD_KIND_I32;
-	queue_attributes.entries[0].value.value.i32 = 60000;
-	//queue_attributes.entries[1].key = amqp_cstring_bytes("x-message-ttl");
-	//queue_attributes.entries[1].value.kind = AMQP_FIELD_KIND_I32;
-	//queue_attributes.entries[1].value.value.i32 = 60000;
 
 	while (1) {
 		amqp_envelope_t envelope;
@@ -360,14 +349,6 @@ int main() {
 		sprintf(queue_name, "moonhack_command_results_%s", run_id);
 		arepqueue.bytes = queue_name;
 		arepqueue.len = strlen(queue_name);
-
-		amqp_queue_declare(aconn, 1,
-			arepqueue,
-			0,
-			1,
-			0,
-			0,
-			queue_attributes);
 
 		if(pipe(stdout_pipe)) {
 			perror("stdout_pipe");
