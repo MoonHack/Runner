@@ -87,7 +87,7 @@ void _util_init_rmq() {
 	amqp_table_t queue_attributes;
 	queue_attributes.num_entries = 1;
 	queue_attributes.entries = malloc(sizeof(amqp_table_entry_t) * queue_attributes.num_entries);
-	queue_attributes.entries[0].key = amqp_cstring_bytes("x-expires");
+	queue_attributes.entries[0].key = amqp_cstring_bytes("x-message-ttl");
 	queue_attributes.entries[0].value.kind = AMQP_FIELD_KIND_I32;
 	queue_attributes.entries[0].value.value.i32 = 30000;
 
