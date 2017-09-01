@@ -339,6 +339,8 @@ int main() {
 		COPYIN(script);
 		COPYIN(args);
 
+		amqp_destroy_envelope(&envelope);
+
 		pid_t subworker_master = fork();
 		if (subworker_master > 0) {
 			free(run_id);
