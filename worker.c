@@ -278,21 +278,6 @@ int main() {
 
 	_util_init_rmq();
 
-	amqp_table_t queue_attributes;
-	queue_attributes.num_entries = 1;
-	queue_attributes.entries = malloc(sizeof(amqp_table_entry_t) * queue_attributes.num_entries);
-	queue_attributes.entries[0].key = amqp_cstring_bytes("x-expires");
-	queue_attributes.entries[0].value.kind = AMQP_FIELD_KIND_I32;
-	queue_attributes.entries[0].value.value.i32 = 30000;
-
-	amqp_queue_declare(aconn, 1,
-		aqueue,
-		0,
-		0,
-		0,
-		0,
-		queue_attributes);
-
 	amqp_basic_consume(aconn, 1, aqueue, amqp_empty_bytes, 0, 1, 0, amqp_empty_table);
 	die_on_amqp_error(amqp_get_rpc_reply(aconn), "Consuming");
 

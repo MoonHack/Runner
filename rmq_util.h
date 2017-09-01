@@ -61,7 +61,7 @@ void die_on_amqp_error(amqp_rpc_reply_t x, char const *context) {
 
 void _util_init_rmq() {
 	int status;
-	
+
 	aqueue = amqp_cstring_bytes("moonhack_command_jobs");
 
 	aconn = amqp_new_connection();
@@ -81,6 +81,21 @@ void _util_init_rmq() {
 	die_on_amqp_error(amqp_login(aconn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, RMQ_USER, RMQ_PASS), "Logging in");
 	amqp_channel_open(aconn, 1);
 	die_on_amqp_error(amqp_get_rpc_reply(aconn), "Opening channel");
+
+	amqp_table_t queue_attributes;
+	queue_attributes.num_entries = 1;
+	queue_attributes.entries = malloc(sizeof(amqp_table_entry_t) * queue_attributes.num_entries);
+	queue_attributes.entries[0].key = amqp_cstring_bytes("x-expires");
+	queue_attributes.entries[0].value.kind = AMQP_FIELD_KIND_I32;
+	queue_attributes.entries[0].value.value.i32 = 30000;
+
+	amqp_queue_declare(aconn, 1,
+		aqueue,
+		0,
+		0,
+		0,
+		0,
+		queue_attributes);
 }
 
 #endif
