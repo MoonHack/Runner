@@ -75,7 +75,7 @@ size_t read_random(void *buffer, size_t len) {
 
 static void set_memory_limit(const char *memlimit) {
 	FILE *fd;
-	
+
 	fd = fopen(cgroup_mem_limit, "w");
 	fputs(memlimit, fd);
 	fclose(fd);
@@ -331,7 +331,7 @@ int main() {
 		args[command->args_len] = 0;
 
 		amqp_destroy_envelope(&envelope);
-		
+
 		pid_t subworker_master = fork();
 		if (subworker_master > 0) {
 			waitpid(subworker_master, &exitstatus, 0);
@@ -381,7 +381,7 @@ int main() {
 			if (secure_me_sub(uid, gid)) {
 				exit(1);
 			}
-			
+
 			lua_rawgeti(L, LUA_REGISTRYINDEX, lua_main);
 			lua_pushstring(L, run_id);
 			lua_pushstring(L, caller);
