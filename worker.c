@@ -433,7 +433,7 @@ int main() {
 				//	break;
 				case EXIT_OK:
 					WRITE_AMQP("\1OK\n", 4);
-					break;					
+					break;
 				default:
 					WRITE_AMQP("\1INTERNAL\n", 10);
 					printf("EXITED %d\n", WEXITSTATUS(exitstatus));

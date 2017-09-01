@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
 	} else {
 		if (_main(argc, argv)) {
 			return 1;
-		}		
+		}
 	}
 	return 0;
 }
