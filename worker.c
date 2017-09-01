@@ -302,7 +302,7 @@ int main() {
 	uint64_t delivery_tag = 0;
 
 	while (1) {
-		if (delivery_tag) {
+		if (command) { // Means second loop iteration
 			amqp_basic_ack(aconn, 1, delivery_tag, 0);
 		}
 		amqp_envelope_t envelope;
@@ -313,7 +313,6 @@ int main() {
 		}
 
 		delivery_tag = envelope.delivery_tag;
-
 		command = envelope.message.body.bytes;
 		if (command->run_id_len > BASE_LEN ||
 			command->caller_len > BASE_LEN ||
