@@ -300,32 +300,44 @@ int main() {
 
 	int first_loop = 1;
 	uint64_t delivery_tag = 0;
+	uint64_t pos;
+
+	amqp_envelope_t envelope;
 
 	while (1) {
 		if (!first_loop) { // Means second loop iteration
-			amqp_basic_ack(aconn, 1, delivery_tag, 0);
+			amqp_basic_ack(aconn, 1, envelope.delivery_tag, 0);
 		}
-		amqp_envelope_t envelope;
 		amqp_maybe_release_buffers(aconn);
 		die_on_amqp_error(amqp_consume_message(aconn, &envelope, NULL, 0), "Consume");
 
-		delivery_tag = envelope.delivery_tag;
 		first_loop = 0;
+
+		if (envelope.redelivered) {
+			printf("REDELIVERED\n");
+			amqp_destroy_envelope(&envelope);
+			continue;
+		}
+
+		if (envelope.message.body.len < sizeof(struct command_request_t)) {
+			printf("TOOSHORT\n");
+			amqp_destroy_envelope(&envelope);
+			continue;
+		}
 
 		memcpy(&command, envelope.message.body.bytes, sizeof(struct command_request_t));
 
-		int pos = sizeof(struct command_request_t);
+		pos = sizeof(struct command_request_t);
+		if (pos + command.run_id_len + command.caller_len + command.script_len + command.args_len != envelope.message.body.len) {
+			printf("WRONGLEN\n");
+			amqp_destroy_envelope(&envelope);
+			continue;
+		}
+
 		COPYIN(run_id);
 		COPYIN(caller);
 		COPYIN(script);
 		COPYIN(args);
-
-		amqp_destroy_envelope(&envelope);
-
-		if (envelope.redelivered) {
-			WRITE_AMQP("\1CRASH\n", 7);
-			continue;
-		}
 
 		pid_t subworker_master = fork();
 		if (subworker_master > 0) {
