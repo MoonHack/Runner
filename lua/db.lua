@@ -5,7 +5,7 @@ local time = os.time
 local tinsert = table.insert
 
 local function now()
-	return time()
+	return mongo.DateTime(time() * 1000)
 end
 
 local function cursorToArray(cursor)

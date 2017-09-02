@@ -25,6 +25,13 @@ return function(script)
 			checkTimeout()
 			return db.mongo.ObjectID(value)
 		end,
+		DateTime = function(value)
+			checkTimeout()
+			if not value then
+				return db.now()
+			end
+			return db.mongo.DateTime(value)
+		end,
 		i = function(data)
 			checkTimeout()
 			local res, err
