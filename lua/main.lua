@@ -137,15 +137,18 @@ local function errorHandler(err)
 	return msg
 end
 
-function scriptPrint(...)
-	local data = {...}
-	if #data == 1 then
-		data = data[1]
+function scriptPrint(script)
+	return function(...)
+		local data = {...}
+		if #data == 1 then
+			data = data[1]
+		end
+		writeln(cjson.encode({
+			type = "print",
+			script = script,
+			data = data
+		}))
 	end
-	writeln(cjson.encode(data))
-	checkTimeout()
-end
-local function noop()
 end
 
 local SUB_ENV = {
@@ -154,7 +157,6 @@ local SUB_ENV = {
 	tonumber = tonumber,
 	ipairs = ipairs,
 	sleep = sleep,
-	print = noop,
 	pcall = function(func, ...)
 		checkTimeout()
 		return xpcall(func, errorHandler, ...)
@@ -315,15 +317,24 @@ local function __run(_runId, _caller, _script, args)
 	local res = {xpcall(CORE_SCRIPT.run, errorHandler, args)}
 	if res[1] then
 		if #res == 2 then
-			writeln(cjson.encode(res[2]))
+			writeln(cjson.encode({
+				type = "return",
+				script = CORE_SCRIPT.name,
+				data = res[2]
+			}))
 		else
 			tremove(res, 1)
-			writeln(cjson.encode(res))
+			writeln(cjson.encode({
+				type = "return",
+				script = CORE_SCRIPT.name,
+				data = res
+			}))
 		end
 	else
 		writeln(cjson.encode({
-			ok = false,
-			msg = res[2]
+			type = "error",
+			script = CORE_SCRIPT.name,
+			data = res[2]
 		}))
 	end
 	exit(0)

@@ -89,9 +89,7 @@ local function loadscriptInternal(ctx, script, compile)
 		local secLevel = data.securityLevel
 
 		local PROTECTED_SUB_ENV = util.shallowCopy(TEMPLATE_SUB_ENV)
-		if not ctx.isScriptor and not ctx.callingScript then
-			PROTECTED_SUB_ENV.print = scriptPrint
-		end
+		PROTECTED_SUB_ENV.print = scriptPrint(callingScript)
 
 		local function loadScriptGame(script, flags)
 			local asOwner = flagSet(flags, LOAD_AS_OWNER)
