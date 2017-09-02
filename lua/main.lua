@@ -37,7 +37,8 @@ function notifyUser(from, to, msg)
 	notificationDb:insert({
 		to = user,
 		from = from,
-		msg = msg
+		msg = msg,
+		date = db.now()
 	})
 	checkTimeout()
 end

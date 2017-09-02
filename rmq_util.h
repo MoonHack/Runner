@@ -105,7 +105,7 @@ void _util_init_rmq() {
 		aexchange_notify,
 		amqp_cstring_bytes("fanout"),
 		0,
-		0,
+		1,
 		0,
 		0,
 		amqp_empty_table);
