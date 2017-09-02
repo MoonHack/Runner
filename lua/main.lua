@@ -31,6 +31,7 @@ ffi.cdef[[
 function writeln(str)
 	write(str .. "\n")
 	flush()
+	checkTimeout()
 end
 
 local time = os.time
@@ -53,6 +54,7 @@ end
 
 function sleep(seconds)
 	ffi.C.poll(nil, 0, seconds * 1000)
+	checkTimeout()
 end
 
 function checkTimeout()
