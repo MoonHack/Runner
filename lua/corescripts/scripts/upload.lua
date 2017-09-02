@@ -30,7 +30,7 @@ return function(ctx, args)
 	end
 
 	local res = scriptsDb:findAndModify({
-		_id = name,
+		name = name,
 		locked = { ['$exists'] = false }
 	}, {
 		['$set'] = set
@@ -38,7 +38,7 @@ return function(ctx, args)
 	if not res then
 		set.securityLevel = set.securityLevel or 5
 		set.accessLevel = set.accessLevel or 1
-		set._id = name
+		set.name = name
 		set.owner = ctx.caller
 		scriptsDb:insert(set)
 	end

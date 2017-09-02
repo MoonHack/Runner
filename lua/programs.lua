@@ -30,7 +30,7 @@ local function _fixSerials(name, _serials)
 end
 
 local function _save(name, programs)
-	userDb:updateOne({ _id = tostring(name) }, { ['$set'] = { programs = programs }})
+	userDb:updateOne({ name = tostring(name) }, { ['$set'] = { programs = programs }})
 end
 
 local function _fixUser(name, list, toFix)

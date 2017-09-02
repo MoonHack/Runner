@@ -73,17 +73,17 @@ local function loadscriptInternal(script, compile)
 	local data = scriptCache[script]
 	if not data then
 		data = scriptsDb:findOne({
-			_id = script
+			name = script
 		})
 		if not data then
 			return false, "Script not found"
 		end
 		data = data:value()
-		scriptCache[data._id] = data
+		scriptCache[data.name] = data
 	end
 
 	if compile and not data.__func then
-		local callingScript = data._id
+		local callingScript = data.name
 		local callingScriptOwner = data.owner
 		local secLevel = data.securityLevel
 
@@ -110,7 +110,7 @@ local function loadscriptInternal(script, compile)
 					return loadScriptGame(script, LOAD_ONLY_INFORMATION)
 				end
 			},
-			db = dbintf(data._id),
+			db = dbintf(data.name),
 			cache = {} -- Not protected on purpose, like #G
 		}
 
@@ -123,7 +123,7 @@ local function loadscriptInternal(script, compile)
 			local func
 
 			if data.codeBinary and data.codeDate == data.codeBinaryDate then
-				local ok, res = pcall(load, data.codeBinary, data._id, "b", {})
+				local ok, res = pcall(load, data.codeBinary, data.name, "b", {})
 				if ok then
 					func = res
 				end
@@ -131,12 +131,12 @@ local function loadscriptInternal(script, compile)
 
 			if not func then
 				local ok
-				ok, data.codeBinary, func = pcall(util.compileScript, data.code, data._id)
+				ok, data.codeBinary, func = pcall(util.compileScript, data.code, data.name)
 				if not ok then
-					return false, 'Compile error in ' .. data._id
+					return false, 'Compile error in ' .. data.name
 				end
 				scriptsDb:update({
-					name = data._id
+					name = data.name
 				}, {
 					["$set"] = {
 						codeBinary = data.codeBinary,
@@ -168,7 +168,7 @@ loadscript = function(ctx, parentSecLevel, parentOwner, script, onlyInformative)
 		securityLevel = data.securityLevel,
 		accessLevel = data.accessLevel,
 		system = data.system,
-		name = data._id,
+		name = data.name,
 		owner = data.owner
 	}
 	if runnable then

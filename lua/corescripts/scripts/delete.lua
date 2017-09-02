@@ -4,7 +4,7 @@ local scriptsDb = db.internal:getCollection("scripts")
 return function(ctx, args)
 	local name = ctx.caller .. "." .. tostring(args.name)
 	scriptsDb:removeOne({
-		_id = name,
+		name = name,
 		locked = { ['$exists'] = false }
 	})
 	return true, 'Script removed'

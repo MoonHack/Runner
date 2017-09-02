@@ -18,7 +18,7 @@ end
 
 local function balance(user)
 	user = tostring(user)
-	local res = userDb:findOne({ _id = user })
+	local res = userDb:findOne({ name = user })
 	if not res then
 		return false, 'User not found'
 	end
@@ -28,7 +28,7 @@ end
 local function give(user, amount)
 	user = tostring(user)
 	amount = tonumber(amount)
-	local res = userDb:findAndModify({ _id = user }, { fields = { balance = 1 }, update = { ['$inc'] = { balance = amount } } })
+	local res = userDb:findAndModify({ name = user }, { fields = { balance = 1 }, update = { ['$inc'] = { balance = amount } } })
 	if not res then
 		return false, 'Target cannot store that much MU'
 	end
@@ -38,7 +38,7 @@ end
 local function take(user, amount)
 	user = tostring(user)
 	amount = tonumber(amount)
-	local res = userDb:findAndModify({ _id = user, balance = { ['$gte'] = amount } }, { fields = { balance = 1 }, update = { ['$inc'] = { balance = -amount } } })
+	local res = userDb:findAndModify({ name = user, balance = { ['$gte'] = amount } }, { fields = { balance = 1 }, update = { ['$inc'] = { balance = -amount } } })
 	if not res then
 		return false, 'Source does not have enough MU'
 	end

@@ -46,6 +46,7 @@ return function(ctx, args)
 
 	local scripts = db.cursorToArray(scriptsDb:find(query, { projection = {
 		_id = 1,
+		name = 1,
 		accessLevel = 1,
 		securityLevel = 1,
 		owner = 1,
