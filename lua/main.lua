@@ -264,6 +264,7 @@ _G.load = nil
 _G.package = nil
 _G.print = nil
 _G.writeln = nil
+_G.print = nil
 
 local function __run(_runId, _caller, _script, args)
 	do
