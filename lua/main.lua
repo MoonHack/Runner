@@ -235,7 +235,6 @@ SUB_ENV.util = {
 }
 
 TEMPLATE_SUB_ENV = deepFreeze(SUB_ENV, false)
-local TEMPLATE_SUB_ENV = TEMPLATE_SUB_ENV
 
 local CALLER
 
@@ -282,8 +281,9 @@ local function __run(_runId, _caller, _script, args)
 		ok, CORE_SCRIPT = loadMainScript(_script, false)
 		if not ok then
 			writeln(cjson.encode({
-				ok = false,
-				msg = CORE_SCRIPT
+				type = "error",
+				script = _script,
+				data = CORE_SCRIPT
 			}))
 			return
 		end
