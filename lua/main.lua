@@ -24,7 +24,7 @@ local ffi = require("ffi")
 ffi.cdef[[
 	void lua_enterprot();
 	void lua_leaveprot();
-	void notify_user(char *name, char *data);
+	void notify_user(const char *name, const char *data);
 	int poll(struct pollfd *fds, unsigned long nfds, int timeout);
 	size_t read_random(void *buffer, size_t len);
 ]]
@@ -310,7 +310,12 @@ local function __run(_runId, _caller, _script, args)
 	local _ENV = {}
 	local res = {xpcall(CORE_SCRIPT.run, errorHandler, args)}
 	if res[1] then
-		if #res == 2 then
+		if #res == 1 then
+			writeln(cjson.encode({
+				type = "return",
+				script = CORE_SCRIPT.name
+			}))			
+		elseif #res == 2 then
 			writeln(cjson.encode({
 				type = "return",
 				script = CORE_SCRIPT.name,

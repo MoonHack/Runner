@@ -30,6 +30,7 @@
 #define EXIT_HARD_TIMEOUT 5
 #define EXIT_SOFT_TIMEOUT 6
 #define EXIT_FORCED 7
+#define EXIT_ERROR 4
 
 FILE *urandom_fh;
 pid_t worker_pid;
@@ -47,7 +48,7 @@ amqp_basic_properties_t props;
 #define WRITE_AMQP(_str, _len) \
 	message_bytes.bytes = _str; \
 	message_bytes.len = _len; \
-	amqp_basic_publish(aconn, \
+	if (amqp_basic_publish(aconn, \
 			1, \
 			amqp_empty_bytes, \
 			arepqueue, \
@@ -55,7 +56,9 @@ amqp_basic_properties_t props;
 			0, \
 			&props, \
 			message_bytes \
-		)
+		)) { \
+		exit(1); \
+	}
 
 #define COPYIN(VAR) \
 	VAR = malloc(command. VAR ## _len + 1); \
@@ -88,26 +91,18 @@ size_t read_random(void *buffer, size_t len) {
 	return res;
 }
 
-void notify_user(char *name, char *data) {
-	amqp_bytes_t message_bytes;
-	message_bytes.bytes = data;
-	message_bytes.len = strlen(data);
-
-	amqp_bytes_t queue_bytes;
-	queue_bytes.len = strlen(name) + 5; // user.
-	queue_bytes.bytes = malloc(queue_bytes.len + 1);
-
-	sprintf(queue_bytes.bytes, "user.%s", name);
-	amqp_basic_publish(aconn,
+void notify_user(const char *name, const char *data) {
+	if (amqp_basic_publish(aconn,
 			1,
 			aexchange_notify,
-			queue_bytes,
+			amqp_cstring_bytes(name),
 			0,
 			0,
 			&props,
-			message_bytes
-		);
-	free(queue_bytes.bytes);
+			amqp_cstring_bytes(data)
+		)) {
+		exit(EXIT_ERROR);
+	}
 }
 
 static void set_memory_limit(const char *memlimit) {
