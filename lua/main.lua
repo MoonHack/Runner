@@ -238,6 +238,7 @@ TEMPLATE_SUB_ENV = deepFreeze(SUB_ENV, false)
 
 local CALLER
 
+local writeln = writeln
 local loadscript = require("loadscript")
 
 local function loadMainScript(script, isScriptor)
