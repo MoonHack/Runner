@@ -137,20 +137,24 @@ local function errorHandler(err)
 	return msg
 end
 
+function scriptPrint(...)
+	local data = {...}
+	if #data == 1 then
+		data = data[1]
+	end
+	writeln(cjson.encode(data))
+	checkTimeout()
+end
+local function noop()
+end
+
 local SUB_ENV = {
 	assert = assert,
 	tostring = tostring,
 	tonumber = tonumber,
 	ipairs = ipairs,
 	sleep = sleep,
-	print = function(...)
-		local data = {...}
-		if #data == 1 then
-			data = data[1]
-		end
-		writeln(cjson.encode(data))
-		checkTimeout()
-	end,
+	print = noop,
 	pcall = function(func, ...)
 		checkTimeout()
 		return xpcall(func, errorHandler, ...)

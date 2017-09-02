@@ -8,6 +8,7 @@ local strdump = string.dump
 local checkTimeout = checkTimeout
 local io = io
 local tinsert = table.insert
+local scriptPrint = scriptPrint
 local function flagSet(flags, flag)
 	return bit.band(flags, flag) == flag
 end
@@ -65,7 +66,7 @@ _G.coreScripts = nil
 
 local loadscript
 
-local function loadscriptInternal(script, compile)
+local function loadscriptInternal(ctx, script, compile)
 	if type(script) ~= "string" then
 		return false, "Script name must be a string"
 	end
@@ -88,6 +89,9 @@ local function loadscriptInternal(script, compile)
 		local secLevel = data.securityLevel
 
 		local PROTECTED_SUB_ENV = util.shallowCopy(TEMPLATE_SUB_ENV)
+		if not ctx.isScriptor and not ctx.callingScript then
+			PROTECTED_SUB_ENV.print = scriptPrint
+		end
 
 		local function loadScriptGame(script, flags)
 			local asOwner = flagSet(flags, LOAD_AS_OWNER)
@@ -160,7 +164,7 @@ end
 
 loadscript = function(ctx, parentSecLevel, parentOwner, script, onlyInformative)
 	local runnable = ctx and not onlyInformative
-	local ok, data = loadscriptInternal(script, runnable)
+	local ok, data = loadscriptInternal(ctx, script, runnable)
 	if not ok then
 		return false, data
 	end
