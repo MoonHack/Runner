@@ -89,16 +89,18 @@ size_t read_random(void *buffer, size_t len) {
 }
 
 void notify_user(char *name, char *data) {
-	amqp_bytes_t queue_bytes;
 	amqp_bytes_t message_bytes;
 	message_bytes.bytes = data;
 	message_bytes.len = strlen(data);
-	queue_bytes.len = strlen(name) + 23; // moonhack_notifications_
+
+	amqp_bytes_t queue_bytes;
+	queue_bytes.len = strlen(name) + 5; // user.
 	queue_bytes.bytes = malloc(queue_bytes.len + 1);
-	sprintf(queue_bytes.bytes, "moonhack_notifications_%s", name);
+
+	sprintf(queue_bytes.bytes, "user.%s", name);
 	amqp_basic_publish(aconn,
 			1,
-			amqp_empty_bytes,
+			aexchange_notify,
 			queue_bytes,
 			0,
 			0,

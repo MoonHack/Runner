@@ -10,6 +10,7 @@
 amqp_bytes_t aqueue;
 amqp_socket_t *asocket = NULL;
 amqp_connection_state_t aconn;
+amqp_bytes_t aexchange_notify;
 
 #pragma pack(push, 1)
 struct command_request_t {
@@ -65,6 +66,7 @@ void _util_init_rmq() {
 	int status;
 
 	aqueue = amqp_cstring_bytes("moonhack_command_jobs");
+	aexchange_notify = amqp_cstring_bytes("moonhack_notifications");
 
 	aconn = amqp_new_connection();
 
@@ -98,6 +100,15 @@ void _util_init_rmq() {
 		0,
 		0,
 		queue_attributes);
+
+	amqp_exchange_declare(aconn, 1,
+		aexchange_notify,
+		amqp_cstring_bytes("fanout"),
+		0,
+		0,
+		0,
+		0,
+		amqp_empty_table);
 }
 
 #endif
