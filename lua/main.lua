@@ -24,9 +24,12 @@ local ffi = require("ffi")
 ffi.cdef[[
 	void lua_enterprot();
 	void lua_leaveprot();
+	void notify_user(char *name, char *data);
 	int poll(struct pollfd *fds, unsigned long nfds, int timeout);
 	size_t read_random(void *buffer, size_t len);
 ]]
+
+_G.notifyUser = ffi.C.notify_user
 
 function writeln(str)
 	write(str .. "\n")

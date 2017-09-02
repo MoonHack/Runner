@@ -38,9 +38,24 @@ int lua_main;
 int lua_prot_depth = 0;
 int lua_exit_on_prot_leave = 0;
 int lua_alarm_delayed = 0;
+amqp_basic_properties_t props;
+
 #define cgroup_mem_limit "/var/root/cg_mem/memory.limit_in_bytes"
 #define cgroup_memsw_limit "/var/root/cg_mem/memory.memsw.limit_in_bytes"
 #define cgroup_mem_tasks "/var/root/cg_mem/tasks"
+
+#define WRITE_AMQP(_str, _len) \
+	message_bytes.bytes = _str; \
+	message_bytes.len = _len; \
+	amqp_basic_publish(aconn, \
+			1, \
+			amqp_empty_bytes, \
+			arepqueue, \
+			0, \
+			0, \
+			&props, \
+			message_bytes \
+		)
 
 #define COPYIN(VAR) \
 	VAR = malloc(command. VAR ## _len + 1); \
@@ -71,6 +86,26 @@ size_t read_random(void *buffer, size_t len) {
 	}
 	size_t res = fread(buffer, len, 1, urandom_fh);
 	return res;
+}
+
+void notify_user(char *name, char *data) {
+	amqp_bytes_t queue_bytes;
+	amqp_bytes_t message_bytes;
+	message_bytes.bytes = data;
+	message_bytes.len = strlen(data);
+	queue_bytes.len = strlen(name) + 23; // moonhack_notifications_
+	queue_bytes.bytes = malloc(queue_bytes.len + 1);
+	sprintf(queue_bytes.bytes, "moonhack_notifications_%s", name);
+	amqp_basic_publish(aconn,
+			1,
+			amqp_empty_bytes,
+			queue_bytes,
+			0,
+			0,
+			&props,
+			message_bytes
+		);
+	free(queue_bytes.bytes);
 }
 
 static void set_memory_limit(const char *memlimit) {
@@ -249,19 +284,6 @@ static int secure_me_sub(int uid, int gid) {
 	return 0;
 }
 
-#define WRITE_AMQP(_str, _len) \
-	message_bytes.bytes = _str; \
-	message_bytes.len = _len; \
-	amqp_basic_publish(aconn, \
-			1, \
-			amqp_empty_bytes, \
-			arepqueue, \
-			0, \
-			0, \
-			&props, \
-			message_bytes \
-		)
-
 int main() {
 	int uid = getuid();
 	int gid = getgid();
@@ -294,7 +316,6 @@ int main() {
 
 	amqp_bytes_t arepqueue;
 	amqp_bytes_t message_bytes;
-	amqp_basic_properties_t props;
 	props._flags = AMQP_BASIC_DELIVERY_MODE_FLAG;
 	props.delivery_mode = 2;
 
