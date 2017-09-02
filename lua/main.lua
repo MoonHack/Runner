@@ -263,6 +263,7 @@ _G.loadfile = nil
 _G.load = nil
 _G.package = nil
 _G.print = nil
+_G.writeln = nil
 
 local function __run(_runId, _caller, _script, args)
 	do
