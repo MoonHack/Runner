@@ -28,7 +28,7 @@ ffi.cdef[[
 	size_t read_random(void *buffer, size_t len);
 ]]
 
-local function writeln(str)
+function writeln(str)
 	write(str .. "\n")
 	flush()
 end
@@ -135,20 +135,6 @@ local function errorHandler(err)
 		end
 	end
 	return msg
-end
-
-function scriptPrint(script)
-	return function(...)
-		local data = {...}
-		if #data == 1 then
-			data = data[1]
-		end
-		writeln(cjson.encode({
-			type = "print",
-			script = script,
-			data = data
-		}))
-	end
 end
 
 local SUB_ENV = {

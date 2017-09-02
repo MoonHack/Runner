@@ -8,9 +8,23 @@ local strdump = string.dump
 local checkTimeout = checkTimeout
 local io = io
 local tinsert = table.insert
-local scriptPrint = scriptPrint
+local writeln = writeln
 local function flagSet(flags, flag)
 	return bit.band(flags, flag) == flag
+end
+
+local function scriptPrint(script)
+	return function(...)
+		local data = {...}
+		if #data == 1 then
+			data = data[1]
+		end
+		writeln(cjson.encode({
+			type = "print",
+			script = script,
+			data = data
+		}))
+	end
 end
 
 local scriptsDb = db.internal:getCollection("scripts")
