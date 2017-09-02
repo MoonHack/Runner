@@ -14,7 +14,7 @@ local function flagSet(flags, flag)
 	return bit.band(flags, flag) == flag
 end
 
-local function scriptPrint(script)
+local function scriptPrint(initial, script)
 	return function(...)
 		local data = {...}
 		if #data == 1 then
@@ -22,6 +22,7 @@ local function scriptPrint(script)
 		end
 		writeln(cjson.encode({
 			type = "print",
+			initial = initial,
 			script = script,
 			data = data
 		}))
@@ -104,7 +105,7 @@ local function loadscriptInternal(ctx, script, compile)
 		local secLevel = data.securityLevel
 
 		local PROTECTED_SUB_ENV = util.shallowCopy(TEMPLATE_SUB_ENV)
-		PROTECTED_SUB_ENV.print = scriptPrint(callingScript)
+		PROTECTED_SUB_ENV.print = scriptPrint(callingScript, (not ctx.callingScript) and (not ctx.isScriptor))
 
 		local function loadScriptGame(script, flags)
 			local asOwner = flagSet(flags, LOAD_AS_OWNER)
