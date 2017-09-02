@@ -51,8 +51,8 @@ static void sigchld_recvd() {
 }
 
 int main(int argc, char **argv) {
-	if (argc < 3) {
-		printf("./simple_master COUNT FRONTEND\n");
+	if (argc < 2) {
+		printf("./simple_master COUNT\n");
 		return 1;
 	}
 

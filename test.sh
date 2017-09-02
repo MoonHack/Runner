@@ -10,4 +10,4 @@ cd build
 cmake ..
 make
 rmdir "/sys/fs/cgroup/memory/$USER/moonhack_cg_"* || true
-exec ./simple_master 1 "tcp://*:5556"
+exec ./simple_master 1
