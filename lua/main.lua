@@ -39,6 +39,7 @@ function notifyUser(from, to, msg)
 		from = from,
 		msg = msg
 	})
+	checkTimeout()
 end
 
 function writeln(str)
