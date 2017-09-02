@@ -20,6 +20,8 @@ local xpcall = xpcall
 local debug = debug
 local uuid = require("uuid")
 local ffi = require("ffi")
+local db = require("db")
+local notificationDb = db.internal:getCollection("notifications")
 
 ffi.cdef[[
 	void lua_enterprot();
@@ -29,7 +31,15 @@ ffi.cdef[[
 	size_t read_random(void *buffer, size_t len);
 ]]
 
-_G.notifyUser = ffi.C.notify_user
+function notifyUser(from, to, msg)
+	msg = cjson.encode(msg)
+	notify_user(user, msg)
+	notificationDb:insert({
+		to = user,
+		from = from,
+		msg = msg
+	})
+end
 
 function writeln(str)
 	write(str .. "\n")
@@ -270,6 +280,7 @@ _G.package = nil
 _G.print = nil
 _G.writeln = nil
 _G.print = nil
+_G.notifyUser = nil
 
 local function __run(_runId, _caller, _script, args)
 	do

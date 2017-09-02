@@ -9,6 +9,7 @@ local checkTimeout = checkTimeout
 local io = io
 local tinsert = table.insert
 local writeln = writeln
+local notifyUser = notifyUser
 local function flagSet(flags, flag)
 	return bit.band(flags, flag) == flag
 end
@@ -127,9 +128,18 @@ local function loadscriptInternal(ctx, script, compile)
 				end
 			},
 			db = dbintf(data.name),
+			notify = {
+				caller = function(msg)
+					notifyUser(CORE_SCRIPT.caller, callingScript, msg)
+				end,
+				owner = function(msg)
+					notifyUser(callingScriptOwner, callingScript, msg)
+				end
+			},
 			cache = {} -- Not protected on purpose, like #G
 		}
 
+		freeze(PROTECTED_SUB_ENV.notify)
 		freeze(PROTECTED_SUB_ENV.game.script)
 		freeze(PROTECTED_SUB_ENV.game)
 		freeze(PROTECTED_SUB_ENV)
