@@ -378,7 +378,7 @@ int main() {
 		}
 
 		queue_name_len = command.run_id_len + 25;
-		queue_name = malloc(queue_name_len);
+		queue_name = malloc(queue_name_len + 1);
 		sprintf(queue_name, "moonhack_command_results_%s", run_id);
 		arepqueue.bytes = queue_name;
 		arepqueue.len = queue_name_len;
