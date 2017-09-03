@@ -96,7 +96,7 @@ void _util_init_rmq() {
 	amqp_queue_declare(aconn, 1,
 		aqueue,
 		0,
-		0,
+		1,
 		0,
 		0,
 		queue_attributes);
