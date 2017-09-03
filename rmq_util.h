@@ -1,8 +1,4 @@
-#include <amqp_tcp_socket.h>
 #include <amqp.h>
-#include <amqp_framing.h>
-
-#include "./config.h"
 
 #ifndef _MH_RMQ_UTIL_H
 #define _MH_RMQ_UTIL_H 1
