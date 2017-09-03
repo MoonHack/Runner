@@ -61,10 +61,9 @@ amqp_basic_properties_t props;
 	}
 
 #define COPYIN(VAR) \
-	VAR = malloc(command. VAR ## _len + 1); \
+	VAR = malloc(command. VAR ## _len); \
 	memcpy(VAR, envelope.message.body.bytes + pos, command. VAR ## _len); \
-	pos += command. VAR ## _len; \
-	VAR[command. VAR ## _len] = 0;
+	pos += command. VAR ## _len;
 
 static void noop_hdlr() {
 
@@ -301,7 +300,7 @@ int main() {
 	die_on_amqp_error(amqp_get_rpc_reply(aconn), "Consuming");
 
 	char *caller, *script, *run_id, *args, *queue_name;
-	int queue_name_len;
+	int queue_name_len, new_queue_name_len;
 
 	int stdout_pipe[2];
 
@@ -359,6 +358,18 @@ int main() {
 
 		amqp_destroy_envelope(&envelope);
 
+		new_queue_name_len = command.run_id_len + 25;
+		if (new_queue_name_len != queue_name_len) {
+			if (queue_name) {
+				free(queue_name);
+			}
+			queue_name = malloc(queue_name_len);
+			memcpy(queue_name, "moonhack_command_results_", 25);
+		}
+		memcpy(queue_name + 25, run_id, command.run_id_len);
+		arepqueue.bytes = queue_name;
+		arepqueue.len = queue_name_len;
+
 		pid_t subworker_master = fork();
 		if (subworker_master > 0) {
 			free(run_id);
@@ -376,12 +387,6 @@ int main() {
 			perror("CLONE_NEWPID");
 			exit(1);
 		}
-
-		queue_name_len = command.run_id_len + 25;
-		queue_name = malloc(queue_name_len + 1);
-		sprintf(queue_name, "moonhack_command_results_%s", run_id);
-		arepqueue.bytes = queue_name;
-		arepqueue.len = queue_name_len;
 
 		if(pipe(stdout_pipe)) {
 			perror("stdout_pipe");
