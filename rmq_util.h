@@ -103,7 +103,7 @@ void _util_init_rmq() {
 
 	amqp_exchange_declare(aconn, 1,
 		aexchange_notify,
-		amqp_cstring_bytes("fanout"),
+		amqp_cstring_bytes("topic"),
 		0,
 		1,
 		0,
