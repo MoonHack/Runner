@@ -10,11 +10,13 @@ local io = io
 local tinsert = table.insert
 local writeln = writeln
 local notifyUser = notifyUser
+local cjson = require("cjson")
+
 local function flagSet(flags, flag)
 	return bit.band(flags, flag) == flag
 end
 
-local function scriptPrint(initial, script)
+function scriptPrint(initial, script)
 	return function(...)
 		local data = {...}
 		if #data == 1 then
@@ -28,6 +30,7 @@ local function scriptPrint(initial, script)
 		}))
 	end
 end
+local scriptPrint = scriptPrint
 
 local scriptsDb = db.internal:getCollection("scripts")
 
@@ -81,6 +84,7 @@ loadCoreScript("programs.transfer", 2)
 loadCoreScript("programs.unload", 3)
 
 _G.coreScripts = nil
+_G.scriptPrint = nil
 
 local loadscript
 
