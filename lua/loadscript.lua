@@ -60,6 +60,8 @@ local function loadCoreScript(name, securityLevel, accessLevel)
 	end
 end
 
+loadCoreScript("notifications.recent", 4)
+
 loadCoreScript("scripts.sleep", 5)
 loadCoreScript("scripts.lib", 5)
 loadCoreScript("scripts.upload", 1)
