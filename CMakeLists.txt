@@ -32,8 +32,8 @@ foreach(in_f IN LISTS LUAFILES)
 endforeach()
 
 add_executable (simple_master simple_master.c)
-add_executable (worker worker.c ${LUAFILES_OUT})
-add_executable (run run.c)
+add_executable (worker worker.c rmq_util.c ${LUAFILES_OUT})
+add_executable (run run.c rmq_util.c)
 
 simple_add_lib(RABBITMQ worker run)
 simple_add_lib(LUAJIT worker)
