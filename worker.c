@@ -299,8 +299,8 @@ int main() {
 	amqp_basic_consume(aconn, 1, aqueue, amqp_empty_bytes, 0, 0, 0, amqp_empty_table);
 	die_on_amqp_error(amqp_get_rpc_reply(aconn), "Consuming");
 
-	char *caller, *script, *run_id, *args, *queue_name;
-	int queue_name_len, new_queue_name_len;
+	char *caller, *script, *run_id, *args;
+	int queue_name_len;
 
 	int stdout_pipe[2];
 
@@ -358,17 +358,16 @@ int main() {
 
 		amqp_destroy_envelope(&envelope);
 
-		new_queue_name_len = command.run_id_len + 25;
-		if (new_queue_name_len != queue_name_len) {
-			if (queue_name) {
-				free(queue_name);
+		queue_name_len = command.run_id_len + 25;
+		if (arepqueue.len != queue_name_len) {
+			arepqueue.len = queue_name_len;
+			if (arepqueue.bytes) {
+				free(arepqueue.bytes);
 			}
-			queue_name = malloc(queue_name_len);
-			memcpy(queue_name, "moonhack_command_results_", 25);
+			arepqueue.bytes = malloc(arepqueue.len);
+			memcpy(arepqueue.bytes, "moonhack_command_results_", 25);
 		}
-		memcpy(queue_name + 25, run_id, command.run_id_len);
-		arepqueue.bytes = queue_name;
-		arepqueue.len = queue_name_len;
+		memcpy(arepqueue.bytes + 25, run_id, command.run_id_len);
 
 		pid_t subworker_master = fork();
 		if (subworker_master > 0) {
@@ -404,7 +403,7 @@ int main() {
 				exit(1);
 			}
 
-			free(queue_name);
+			free(arepqueue.bytes);
 
 			lua_prot_depth = 0;
 
@@ -490,7 +489,7 @@ int main() {
 			}
 		}
 
-		free(queue_name);
+		free(arepqueue.bytes);
 
 		exit(0);
 	}
