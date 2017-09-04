@@ -13,7 +13,7 @@ local type = type
 local ObjectID = db.mongo.ObjectID
 
 local function _fixSerials(name, _serials)
-	local userObj = user:getByName(name, { programs = 1 })
+	local userObj = user.getByName(name, { programs = 1 })
 	if not userObj then
 		return {}, {}
 	end
@@ -36,18 +36,19 @@ end
 local function _fixUser(name, list, toFix)
 	name = tostring(name)
 	if not toFix then
-		toFix = user:getByName(name, { programs = 1 })
+		toFix = user.getByName(name, { programs = 1 })
 		if not toFix then
 			return false, 'User not found'
 		end
 	end
 
+	local query = { owner = name }
 	local options = {}
 	if not list then
 		options = { projection = { _id = 1 } }
 	end
 	local programsAuth = db.cursorToArray(programsDb:find(query, options))
-	local programsStored = user.programs
+	local programsStored = toFix.programs or {}
 
 	local dirty = #programsAuth ~= #programsStored
 

@@ -13,7 +13,7 @@ local function logs(user, skip, limit)
 	if not skip or skip < 0 then
 		skip = 0
 	end
-	return db.cursorToArray(logDb:find({ ['$or'] = {{ from = user }, { to = user }} }, { sort = { date = -1 }, skip = skip, limit = limit }))
+	return true, db.cursorToArray(logDb:find({ ['$or'] = {{ from = user }, { to = user }} }, { sort = { date = -1 }, skip = skip, limit = limit }))
 end
 
 local function balance(user)
@@ -22,7 +22,7 @@ local function balance(user)
 	if not res then
 		return false, 'User not found'
 	end
-	return res:value().balance
+	return true, res:value().balance or 0
 end
 
 local function give(user, amount)
