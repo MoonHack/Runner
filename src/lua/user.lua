@@ -11,6 +11,17 @@ local function getByName(name, projection)
 	end
 end
 
+local function exists(name)
+	local user = getByName(name, {
+		_id = 1
+	})
+	if user then
+		return true
+	end
+	return false
+end
+
 return {
-	getByName = getByName
+	getByName = getByName,
+	exists = exists
 }
