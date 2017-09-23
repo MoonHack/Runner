@@ -6,5 +6,5 @@ return function (ctx, args)
 	else
 		source = ctx.caller
 	end
-	return notifyUser(args.target, source, msg)
+	return notifyUser(args.target, source, args.msg)
 end
