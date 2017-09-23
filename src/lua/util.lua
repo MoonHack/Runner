@@ -13,6 +13,27 @@ local function shallowCopy(tbl)
 	return ret
 end
 
+local function deepCopy(tbl)
+	local tbls = {}
+	local ret = {}
+	for k, v in next, tbl do
+		if v == tbl then
+			ret[k] = ret
+		elseif type(v) ~= "table" then
+			ret[k] = v
+		elseif tbls[v] then
+			ret[k] = tbls[v]
+		else
+			tbls[v] = {
+				__recursive = true
+			}
+			local _t = deepCopy(v)
+			tbls[v] = _t
+			ret[k] = _t
+		end
+	end
+end
+
 local function getUserFromScript(script)
 	return string.match(script, "^(.+)%.")
 end

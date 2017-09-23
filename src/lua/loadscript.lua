@@ -49,6 +49,7 @@ local function loadCoreScript(name, securityLevel, accessLevel)
 		__func = require(file),
 		accessLevel = accessLevel,
 		securityLevel = securityLevel,
+		hookable = true,
 		system = true
 	}
 
@@ -57,6 +58,7 @@ local function loadCoreScript(name, securityLevel, accessLevel)
 			name = name,
 			accessLevel = accessLevel,
 			securityLevel = securityLevel,
+			hookable = true,
 			system = true
 		})
 	end
@@ -109,9 +111,10 @@ local function loadscriptInternal(ctx, script, compile)
 		local callingScript = data.name
 		local callingScriptOwner = data.owner
 		local secLevel = data.securityLevel
+		local isRoot = (not ctx.callingScript) and (not ctx.isScriptor)
 
 		local PROTECTED_SUB_ENV = util.shallowCopy(TEMPLATE_SUB_ENV)
-		PROTECTED_SUB_ENV.print = scriptPrint(callingScript, (not ctx.callingScript) and (not ctx.isScriptor))
+		PROTECTED_SUB_ENV.print = scriptPrint(callingScript, isRoot)
 
 		local function loadScriptGame(script, flags)
 			local asOwner = flagSet(flags, LOAD_AS_OWNER)
@@ -132,7 +135,25 @@ local function loadscriptInternal(ctx, script, compile)
 				load = loadScriptGame,
 				info = function(script)
 					return loadScriptGame(script, LOAD_ONLY_INFORMATION)
-				end
+				end,
+				hook = function(script, cb)
+					if not isRoot then
+						return false, 'Only root script can hook'
+					end
+					local script = loadScriptGame(script)
+					if not script or not script.hookable then
+						return false, 'Script not hookable'
+					end
+					script.__origFunc = script.__origFunc or script.__func
+					script.__func = function(ctx, args)
+						local _r, _e = cb(util.deepCopy(ctx), util.deepCopy(args))
+						if _r == false then
+							return _r, _e
+						end
+						return script.__origFunc(ctx, args)
+					end
+					return true
+				end,
 			},
 			db = dbintf(data.name),
 			cache = {} -- Not protected on purpose, like #G
@@ -191,7 +212,8 @@ loadscript = function(ctx, parentSecLevel, parentOwner, script, onlyInformative)
 	local info = {
 		securityLevel = data.securityLevel,
 		accessLevel = data.accessLevel,
-		system = data.system,
+		system = data.system or false,
+		hookable = data.hookable or false,
 		name = data.name,
 		owner = data.owner
 	}
