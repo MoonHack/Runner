@@ -124,6 +124,7 @@ local function loadscriptInternal(ctx, script, compile)
 				thisScript = script,
 				callingScript = callingScript,
 				isScriptor = false,
+				cli = isRoot,
 				caller = asOwner and callingScriptOwner or CORE_SCRIPT.caller
 			}, asOwner and 0 or secLevel, callingScriptOwner, script, flagSet(flags, LOAD_ONLY_INFORMATION))
 		end
