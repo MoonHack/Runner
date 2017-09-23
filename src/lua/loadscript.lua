@@ -138,11 +138,11 @@ local function loadscriptInternal(ctx, script, compile)
 				end,
 				hook = function(script, cb)
 					if not isRoot then
-						return false, 'Only root script can hook'
+						return false, "Only root script can hook"
 					end
 					local script = loadScriptGame(script)
 					if not script or not script.hookable then
-						return false, 'Script not hookable'
+						return false, "Script not hookable"
 					end
 					script.__origFunc = script.__origFunc or script.__func
 					script.__func = function(ctx, args)
