@@ -7,7 +7,7 @@ then
 	sudo chown -R "$U:$U" "/sys/fs/cgroup/memory/$U"
 fi
 cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 rmdir "/sys/fs/cgroup/memory/$USER/moonhack_cg_"* || true
 exec ./simple_master 1

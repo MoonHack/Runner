@@ -174,8 +174,6 @@ static int cgroup_init() {
 }
 
 static int secure_me(int uid, int gid) {
-	int err;
-
 	if (unshare(CLONE_NEWUSER)) {
 		perror("CLONE_NEWUSER");
 		return 1;
@@ -316,7 +314,6 @@ int main() {
 	props.delivery_mode = 2;
 
 	int first_loop = 1;
-	uint64_t delivery_tag = 0;
 	uint64_t pos;
 
 	amqp_envelope_t envelope;

@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 2.8.11)
 project (MoonHack_Runner)
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -D_FORTIFY_SOURCE=2")
+
 macro(simple_add_lib lib)
 	foreach(arg IN ITEMS ${ARGN})
 		target_link_libraries(${arg} ${${lib}_LIBRARIES})
