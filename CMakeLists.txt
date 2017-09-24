@@ -24,10 +24,15 @@ foreach(in_f IN LISTS LUAFILES)
 	get_filename_component(dir_f ${out_f} DIRECTORY)
 	set(out_d ${CMAKE_CURRENT_BINARY_DIR}/${dir_f})
 	set(out_f "${out_f}c")
+	add_custom_command(
+				OUTPUT ${out_d}
+				COMMAND mkdir -p ${out_d}
+				)
 	if (CMAKE_BUILD_TYPE MATCHES "Release")
 		add_custom_command(
 					OUTPUT ${out_f}
 					DEPENDS ${in_f}
+					DEPENDS ${out_d}
 					COMMAND mkdir -p ${out_d}
 					COMMAND luajit -b ${in_f} ${out_f}
 					)
@@ -35,7 +40,7 @@ foreach(in_f IN LISTS LUAFILES)
 		add_custom_command(
 					OUTPUT ${out_f}
 					DEPENDS ${in_f}
-					COMMAND mkdir -p ${out_d}
+					DEPENDS ${out_d}
 					COMMAND cp ${in_f} ${out_f}
 					)
 	endif (CMAKE_BUILD_TYPE MATCHES "Release")
