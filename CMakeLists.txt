@@ -1,7 +1,8 @@
 cmake_minimum_required (VERSION 2.8.11)
 project (MoonHack_Runner)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -D_FORTIFY_SOURCE=2")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -D_FORTIFY_SOURCE=2")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -D_FORTIFY_SOURCE=2")
 
 macro(simple_add_lib lib)
 	foreach(arg IN ITEMS ${ARGN})
@@ -23,13 +24,21 @@ foreach(in_f IN LISTS LUAFILES)
 	get_filename_component(dir_f ${out_f} DIRECTORY)
 	set(out_d ${CMAKE_CURRENT_BINARY_DIR}/${dir_f})
 	set(out_f "${out_f}c")
-	add_custom_command(
-				OUTPUT ${out_f}
-				DEPENDS ${in_f}
-				COMMAND mkdir -p ${out_d}
-				#COMMAND cp ${in_f} ${out_f}
-				COMMAND luajit -b ${in_f} ${out_f}
-				)
+	if (CMAKE_BUILD_TYPE MATCHES "Release")
+		add_custom_command(
+					OUTPUT ${out_f}
+					DEPENDS ${in_f}
+					COMMAND mkdir -p ${out_d}
+					COMMAND luajit -b ${in_f} ${out_f}
+					)
+	else (CMAKE_BUILD_TYPE MATCHES "Release")
+		add_custom_command(
+					OUTPUT ${out_f}
+					DEPENDS ${in_f}
+					COMMAND mkdir -p ${out_d}
+					COMMAND cp ${in_f} ${out_f}
+					)
+	endif (CMAKE_BUILD_TYPE MATCHES "Release")
 	list(APPEND LUAFILES_OUT ${out_f})
 endforeach()
 
