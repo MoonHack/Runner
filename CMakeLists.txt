@@ -33,6 +33,7 @@ foreach(in_f IN LISTS LUAFILES)
 					OUTPUT ${out_f}
 					DEPENDS ${in_f}
 					DEPENDS ${out_d}
+					COMMAND rm -f ${out_f}
 					COMMAND luajit -b ${in_f} ${out_f}
 					)
 	else (CMAKE_BUILD_TYPE MATCHES "Release")
@@ -40,6 +41,7 @@ foreach(in_f IN LISTS LUAFILES)
 					OUTPUT ${out_f}
 					DEPENDS ${in_f}
 					DEPENDS ${out_d}
+					COMMAND rm -f ${out_f}
 					COMMAND cp ${in_f} ${out_f}
 					)
 	endif (CMAKE_BUILD_TYPE MATCHES "Release")
