@@ -316,7 +316,7 @@ int main() {
 
 	struct command_request_t command;
 
-	amqp_bytes_t arepqueue;
+	amqp_bytes_t arepqueue = amqp_cstring_bytes("moonhack_command_results_");
 	amqp_bytes_t message_bytes;
 	props._flags = AMQP_BASIC_DELIVERY_MODE_FLAG;
 	props.delivery_mode = 2;
