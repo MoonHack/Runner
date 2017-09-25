@@ -351,7 +351,7 @@ int main() {
 
 		pos = sizeof(struct command_request_t);
 		printf("E\n");
-		if (pos + command.run_id_len + command.caller_len + command.script_len + command.args_len != envelope.message.body.len) {;
+		if (pos + command.run_id_len + command.caller_len + command.script_len + command.args_len != envelope.message.body.len) {
 			printf("WRONGLEN\n");
 			amqp_destroy_envelope(&envelope);
 			continue;
