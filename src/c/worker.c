@@ -306,7 +306,7 @@ int main() {
 	die_on_amqp_error(amqp_get_rpc_reply(aconn), "Consuming");
 
 	char *caller, *script, *run_id, *args;
-	int queue_name_len;
+	//int queue_name_len;
 
 	int stdout_pipe[2];
 
@@ -316,7 +316,10 @@ int main() {
 
 	struct command_request_t command;
 
-	amqp_bytes_t arepqueue = amqp_cstring_bytes("moonhack_command_results_");
+	amqp_bytes_t arepqueue;
+	arepqueue.bytes = malloc(4096);
+	memcpy(arepqueue.bytes, "moonhack_command_results_", 25);
+
 	amqp_bytes_t message_bytes;
 	props._flags = AMQP_BASIC_DELIVERY_MODE_FLAG;
 	props.delivery_mode = 2;
@@ -363,15 +366,15 @@ int main() {
 
 		amqp_destroy_envelope(&envelope);
 
-		queue_name_len = command.run_id_len + 25;
-		if (arepqueue.len != queue_name_len) {
+		//queue_name_len = command.run_id_len + 25;
+		/*if (arepqueue.len != queue_name_len) {
 			arepqueue.len = queue_name_len;
 			if (arepqueue.bytes) {
 				free(arepqueue.bytes);
 			}
 			arepqueue.bytes = malloc(arepqueue.len);
 			memcpy(arepqueue.bytes, "moonhack_command_results_", 25);
-		}
+		}*/
 
 		memcpy(arepqueue.bytes + 25, run_id, command.run_id_len);
 
