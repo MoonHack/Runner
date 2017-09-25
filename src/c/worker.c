@@ -288,7 +288,7 @@ int main() {
 	}
 
 	urandom_fh = fopen("/dev/urandom", "rb");
-	null_fh = open("/dev/null", "wb");
+	null_fh = open("/dev/null", O_RDWR);
 
 	lua_init();
 
