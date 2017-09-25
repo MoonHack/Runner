@@ -335,8 +335,6 @@ int main() {
 
 		first_loop = 0;
 
-		printf("A\n"); fflush(stdout);
-
 		if (envelope.redelivered) {
 			printf("REDELIVERED\n");
 			amqp_destroy_envelope(&envelope);
@@ -349,11 +347,7 @@ int main() {
 			continue;
 		}
 
-		printf("B\n"); fflush(stdout);
-
 		memcpy(&command, envelope.message.body.bytes, sizeof(struct command_request_t));
-
-		printf("C\n"); fflush(stdout);
 
 		pos = sizeof(struct command_request_t);
 		if (pos + command.run_id_len + command.caller_len + command.script_len + command.args_len != envelope.message.body.len) {
@@ -362,18 +356,12 @@ int main() {
 			continue;
 		}
 
-		printf("D\n"); fflush(stdout);
-
 		COPYIN(run_id);
 		COPYIN(caller);
 		COPYIN(script);
 		COPYIN(args);
 
-		printf("E\n"); fflush(stdout);
-
 		amqp_destroy_envelope(&envelope);
-
-		printf("F\n"); fflush(stdout);
 
 		queue_name_len = command.run_id_len + 25;
 		if (arepqueue.len != queue_name_len) {
@@ -382,17 +370,11 @@ int main() {
 			if (arepqueue.bytes) {
 				free(arepqueue.bytes);
 			}
-			printf("FB\n"); fflush(stdout);
 			arepqueue.bytes = malloc(arepqueue.len);
 			memcpy(arepqueue.bytes, "moonhack_command_results_", 25);
-			printf("FC\n"); fflush(stdout);
 		}
 
-		printf("G\n"); fflush(stdout);
-
 		memcpy(arepqueue.bytes + 25, run_id, command.run_id_len);
-
-		printf("H\n"); fflush(stdout);
 
 		pid_t subworker_master = fork();
 		if (subworker_master > 0) {
