@@ -1,6 +1,7 @@
 local mongo = require("mongo")
--- TODO: CONFIG VARIABLE THIS
-local client = mongo.Client(require("config").mongo.main)
+local config = require("config").mongo
+local clientCore = mongo.Client(config.core)
+local clientUsers = mongo.Client(config.users)
 local time = os.time
 local tinsert = table.insert
 
@@ -27,7 +28,6 @@ return {
 	now = now,
 	cursorToArray = cursorToArray,
 	mongo = mongo,
-	client = client,
-	internal = client:getDatabase("moonhack_core"),
-	user = client:getDatabase("moonhack_user")
+	internal = clientCore:getDatabase("moonhack_core"),
+	user = clientUsers:getDatabase("moonhack_user")
 }
