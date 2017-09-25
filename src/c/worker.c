@@ -329,24 +329,17 @@ int main() {
 
 		first_loop = 0;
 
-		printf("= %d\n", getpid());
-		printf("0\n");
-
 		if (envelope.redelivered) {
 			printf("REDELIVERED\n");
 			amqp_destroy_envelope(&envelope);
 			continue;
 		}
 
-		printf("A\n");
-
 		if (envelope.message.body.len < sizeof(struct command_request_t)) {
 			printf("TOOSHORT\n");
 			amqp_destroy_envelope(&envelope);
 			continue;
 		}
-
-		printf("B\n");
 
 		memcpy(&command, envelope.message.body.bytes, sizeof(struct command_request_t));
 
@@ -430,12 +423,12 @@ int main() {
 				exit(1);
 			}
 
-			lua_rawgeti(L, LUA_REGISTRYINDEX, lua_main);
+			/*lua_rawgeti(L, LUA_REGISTRYINDEX, lua_main);
 			lua_pushlstring(L, run_id, command.run_id_len);
 			lua_pushlstring(L, caller, command.caller_len);
 			lua_pushlstring(L, script, command.script_len);
 			lua_pushlstring(L, args, command.args_len);
-			lua_call(L, 4, 0);
+			lua_call(L, 4, 0);*/
 			free(run_id);
 			free(caller);
 			free(script);
