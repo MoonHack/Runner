@@ -363,6 +363,8 @@ int main() {
 
 		amqp_destroy_envelope(&envelope);
 
+		printf("FA\n"); fflush(stdout);
+
 		queue_name_len = command.run_id_len + 25;
 		if (arepqueue.len != queue_name_len) {
 			arepqueue.len = queue_name_len;
@@ -372,8 +374,6 @@ int main() {
 			arepqueue.bytes = malloc(arepqueue.len);
 			memcpy(arepqueue.bytes, "moonhack_command_results_", 25);
 		}
-
-		printf("FA\n"); fflush(stdout);
 
 		memcpy(arepqueue.bytes + 25, run_id, command.run_id_len);
 
