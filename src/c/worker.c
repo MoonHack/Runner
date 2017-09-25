@@ -366,16 +366,6 @@ int main() {
 
 		amqp_destroy_envelope(&envelope);
 
-		//queue_name_len = command.run_id_len + 25;
-		/*if (arepqueue.len != queue_name_len) {
-			arepqueue.len = queue_name_len;
-			if (arepqueue.bytes) {
-				free(arepqueue.bytes);
-			}
-			arepqueue.bytes = malloc(arepqueue.len);
-			memcpy(arepqueue.bytes, "moonhack_command_results_", 25);
-		}*/
-
 		arepqueue.len = command.run_id_len + 25;
 		memcpy(arepqueue.bytes + 25, run_id, command.run_id_len);
 
