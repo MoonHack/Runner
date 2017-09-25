@@ -21,6 +21,7 @@ local debug = debug
 local uuid = require("uuid")
 local ffi = require("ffi")
 local db = require("db")
+local bit = require("bit")
 local notificationDb = db.internal:getCollection("notifications")
 
 ffi.cdef[[
@@ -184,6 +185,7 @@ local SUB_ENV = {
 	newproxy = newproxy,
 	next = next,
 	math = math,
+	bit = bit,
 	os = {
 		clock = os.clock,
 		date = os.date,
