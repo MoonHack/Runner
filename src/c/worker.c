@@ -435,12 +435,12 @@ int main() {
 				exit(1);
 			}
 
-			/*lua_rawgeti(L, LUA_REGISTRYINDEX, lua_main);
+			lua_rawgeti(L, LUA_REGISTRYINDEX, lua_main);
 			lua_pushlstring(L, run_id, command.run_id_len);
 			lua_pushlstring(L, caller, command.caller_len);
 			lua_pushlstring(L, script, command.script_len);
 			lua_pushlstring(L, args, command.args_len);
-			lua_call(L, 4, 0);*/
+			lua_call(L, 4, 0);
 			free(run_id);
 			free(caller);
 			free(script);
