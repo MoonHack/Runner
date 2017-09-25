@@ -29,12 +29,13 @@ ffi.cdef[[
 	void lua_leaveprot();
 	void notify_user(const char *name, const char *data);
 	int poll(struct pollfd *fds, unsigned long nfds, int timeout);
+	void lua_writeln(const char *str);
 	size_t read_random(void *buffer, size_t len);
 ]]
 
 function notifyUser(from, to, msg)
 	msg = cjson.encode(msg)
-	notify_user(user, msg)
+	ffi.C.notify_user(user, msg)
 	notificationDb:insert({
 		to = user,
 		from = from,
@@ -45,8 +46,7 @@ function notifyUser(from, to, msg)
 end
 
 function writeln(str)
-	write(str .. "\n")
-	flush()
+	ffi.C.lua_writeln(str .. "\n")
 	checkTimeout()
 end
 

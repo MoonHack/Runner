@@ -105,6 +105,12 @@ void notify_user(const char *name, const char *data) {
 	}
 }
 
+void lua_writeln(const char *str) {
+	if (write(1, str, strlen(str))) {
+		fflush(stdout);
+	}
+}
+
 static void set_memory_limit(const char *memlimit) {
 	FILE *fd;
 
