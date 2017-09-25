@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <uuid/uuid.h>
+#include "./config.h"
 #include "./rmq_util.h"
 
 // Dummy script to manually trigger a script run like: ./run user user.script '{}'
@@ -127,13 +128,13 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	status = amqp_socket_open(asocket, "127.0.0.1", 5672);
+	status = amqp_socket_open(asocket, RMQ_HOST, RMQ_PORT);
 	if (status) {
 		printf("Cannot open socket\n");
 		return 1;
 	}
 
-	die_on_amqp_error(amqp_login(aconn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, "guest", "guest"), "Logging in");
+	die_on_amqp_error(amqp_login(aconn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, RMQ_USER, RMQ_PASS), "Logging in");
 	amqp_channel_open(aconn, 1);
 	die_on_amqp_error(amqp_get_rpc_reply(aconn), "Opening channel");
 
