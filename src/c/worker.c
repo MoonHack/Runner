@@ -385,7 +385,11 @@ int main() {
 			memcpy(arepqueue.bytes, "moonhack_command_results_", 25);
 		}
 
+		printf("G\n"); fflush(stdout);
+
 		memcpy(arepqueue.bytes + 25, run_id, command.run_id_len);
+
+		printf("H\n"); fflush(stdout);
 
 		pid_t subworker_master = fork();
 		if (subworker_master > 0) {
