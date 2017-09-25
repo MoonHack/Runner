@@ -365,7 +365,6 @@ int main() {
 
 		queue_name_len = command.run_id_len + 25;
 		if (arepqueue.len != queue_name_len) {
-			printf("FA\n"); fflush(stdout);
 			arepqueue.len = queue_name_len;
 			if (arepqueue.bytes) {
 				free(arepqueue.bytes);
