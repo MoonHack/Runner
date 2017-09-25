@@ -330,6 +330,7 @@ int main() {
 		first_loop = 0;
 
 		printf("= %d\n", getpid());
+		printf("0\n");
 
 		if (envelope.redelivered) {
 			printf("REDELIVERED\n");
