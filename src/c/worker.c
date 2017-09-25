@@ -330,7 +330,6 @@ int main() {
 		first_loop = 0;
 
 		printf("= %d\n", getpid());
-		fflush(stdout);
 
 		if (envelope.redelivered) {
 			printf("REDELIVERED\n");
@@ -338,11 +337,15 @@ int main() {
 			continue;
 		}
 
+		printf("A\n");
+
 		if (envelope.message.body.len < sizeof(struct command_request_t)) {
 			printf("TOOSHORT\n");
 			amqp_destroy_envelope(&envelope);
 			continue;
 		}
+
+		printf("B\n");
 
 		memcpy(&command, envelope.message.body.bytes, sizeof(struct command_request_t));
 
