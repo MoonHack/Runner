@@ -33,6 +33,7 @@
 #define EXIT_ERROR 4
 
 FILE *urandom_fh;
+int null_fh;
 pid_t worker_pid;
 lua_State *L;
 int lua_main;
@@ -287,6 +288,7 @@ int main() {
 	}
 
 	urandom_fh = fopen("/dev/urandom", "rb");
+	null_fh = open("/dev/null", "wb");
 
 	lua_init();
 
@@ -388,8 +390,6 @@ int main() {
 
 		memcpy(arepqueue.bytes + 25, run_id, command.run_id_len);
 
-		printf("I\n");
-
 		pid_t subworker_master = fork();
 		if (subworker_master > 0) {
 			free(run_id);
@@ -415,6 +415,8 @@ int main() {
 
 		pid_t subworker = fork();
 		if (subworker == 0) {
+			close(0);
+			close(1);
 			close(stdout_pipe[0]);
 			dup2(stdout_pipe[1], 1);
 			close(stdout_pipe[1]);
