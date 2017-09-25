@@ -46,7 +46,7 @@ function notifyUser(from, to, msg)
 end
 
 function writeln(str)
-	ffi.C.lua_writeln(str .. "\n")
+	--ffi.C.lua_writeln(str .. "\n")
 	checkTimeout()
 end
 
