@@ -45,6 +45,7 @@ local function json_encodeAll(obj)
 		exception = json_encodeAll_exception
 	})
 end
+json.encode_all = json_encodeAll
 
 local time = os.time
 local exit = os.exit
@@ -171,6 +172,20 @@ local function errorHandler(err)
 	return msg
 end
 
+local function makeSafe(func)
+	return function(...)
+		return xpcall(func, errorHandler, ...)
+	end
+end
+local function makeSafeSingle(func)
+	return function(arg)
+		return xpcall(func, errorHandler, arg)
+	end
+end
+json.encode_all_safe = makeSafeSingle(json.encode_all)
+json.decode_safe = makeSafeSingle(json.decode_safe)
+json.encode_safe = makeSafeSingle(json.encode_safe)
+
 local SUB_ENV = {
 	assert = assert,
 	tostring = tostring,
@@ -187,7 +202,17 @@ local SUB_ENV = {
 	rawequal = rawequal,
 	rawset = _protectTblFunction(rawset),
 	unpack = unpack,
-	json = json,
+	json = {
+		encode = function(obj)
+			return json.encode(obj)
+		end,
+		decode = function(obj)
+			return json.decode(obj)
+		end,
+		encode_all_safe = json.encode_all_safe,
+		decode_safe = json.decode_safe,
+		encode_safe = json.encode_safe
+	},
 	table = {
 		--foreach = table.foreach,
 		sort = _protectTblFunction(table.sort),
