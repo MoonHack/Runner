@@ -1,7 +1,7 @@
 local db = require("db")
 local scriptsDb = db.internal:getCollection("scripts")
 local coreScripts = _G.coreScripts
-local unpack = unpack
+local next = next
 local tinsert = table.insert
 
 return function(ctx, args)
@@ -54,7 +54,9 @@ return function(ctx, args)
 		system = 1
 	}}))
 	if addSystem then
-		tinsert(scripts, unpack(coreScripts))
+		for _, v in next, coreScripts do
+			tinsert(scripts, v)
+		end
 	end
 
 	return true, scripts
