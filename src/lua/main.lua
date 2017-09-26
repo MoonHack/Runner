@@ -327,33 +327,43 @@ local function __run(_runId, _caller, _script, args)
 
 	local _ENV = {}
 	local res = {xpcall(CORE_SCRIPT.run, errorHandler, args)}
+	local _res
 	if res[1] then
 		if #res == 1 then
-			writeln(cjson.encode({
+			_res = {
 				type = "return",
 				script = CORE_SCRIPT.name
-			}))			
+			}
 		elseif #res == 2 then
-			writeln(cjson.encode({
+			_res = {
 				type = "return",
 				script = CORE_SCRIPT.name,
 				data = res[2]
-			}))
+			}
 		else
 			tremove(res, 1)
-			writeln(cjson.encode({
+			_res = {
 				type = "return",
 				script = CORE_SCRIPT.name,
 				data = res
-			}))
+			}
 		end
 	else
-		writeln(cjson.encode({
+		_res = {
 			type = "error",
 			script = CORE_SCRIPT.name,
 			data = res[2]
-		}))
+		}
 	end
+	local ok, _json = xpcall(cjson.encode, errorHandler, _res)
+	if not ok then
+		_json = cjson.encode({
+			type = "error",
+			script = CORE_SCRIPT.name,
+			data = _json
+		})
+	end
+	writeln(_json)
 	exit(0)
 end
 
