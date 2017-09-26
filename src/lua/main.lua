@@ -33,6 +33,24 @@ ffi.cdef[[
 	size_t read_random(void *buffer, size_t len);
 ]]
 
+local time = os.time
+local exit = os.exit
+
+local PROTECTION_DEPTH = 0
+local START_TIME = 0
+local KILL_TIME = 0
+function timeLeft()
+	ffi.C.lua_writeln('{"test":true,"tl":'..tostring(KILL_TIME - time())..'}\n')
+	return KILL_TIME - time()
+end
+
+function checkTimeout()
+	if PROTECTION_DEPTH <= 0 and timeLeft() < 0 then
+		exit(6) -- EXIT_SOFT_TIMEOUT
+	end
+end
+local checkTimeout = checkTimeout
+
 function notifyUser(from, to, msg)
 	msg = cjson.encode(msg)
 	ffi.C.notify_user(user, msg)
@@ -50,17 +68,6 @@ function writeln(str)
 	checkTimeout()
 end
 
-local time = os.time
-local exit = os.exit
-
-local PROTECTION_DEPTH = 0
-local START_TIME = 0
-local KILL_TIME = 0
-function timeLeft()
-	writeln('{"test":true,"tl":'..tostring(KILL_TIME - time())..'}')
-	return KILL_TIME - time()
-end
-
 function secureRandom(len)
 	local res = ffi.new("char[?]", len)
 	if ffi.C.read_random(res, len) ~= 1 then
@@ -72,12 +79,6 @@ end
 function sleep(seconds)
 	ffi.C.poll(nil, 0, seconds * 1000)
 	checkTimeout()
-end
-
-function checkTimeout()
-	if PROTECTION_DEPTH <= 0 and timeLeft() < 0 then
-		exit(6) -- EXIT_SOFT_TIMEOUT
-	end
 end
 
 local function enterProtectedSection()
