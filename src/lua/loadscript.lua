@@ -15,7 +15,7 @@ local function flagSet(flags, flag)
 	return bit.band(flags, flag) == flag
 end
 
-function scriptPrint(initial, script)
+function scriptPrint(script, initial)
 	return function(...)
 		local data = {...}
 		if #data == 1 then
@@ -23,7 +23,7 @@ function scriptPrint(initial, script)
 		end
 		writeln(cjson.encode({
 			type = "print",
-			initial = initial,
+			initial = initial or false,
 			script = script,
 			data = data
 		}))
