@@ -45,7 +45,7 @@ return function(ctx, args)
 	end
 
 	local scripts = db.cursorToArray(scriptsDb:find(query, { projection = {
-		_id = 1,
+		_id = 0,
 		name = 1,
 		accessLevel = 1,
 		securityLevel = 1,
@@ -53,6 +53,7 @@ return function(ctx, args)
 		locked = 1,
 		system = 1
 	}}))
+
 	if addSystem then
 		for _, v in next, coreScripts do
 			tinsert(scripts, v)
