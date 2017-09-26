@@ -51,20 +51,21 @@ function checkTimeout()
 end
 local checkTimeout = checkTimeout
 
-function notifyUser(from, to, msg)
-	msg = cjson.encode(msg)
-	ffi.C.notify_user(user, msg)
-	notificationDb:insert({
-		to = user,
-		from = from,
-		msg = msg,
-		date = db.now()
-	})
-	checkTimeout()
-end
-
 function writeln(str)
 	ffi.C.lua_writeln(str .. "\n")
+	checkTimeout()
+end
+local writeln = writeln
+
+function notifyUser(from, to, msg)
+	msg = {
+		to = to,
+		from = from,
+		msg = cjson.encode(msg),
+		date = db.now()
+	}
+	ffi.C.notify_user(to, cjson.encode(msg))
+	notificationDb:insert(msg)
 	checkTimeout()
 end
 
