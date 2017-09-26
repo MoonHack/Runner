@@ -40,7 +40,6 @@ local PROTECTION_DEPTH = 0
 local START_TIME = 0
 local KILL_TIME = 0
 function timeLeft()
-	ffi.C.lua_writeln('{"test":true,"tl":'..tostring(KILL_TIME - time())..'}\n')
 	return KILL_TIME - time()
 end
 local timeLeft = timeLeft
