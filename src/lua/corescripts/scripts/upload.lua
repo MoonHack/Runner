@@ -1,5 +1,6 @@
 local db = require("db")
 local scriptsDb = db.internal:getCollection("scripts")
+local util = require("util")
 
 return function(ctx, args)
 	local securityLevel = tonumber(args.securityLevel or 0)

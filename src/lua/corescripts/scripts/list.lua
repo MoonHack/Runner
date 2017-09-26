@@ -3,7 +3,6 @@ local scriptsDb = db.internal:getCollection("scripts")
 local coreScripts = _G.coreScripts
 local next = next
 local tinsert = table.insert
-local util = require("util")
 
 return function(ctx, args)
 	local name = ctx.caller .. "." .. tostring(args.name)
