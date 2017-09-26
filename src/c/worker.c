@@ -106,7 +106,7 @@ void notify_user(const char *name, const char *data) {
 }
 
 void lua_writeln(const char *str) {
-	if (fwrite(1, str, strlen(str), 1, stdout)) {
+	if (fwrite(str, strlen(str), 1, stdout)) {
 		fflush(stdout);
 	}
 }
