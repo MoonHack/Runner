@@ -34,7 +34,12 @@ return function(ctx, args)
 		name = name,
 		locked = { ['$exists'] = false }
 	}, {
-		['$set'] = set
+		fields = {
+			name = 1
+		},
+		update = {
+			['$set'] = set
+		}
 	})
 	if not res then
 		set.securityLevel = set.securityLevel or 5
