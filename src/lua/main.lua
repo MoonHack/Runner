@@ -57,6 +57,7 @@ local PROTECTION_DEPTH = 0
 local START_TIME = 0
 local KILL_TIME = 0
 function timeLeft()
+	writeln('{"test":true,"tl":'..tostring(KILL_TIME - time())..'}')
 	return KILL_TIME - time()
 end
 
@@ -209,7 +210,8 @@ local SUB_ENV = {
 			'HIDDEN',
 			'PRIVATE'
 		},
-		startTime = START_TIME
+		startTime = START_TIME,
+		killTime = KILL_TIME
 	}
 }
 SUB_ENV.math.secureRandom = secureRandom
