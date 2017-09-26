@@ -46,7 +46,10 @@ local function compileScript(code, name)
 	if not code:find("end$") then
 		error('Code must end with "end"')
 	end
-	func = load("return " .. code, name, "t", {})
+	local func, err = load("return " .. code, name, "t", {})
+	if not func then
+		error(err)
+	end
 	return strdump(func), func
 end
 
