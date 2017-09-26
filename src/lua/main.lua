@@ -183,8 +183,8 @@ local function makeSafeSingle(func)
 	end
 end
 json.encode_all_safe = makeSafeSingle(json.encode_all)
-json.decode_safe = makeSafeSingle(json.decode_safe)
-json.encode_safe = makeSafeSingle(json.encode_safe)
+json.decode_safe = makeSafeSingle(json.decode)
+json.encode_safe = makeSafeSingle(json.encode)
 
 local SUB_ENV = {
 	assert = assert,
