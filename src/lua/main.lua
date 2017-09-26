@@ -43,6 +43,7 @@ function timeLeft()
 	ffi.C.lua_writeln('{"test":true,"tl":'..tostring(KILL_TIME - time())..'}\n')
 	return KILL_TIME - time()
 end
+local timeLeft = timeLeft
 
 function checkTimeout()
 	if PROTECTION_DEPTH <= 0 and timeLeft() < 0 then
