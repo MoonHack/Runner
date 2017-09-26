@@ -15,7 +15,7 @@ local getmetatable = getmetatable
 local setmetatable = setmetatable
 local arg = arg
 local load = load
-local cjson = require("cjson")
+local json = require("dkjson")
 local xpcall = xpcall
 local debug = debug
 local uuid = require("uuid")
@@ -32,6 +32,19 @@ ffi.cdef[[
 	void lua_writeln(const char *str);
 	size_t read_random(void *buffer, size_t len);
 ]]
+
+local function json_encodeAll_exception(reason, value, state, defaultmessage)
+	if reason ~= "unsupported type" or type(value) ~= "userdata" then
+		return nil, defaultmessage
+	end
+	return json.quotestring(tostring(value))
+end
+
+local function json_encodeAll(obj)
+	return json.encode(obj, {
+		exception = json_encodeAll_exception
+	})
+end
 
 local time = os.time
 local exit = os.exit
@@ -61,10 +74,10 @@ function notifyUser(from, to, msg)
 	msg = {
 		to = to,
 		from = from,
-		msg = cjson.encode(msg),
+		msg = json_encodeAll(msg),
 		date = db.now()
 	}
-	ffi.C.notify_user(to, cjson.encode(msg))
+	ffi.C.notify_user(to, json_encodeAll(msg))
 	notificationDb:insert(msg)
 	checkTimeout()
 end
@@ -174,7 +187,7 @@ local SUB_ENV = {
 	rawequal = rawequal,
 	rawset = _protectTblFunction(rawset),
 	unpack = unpack,
-	json = require("cjson.safe"),
+	json = json,
 	table = {
 		--foreach = table.foreach,
 		sort = _protectTblFunction(table.sort),
@@ -305,7 +318,7 @@ local function __run(_runId, _caller, _script, args)
 		CALLER = _caller
 		ok, CORE_SCRIPT = loadMainScript(_script, false)
 		if not ok then
-			writeln(cjson.encode({
+			writeln(json_encodeAll({
 				type = "error",
 				script = _script,
 				data = CORE_SCRIPT
@@ -314,7 +327,7 @@ local function __run(_runId, _caller, _script, args)
 		end
 
 		if args and args ~= '' then
-			args = cjson.decode(args)
+			args = json.decode(args)
 		end
 
 		if args and type(args) == "table" then
@@ -356,9 +369,9 @@ local function __run(_runId, _caller, _script, args)
 			data = res[2]
 		}
 	end
-	local ok, _json = xpcall(cjson.encode, errorHandler, _res)
+	local ok, _json = xpcall(json_encodeAll, errorHandler, _res)
 	if not ok then
-		_json = cjson.encode({
+		_json = json_encodeAll({
 			type = "error",
 			script = CORE_SCRIPT.name,
 			data = _json
