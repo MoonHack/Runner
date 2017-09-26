@@ -1,6 +1,9 @@
 // users collection indices provided by MHWeb
+
 db.scripts.createIndex({ owner: 1 });
 db.scripts.createIndex({ name: 1 }, { unique: true });
 db.scripts.createIndex({ securityLevel: 1 });
 db.scripts.createIndex({ accessLevel: 1 });
 db.scripts.createIndex({ system: 1 });
+
+db.programs.createIndex({ owner: 1 });
