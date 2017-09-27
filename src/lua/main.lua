@@ -34,7 +34,7 @@ ffi.cdef[[
 ]]
 
 local function json_encodeAll_exception(reason, value, state, defaultmessage)
-	if reason ~= "unsupported type" or type(value) ~= "userdata" then
+	if reason ~= "unsupported type" then
 		return nil, defaultmessage
 	end
 	return json.quotestring(tostring(value))
