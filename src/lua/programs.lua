@@ -12,6 +12,16 @@ local next = next
 local type = type
 local ObjectID = db.mongo.ObjectID
 
+local function logs(user, skip, limit)
+	if not limit or limit > 50 then
+		limit = 50
+	end
+	if not skip or skip < 0 then
+		skip = 0
+	end
+	return true, db.cursorToArray(logDb:find({ ['$or'] = {{ from = user }, { to = user }} }, { sort = { date = -1 }, skip = skip, limit = limit }))
+end
+
 local function _fixSerials(name, _serials)
 	local userObj = user.getByName(name, { programs = 1 })
 	if not userObj then
@@ -152,5 +162,6 @@ return {
 	load = makeProtectedFunc(load),
 	transfer = makeProtectedFunc(transfer),
 	list = makeProtectedFunc(list),
-	delete = makeProtectedFunc(delete)
+	delete = makeProtectedFunc(delete),
+	logs = logs
 }

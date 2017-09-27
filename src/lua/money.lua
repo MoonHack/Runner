@@ -68,6 +68,7 @@ end
 return {
 	give = give,
 	take = take,
+	logs = logs,
 	transfer = makeProtectedFunc(transfer),
 	balance = balance
 }
