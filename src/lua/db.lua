@@ -4,8 +4,6 @@ local clientCore = mongo.Client(config.core)
 local clientUsers = mongo.Client(config.users)
 local time = os.time
 local tinsert = table.insert
-local dgetmetatable = debug.getmetatable
-local dsetmetatable = debug.setmetatable
 local json = require("dkjson")
 local json_encode = json.encode
 
@@ -13,7 +11,7 @@ local function patch_mongo(mongo)
 	mongo.Javascript = nil -- we don't even have this enabled!
 
 	local function make__tojson(struct, func, raw)
-		local mt = dgetmetatable(struct)
+		local mt = debug.getmetatable(struct)
 		if raw then
 			mt.__tojson = func
 		else
