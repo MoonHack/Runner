@@ -300,7 +300,7 @@ local function loadMainScript(script, isScriptor)
 		thisScript = script,
 		caller = CALLER,
 		isScriptor = isScriptor
-	}, -1, CALLER, script, false)
+	}, CALLER, script, false)
 end
 
 uuid.seed()
