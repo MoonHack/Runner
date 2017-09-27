@@ -33,6 +33,7 @@
 #define EXIT_ERROR 4
 
 FILE *urandom_fh;
+FILE *pipe_fh;
 int null_fh;
 pid_t worker_pid;
 lua_State *L;
@@ -106,8 +107,8 @@ void notify_user(const char *name, const char *data) {
 }
 
 void lua_writeln(const char *str) {
-	if (fwrite(str, strlen(str), 1, stdout)) {
-		fflush(stdout);
+	if (fwrite(str, strlen(str), 1, pipe_fh)) {
+		fflush(pipe_fh);
 	}
 }
 
@@ -400,11 +401,8 @@ int main() {
 
 		pid_t subworker = fork();
 		if (subworker == 0) {
-			close(0);
-			close(1);
 			close(stdout_pipe[0]);
-			dup2(stdout_pipe[1], 1);
-			close(stdout_pipe[1]);
+			pipe_fh = fdopen(stdout_pipe[1], "w");
 
 			if (unshare(CLONE_FILES)) {
 				perror("CLONE_FILES");
