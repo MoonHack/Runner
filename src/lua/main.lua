@@ -200,6 +200,7 @@ local SUB_ENV = {
 	bit = bit,
 	error = error,
 	rawequal = rawequal,
+	rawget = rawget,
 	rawset = _protectTblFunction(rawset),
 	unpack = unpack,
 	json = {
@@ -209,6 +210,7 @@ local SUB_ENV = {
 		decode = function(obj)
 			return json.decode(obj)
 		end,
+		encode_all = json.encode_all,
 		encode_all_safe = json.encode_all_safe,
 		decode_safe = json.decode_safe,
 		encode_safe = json.encode_safe

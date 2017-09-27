@@ -93,6 +93,7 @@ local function loadscriptInternal(ctx, script, compile)
 	if type(script) ~= "string" then
 		return false, "Script name must be a string"
 	end
+	script = script:lower()
 
 	local data = scriptCache[script]
 	if not data then
@@ -106,6 +107,8 @@ local function loadscriptInternal(ctx, script, compile)
 		scriptCache[data.name] = data
 	end
 
+	script = data.name
+
 	if compile and not data.__func then
 		local callingScript = data.name
 		local callingScriptOwner = data.owner
@@ -113,6 +116,13 @@ local function loadscriptInternal(ctx, script, compile)
 
 		local PROTECTED_SUB_ENV = util.shallowCopy(TEMPLATE_SUB_ENV)
 		PROTECTED_SUB_ENV.print = scriptPrint(callingScript, isRoot)
+		PROTECTED_SUB_ENV.loadstring = function(str)
+			return load(str, script .. "->load", "t", PROTECTED_SUB_ENV)
+		end
+		if setfenv then
+			setfenv(PROTECTED_SUB_ENV.loadstring, PROTECTED_SUB_ENV)
+		end
+		PROTECTED_SUB_ENV.load = PROTECTED_SUB_ENV.loadstring
 
 		local function loadScriptGame(script, flags)
 			local asOwner = flagSet(flags, LOAD_AS_OWNER)
@@ -169,7 +179,7 @@ local function loadscriptInternal(ctx, script, compile)
 			if data.codeBinary and data.codeDate == data.codeBinaryDate then
 				local codeBinary, cbType = data.codeBinary:unpack()
 				if cbType == CODE_BINARY_TYPE then
-					local ok, res = pcall(load, codeBinary, data.name, "b", {})
+					local ok, res = pcall(load, codeBinary, script, "b", {})
 					if ok then
 						func = res
 					end
@@ -183,13 +193,13 @@ local function loadscriptInternal(ctx, script, compile)
 					return false, 'Invalid binary data for source'
 				end
 				local codeBinary
-				ok, codeBinary, func = pcall(util.compileScript, code, data.name)
+				ok, codeBinary, func = pcall(util.compileScript, code, script)
 				if not ok then
-					return false, 'Compile error in ' .. data.name
+					return false, 'Compile error in ' .. script
 				end
 				data.codeBinary = db.mongo.Binary(codeBinary, CODE_BINARY_TYPE)
 				scriptsDb:update({
-					name = data.name
+					name = script
 				}, {
 					["$set"] = {
 						codeBinary = data.codeBinary,
