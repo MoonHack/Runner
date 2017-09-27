@@ -1,5 +1,6 @@
 #!/bin/sh
-source prepare.sh
+set -e
+. ./prepare.sh
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make

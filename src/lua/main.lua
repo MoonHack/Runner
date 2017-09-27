@@ -37,7 +37,7 @@ local function json_encodeAll_exception(reason, value, state, defaultmessage)
 	if reason ~= "unsupported type" then
 		return nil, defaultmessage
 	end
-	return json.quotestring(tostring(value))
+	return json.encode({ ["$error"] = defaultmessage }, state)
 end
 
 local function json_encodeAll(obj)
