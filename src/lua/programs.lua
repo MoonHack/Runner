@@ -25,7 +25,7 @@ end
 local function _fixSerials(name, _serials)
 	local userObj = user.getByName(name, { programs = 1 })
 	if not userObj then
-		return {}, {}
+		return nil, nil
 	end
 	userObj = userObj.programs
 	local serials = {}
@@ -95,6 +95,9 @@ local function delete(name, serials)
 	name = tostring(name)
 	local userProgs
 	serials, userProgs = _fixSerials(name, serials)
+	if not serials then
+		return false, 'User not found'
+	end
 	if timeLeft() < 1 then
 		checkTimeout()
 		return false, 'Program deletions require 1 second of runtime'
@@ -113,8 +116,15 @@ end
 local function transfer(from, to, serials)
 	from = tostring(from)
 	to = tostring(to)
+	local userObjTo = user.getByName(to, { programs = 1 })
+	if not userObjTo then
+		return false, 'Target not found'
+	end
 	local userProgs
 	serials, userProgs = _fixSerials(from, serials)
+	if not serials then
+		return false, 'User not found'
+	end
 	if timeLeft() < 1 then
 		checkTimeout()
 		return false, 'Program transfers require 1 second of runtime'
@@ -134,6 +144,9 @@ local function load(name, serials, load)
 	load = load and true or false
 
 	serials, stored = _fixSerials(name, serials)
+	if not serials then
+		return false, 'User not found'
+	end
 	local pMap = {}
 	for _, v in next, serials do
 		pMap[v] = true

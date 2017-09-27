@@ -2,5 +2,5 @@ local programs = require("programs")
 local tinsert = table.insert
 local next = next
 return function(ctx, args)
-	return programs.load(ctx.caller, args.target, args.i)
+	return programs.transfer(ctx.caller, args.target, args.i)
 end
