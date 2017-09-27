@@ -1,6 +1,6 @@
 return {
 	mongo = {
-		core = "mongodb://127.0.0.1",
-		users = "mongodb://127.0.0.1"
+		core = "mongodb://127.0.0.1/mh_core",
+		users = "mongodb://127.0.0.1/mh_users"
 	}
 }

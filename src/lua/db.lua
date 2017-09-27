@@ -1,7 +1,7 @@
 local mongo = require("mongo")
 local config = require("config").mongo
-local clientCore = mongo.Client(config.core)
-local clientUsers = mongo.Client(config.users)
+local dbCore = mongo.Client(config.core):getDefaultDatabase()
+local dbUsers = mongo.Client(config.users):getDefaultDatabase()
 local time = os.time
 local tinsert = table.insert
 local json = require("dkjson")
@@ -94,6 +94,6 @@ return {
 	now = now,
 	cursorToArray = cursorToArray,
 	mongo = mongo,
-	internal = clientCore:getDatabase("moonhack_core"),
-	user = clientUsers:getDatabase("moonhack_user")
+	internal = dbCore,
+	user = dbUsers
 }
