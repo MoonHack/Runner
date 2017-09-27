@@ -68,8 +68,6 @@ end
 loadCoreScript("notifications.send")
 loadCoreScript("notifications.recent")
 
-loadCoreScript("scripts.sleep")
-loadCoreScript("scripts.lib")
 loadCoreScript("scripts.upload")
 loadCoreScript("scripts.delete")
 loadCoreScript("scripts.list")
