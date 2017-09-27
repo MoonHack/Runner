@@ -31,10 +31,6 @@ return function(ctx, args)
 		codeBinaryDate = now
 	}
 
-	if securityLevel > 0 and securityLevel <= 5 then
-		set.securityLevel = securityLevel
-	end
-
 	if accessLevel > 0 and accessLevel <= 3 then
 		set.accessLevel = accessLevel
 	end
@@ -51,7 +47,6 @@ return function(ctx, args)
 		}
 	})
 	if not res then
-		set.securityLevel = set.securityLevel or 5
 		set.accessLevel = set.accessLevel or 1
 		set.name = name
 		set.owner = ctx.caller

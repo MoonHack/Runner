@@ -48,7 +48,6 @@ return function(ctx, args)
 		_id = 0,
 		name = 1,
 		accessLevel = 1,
-		securityLevel = 1,
 		owner = 1,
 		locked = 1,
 		system = 1

@@ -42,7 +42,7 @@ _G.coreScripts = {}
 local LOAD_AS_OWNER = 1
 local LOAD_ONLY_INFORMATION = 2
 
-local function loadCoreScript(name, securityLevel, accessLevel)
+local function loadCoreScript(name, accessLevel)
 	accessLevel = accessLevel or 3
 
 	local file = "corescripts/" .. name:gsub("%.", "/")
@@ -51,7 +51,6 @@ local function loadCoreScript(name, securityLevel, accessLevel)
 		name = name,
 		__func = require(file),
 		accessLevel = accessLevel,
-		securityLevel = securityLevel,
 		hookable = true,
 		system = true
 	}
@@ -60,33 +59,32 @@ local function loadCoreScript(name, securityLevel, accessLevel)
 		tinsert(coreScripts, {
 			name = name,
 			accessLevel = accessLevel,
-			securityLevel = securityLevel,
 			hookable = true,
 			system = true
 		})
 	end
 end
 
-loadCoreScript("notifications.send", 5)
-loadCoreScript("notifications.recent", 4)
+loadCoreScript("notifications.send")
+loadCoreScript("notifications.recent")
 
-loadCoreScript("scripts.sleep", 5)
-loadCoreScript("scripts.lib", 5)
-loadCoreScript("scripts.upload", 1)
-loadCoreScript("scripts.delete", 1)
-loadCoreScript("scripts.list", 4)
+loadCoreScript("scripts.sleep")
+loadCoreScript("scripts.lib")
+loadCoreScript("scripts.upload")
+loadCoreScript("scripts.delete")
+loadCoreScript("scripts.list")
 
-loadCoreScript("money.balance", 3)
-loadCoreScript("money.log", 4)
-loadCoreScript("money.transfer", 4)
+loadCoreScript("money.balance")
+loadCoreScript("money.log")
+loadCoreScript("money.transfer")
 
-loadCoreScript("programs.delete", 2)
-loadCoreScript("programs.list", 4)
-loadCoreScript("programs.load", 3)
-loadCoreScript("programs.log", 4)
-loadCoreScript("programs.reorder", 3)
-loadCoreScript("programs.transfer", 2)
-loadCoreScript("programs.unload", 3)
+loadCoreScript("programs.delete")
+loadCoreScript("programs.list")
+loadCoreScript("programs.load")
+loadCoreScript("programs.log")
+loadCoreScript("programs.reorder")
+loadCoreScript("programs.transfer")
+loadCoreScript("programs.unload")
 
 _G.coreScripts = nil
 _G.scriptPrint = nil
@@ -113,7 +111,6 @@ local function loadscriptInternal(ctx, script, compile)
 	if compile and not data.__func then
 		local callingScript = data.name
 		local callingScriptOwner = data.owner
-		local secLevel = data.securityLevel
 		local isRoot = (not ctx.callingScript) and (not ctx.isScriptor)
 
 		local PROTECTED_SUB_ENV = util.shallowCopy(TEMPLATE_SUB_ENV)
@@ -129,7 +126,7 @@ local function loadscriptInternal(ctx, script, compile)
 				isScriptor = false,
 				cli = isRoot,
 				caller = asOwner and callingScriptOwner or CORE_SCRIPT.caller
-			}, asOwner and 0 or secLevel, callingScriptOwner, script, flagSet(flags, LOAD_ONLY_INFORMATION))
+			}, callingScriptOwner, script, flagSet(flags, LOAD_ONLY_INFORMATION))
 		end
 
 		PROTECTED_SUB_ENV.game = {
@@ -216,14 +213,13 @@ local function loadscriptInternal(ctx, script, compile)
 	return true, data
 end
 
-loadscript = function(ctx, parentSecLevel, parentOwner, script, onlyInformative)
+loadscript = function(ctx, parentOwner, script, onlyInformative)
 	local runnable = ctx and not onlyInformative
 	local ok, data = loadscriptInternal(ctx, script, runnable)
 	if not ok then
 		return false, data
 	end
 	local info = {
-		securityLevel = data.securityLevel,
 		accessLevel = data.accessLevel,
 		system = data.system or false,
 		hookable = data.hookable or false,
@@ -231,9 +227,6 @@ loadscript = function(ctx, parentSecLevel, parentOwner, script, onlyInformative)
 		owner = data.owner
 	}
 	if runnable then
-		if data.securityLevel < parentSecLevel then
-			return false, "Cannot load script with lower security level than parent script"
-		end
 		if data.accessLevel < 2 and parentOwner ~= data.owner then
 			return false, "Cannot load private script of different user"
 		end

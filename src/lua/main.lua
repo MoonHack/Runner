@@ -238,13 +238,6 @@ local SUB_ENV = {
 	getmetatable = getmetatable,
 	setmetatable = setmetatable,
 	constants = {
-		securityLevels = {
-			'FULLSEC',
-			'HIGHSEC',
-			'MIDSEC',
-			'LOWSEC',
-			'NULLSEC'
-		},
 		accessLevels = {
 			'PUBLIC',
 			'HIDDEN',
