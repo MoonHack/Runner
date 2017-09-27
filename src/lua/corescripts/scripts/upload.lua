@@ -9,7 +9,13 @@ return function(ctx, args)
 	local securityLevel = tonumber(args.securityLevel or 0)
 	local accessLevel = tonumber(args.accessLevel or 0)
 	local source = tostring(args.source)
-	local name = ctx.caller .. "." .. tostring(args.name)
+	local name = tostring(args.name)
+
+	if name:match("[^a-z0-9_]") then
+		return false, 'Invalid script name'
+	end
+
+	name = ctx.caller .. "." .. name
 
 	local ok, compiled = pcall(util.compileScript, source, name)
 	if not ok then
