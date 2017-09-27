@@ -1,9 +1,11 @@
 cmake_minimum_required (VERSION 2.8.11)
 project (MoonHack_Runner C)
 
-set(CMAKE_C_COMPILER "/usr/bin/clang")
+find_program(CLANG_COMPILER clang-4.0 clang)
+
+set(CMAKE_C_COMPILER "${CLANG_COMPILER}")
 set(CMAKE_C_FLAGS "-Wall -Werror")
-set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -D_FORTIFY_SOURCE=2 -march=native -fPIC")
+set(CMAKE_C_FLAGS_RELEASE "-O3 -flto -DNDEBUG -D_FORTIFY_SOURCE=2 -march=native -fPIC")
 
 macro(simple_add_lib lib)
 	foreach(arg IN ITEMS ${ARGN})
