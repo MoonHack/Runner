@@ -1,4 +1,5 @@
 // notifications
+db.notifications.dropIndexes();
 db.notifications.createIndex({
 	date: 1,
 }, {
@@ -9,6 +10,7 @@ db.notifications.createIndex({
 });
 
 // scripts
+db.scripts.dropIndexes();
 db.scripts.createIndex({
 	name: 1,
 }, {
@@ -28,6 +30,7 @@ db.scripts.createIndex({
 });
 
 // programs
+db.programs.dropIndexes();
 db.programs.createIndex({
 	owner: 1,
 });
@@ -38,6 +41,7 @@ db.programs.createIndex({
 });
 
 // money_log
+db.money_log.dropIndexes();
 db.money_log.createIndex({
 	to: 1,
 });
@@ -51,6 +55,7 @@ db.money_log.createIndex({
 });
 
 // program_log
+db.program_log.dropIndexes();
 db.program_log.createIndex({
 	to: 1,
 });
