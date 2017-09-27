@@ -9,7 +9,7 @@ local checkTimeout = checkTimeout
 local io = io
 local tinsert = table.insert
 local writeln = writeln
-local cjson = require("cjson")
+local json = require("dkjson")
 
 local CODE_BINARY_TYPE = db.CODE_BINARY_TYPE
 local CODE_TEXT_TYPE = db.CODE_TEXT_TYPE
@@ -24,7 +24,7 @@ function scriptPrint(script, initial)
 		if #data == 1 then
 			data = data[1]
 		end
-		writeln(cjson.encode({
+		writeln(json.encode_all_safe({
 			type = "print",
 			initial = initial or false,
 			script = script,
