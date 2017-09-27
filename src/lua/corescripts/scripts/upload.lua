@@ -2,6 +2,9 @@ local db = require("db")
 local scriptsDb = db.internal:getCollection("scripts")
 local util = require("util")
 
+local CODE_BINARY_TYPE = db.CODE_BINARY_TYPE
+local CODE_TEXT_TYPE = db.CODE_TEXT_TYPE
+
 return function(ctx, args)
 	local securityLevel = tonumber(args.securityLevel or 0)
 	local accessLevel = tonumber(args.accessLevel or 0)
@@ -16,9 +19,9 @@ return function(ctx, args)
 	local now = db.now()
 
 	local set = {
-		code = source,
+		code = db.mongo.Binary(source, CODE_TEXT_TYPE),
 		codeDate = now,
-		codeBinary = compiled,
+		codeBinary = db.mongo.Binary(compiled, CODE_BINARY_TYPE),
 		codeBinaryDate = now
 	}
 

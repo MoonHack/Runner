@@ -11,6 +11,9 @@ local tinsert = table.insert
 local writeln = writeln
 local cjson = require("cjson")
 
+local CODE_BINARY_TYPE = db.CODE_BINARY_TYPE
+local CODE_TEXT_TYPE = db.CODE_TEXT_TYPE
+
 local function flagSet(flags, flag)
 	return bit.band(flags, flag) == flag
 end
@@ -169,18 +172,27 @@ local function loadscriptInternal(ctx, script, compile)
 			local func
 
 			if data.codeBinary and data.codeDate == data.codeBinaryDate then
-				local ok, res = pcall(load, data.codeBinary, data.name, "b", {})
-				if ok then
-					func = res
+				local codeBinary, cbType = data.codeBinary:unpack()
+				if cbType == CODE_BINARY_TYPE then
+					local ok, res = pcall(load, codeBinary, data.name, "b", {})
+					if ok then
+						func = res
+					end
 				end
 			end
 
 			if not func then
 				local ok
-				ok, data.codeBinary, func = pcall(util.compileScript, data.code, data.name)
+				local code, cType = data.code:unpack()
+				if cType ~= CODE_TEXT_TYPE then
+					return false, 'Invalid binary data for source'
+				end
+				local codeBinary
+				ok, codeBinary, func = pcall(util.compileScript, code, data.name)
 				if not ok then
 					return false, 'Compile error in ' .. data.name
 				end
+				data.codeBinary = db.mongo.Binary(codeBinary, CODE_BINARY_TYPE)
 				scriptsDb:update({
 					name = data.name
 				}, {

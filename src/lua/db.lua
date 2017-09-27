@@ -95,5 +95,7 @@ return {
 	cursorToArray = cursorToArray,
 	mongo = mongo,
 	internal = dbCore,
-	user = dbUsers
+	user = dbUsers,
+	CODE_BINARY_TYPE = 0x01,
+	CODE_TEXT_TYPE = 0x80
 }
