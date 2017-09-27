@@ -317,7 +317,7 @@ int main() {
 	struct command_request_t command;
 
 	amqp_bytes_t arepqueue;
-	arepqueue.bytes = malloc(4096);
+	arepqueue.bytes = malloc(36 + 25);
 	memcpy(arepqueue.bytes, "moonhack_command_results_", 25);
 
 	amqp_bytes_t message_bytes;
@@ -359,8 +359,8 @@ int main() {
 			continue;
 		}
 
-		if (command.run_id_len > 4000) {
-			printf("TOOBIGRUNID\n");
+		if (command.run_id_len != 36) {
+			printf("WRONGLENRUNID\n");
 			amqp_destroy_envelope(&envelope);
 			continue;
 		}
