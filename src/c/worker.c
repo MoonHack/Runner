@@ -157,7 +157,7 @@ static void lua_init() {
 		exit(1);
 	}
 
-	// run_id, caller, script, args, enterProt, leaveProt
+	// run_id, caller, script, args
 	lua_main = luaL_ref(L, LUA_REGISTRYINDEX);
 }
 
