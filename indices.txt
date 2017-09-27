@@ -7,3 +7,7 @@ db.scripts.createIndex({ accessLevel: 1 });
 db.scripts.createIndex({ system: 1 });
 
 db.programs.createIndex({ owner: 1 });
+
+db.notifications.createIndex({ to: 1 });
+db.notifications.createIndex({ from: 1 });
+db.notifications.createIndex({ date: 1 }, { expiresAfterSeconds: 2592000 });
