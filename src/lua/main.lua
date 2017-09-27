@@ -241,9 +241,9 @@ local SUB_ENV = {
 	setmetatable = setmetatable,
 	constants = {
 		accessLevels = {
-			'PUBLIC',
+			'PRIVATE',
 			'HIDDEN',
-			'PRIVATE'
+			'PUBLIC'
 		},
 		startTime = START_TIME,
 		killTime = KILL_TIME
