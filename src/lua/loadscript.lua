@@ -24,7 +24,7 @@ function scriptPrint(script, initial)
 		if #data == 1 then
 			data = data[1]
 		end
-		writeln(json.encode_all_safe({
+		writeln(json.encode_all({
 			type = "print",
 			initial = initial or false,
 			script = script,
