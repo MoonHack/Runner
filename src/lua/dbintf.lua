@@ -17,6 +17,38 @@ local function performBulk(bulk)
 	end
 end
 
+local function makeSafeCursor(cursor)
+	local _count = nil
+	return {
+		next = function()
+			checkTimeout()
+			local val = cursor:next()
+			if val then
+				return val:value()
+			end
+		end,
+		array = function()
+			checkTimeout()
+			return db.cursorToArray(cursor)
+		end,
+		each = function(func)
+			checkTimeout()
+			local val = cursor:next()
+			while val do
+				func(val:value())
+				val = cursor:next()
+			end
+		end,
+		count = function()
+			checkTimeout()
+			if _count == nil then
+				_count = collection:count(query)
+			end
+			return _count
+		end
+	}
+end
+
 return function(script)
 	local collection = db.user:getCollection("user_" .. util.getUserFromScript(script))
 
@@ -32,7 +64,7 @@ return function(script)
 			end
 			return db.mongo.DateTime(value)
 		end,
-		i = function(data)
+		insert = function(data)
 			checkTimeout()
 			local res, err
 			local bulk = collection:createBulkOperation()
@@ -45,7 +77,7 @@ return function(script)
 			end
 			return performBulk(bulk)
 		end,
-		u = function(query, replace, upsert)
+		updateMany = function(query, replace, upsert)
 			checkTimeout()
 			local bulk = collection:createBulkOperation()
 			bulk:updateMany(query, replace, {
@@ -53,7 +85,7 @@ return function(script)
 			})
 			return performBulk(bulk)
 		end,
-		u1 = function(query, replace, upsert)
+		updateOne = function(query, replace, upsert)
 			checkTimeout()
 			local bulk = collection:createBulkOperation()
 			bulk:updateOne(query, replace, {
@@ -61,11 +93,11 @@ return function(script)
 			})
 			return performBulk(bulk)
 		end,
-		c = function(query)
+		count = function(query)
 			checkTimeout()
 			return collection:count(query)
 		end,
-		f = function(query, options)
+		find = function(query, options)
 			checkTimeout()
 			local _options = {}
 			if options then
@@ -75,59 +107,37 @@ return function(script)
 				if options.limit ~= nil then
 					_options.limit = options.limit
 				end
+				if options.sort ~= nil then
+					_options.sort = options.sort
+				end
 			end
 			local cursor = collection:find(query, _options)
-			local _count = nil
-			return {
-				next = function()
-					checkTimeout()
-					local val = cursor:next()
-					if val then
-						return val:value()
-					end
-				end,
-				array = function()
-					checkTimeout()
-					return db.cursorToArray(cursor)
-				end,
-				each = function(func)
-					checkTimeout()
-					local val = cursor:next()
-					while val do
-						func(val:value())
-						val = cursor:next()
-					end
-				end,
-				count = function()
-					checkTimeout()
-					if _count == nil then
-						_count = collection:count(query)
-					end
-					return _count
-				end
-			}
+			if not cursor then
+				return nil, 'Query error'
+			end
+			return makeSafeCursor(cursor)
 		end,
-		f1 = function(query)
+		findOne = function(query)
 			checkTimeout()
 			local res = collection:findOne(query)
 			if res then
 				return res:value()
 			end
 		end,
-		fm = function(query, replace)
+		findAndModify = function(query, replace)
 			checkTimeout()
 			local res = collection:findAndModify(query, replace)
 			if res then
 				return res:value()
 			end
 		end,
-		r = function(query)
+		removeMany = function(query)
 			checkTimeout()
 			local bulk = collection:createBulkOperation()
 			bulk:removeMany(query)
 			return performBulk(bulk)
 		end,
-		r1 = function(query)
+		removeOne = function(query)
 			checkTimeout()
 			local bulk = collection:createBulkOperation()
 			bulk:removeOne(query)

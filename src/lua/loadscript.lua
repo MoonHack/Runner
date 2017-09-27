@@ -138,9 +138,9 @@ local function loadscriptInternal(ctx, script, compile)
 		end
 
 		PROTECTED_SUB_ENV.game = {
-			LOAD_AS_OWNER = LOAD_AS_OWNER,
-			LOAD_ONLY_INFORMATION = LOAD_ONLY_INFORMATION,
 			script = {
+				LOAD_AS_OWNER = LOAD_AS_OWNER,
+				LOAD_ONLY_INFORMATION = LOAD_ONLY_INFORMATION,
 				load = loadScriptGame,
 				info = function(script)
 					return loadScriptGame(script, LOAD_ONLY_INFORMATION)
