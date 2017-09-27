@@ -359,6 +359,12 @@ int main() {
 			continue;
 		}
 
+		if (command.run_id_len > 4000) {
+			printf("TOOBIGRUNID\n");
+			amqp_destroy_envelope(&envelope);
+			continue;
+		}
+
 		COPYIN(run_id);
 		COPYIN(caller);
 		COPYIN(script);
