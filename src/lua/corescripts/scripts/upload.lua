@@ -11,7 +11,11 @@ return function(ctx, args)
 	local source = tostring(args.source)
 	local name = tostring(args.name)
 
-	if name:match("[^a-z0-9_]") then
+	if accessLevel < 1 or accessLevel > 3 then
+		return false, 'Invalid access level'
+	end
+
+	if name:match("[^a-z0-9_]") or name:len() > 32 then
 		return false, 'Invalid script name'
 	end
 
