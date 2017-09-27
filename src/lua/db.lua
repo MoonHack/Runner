@@ -72,7 +72,7 @@ end
 patch_mongo(mongo)
 
 local function now()
-	return time() * 1000
+	return mongo.DateTime(time() * 1000)
 end
 
 local function cursorToArray(cursor)
