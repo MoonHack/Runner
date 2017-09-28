@@ -11,7 +11,7 @@ end
 local function protectTblFunction(func)
 	return function(tbl, ...)
 		if tbl.__protected then
-			_errorReadOnly()
+			return errorReadOnly()
 		end
 		return func(tbl, ...)
 	end
