@@ -110,7 +110,6 @@ local function loadscriptInternal(ctx, script, compile)
 	script = data.name
 
 	if compile and not data.__func then
-		local callingScript = data.name
 		local callingScriptOwner = data.owner
 		local isRoot = (not ctx.callingScript) and (not ctx.isScriptor)
 
@@ -124,17 +123,16 @@ local function loadscriptInternal(ctx, script, compile)
 		end
 		PROTECTED_SUB_ENV.load = PROTECTED_SUB_ENV.loadstring
 
-		local function loadScriptGame(script, flags)
+		local function loadScriptGame(scriptName, flags)
 			local asOwner = flagSet(flags, LOAD_AS_OWNER)
 			checkTimeout()
 			flags = flags or 0
 			return loadscript({
-				thisScript = script,
-				callingScript = callingScript,
+				callingScript = script,
 				isScriptor = false,
 				cli = isRoot,
 				caller = asOwner and callingScriptOwner or CORE_SCRIPT.caller
-			}, callingScriptOwner, script, flagSet(flags, LOAD_ONLY_INFORMATION))
+			}, callingScriptOwner, scriptName, flagSet(flags, LOAD_ONLY_INFORMATION))
 		end
 
 		PROTECTED_SUB_ENV.game = {
@@ -164,7 +162,10 @@ local function loadscriptInternal(ctx, script, compile)
 					return true
 				end,
 			},
-			db = dbintf(data.name),
+			db = dbintf(script),
+			customDb = function(name)
+				return dbintf(script)
+			end,
 			cache = {} -- Not protected on purpose, like #G
 		}
 

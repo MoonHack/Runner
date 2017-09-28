@@ -299,7 +299,6 @@ local loadscript = require("loadscript")
 
 local function loadMainScript(script, isScriptor)
 	return loadscript({
-		thisScript = script,
 		caller = CALLER,
 		isScriptor = isScriptor
 	}, CALLER, script, false)

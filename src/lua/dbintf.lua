@@ -49,10 +49,18 @@ local function makeSafeCursor(cursor)
 	}
 end
 
-return function(script)
-	local collection = db.user:getCollection("user_" .. util.getUserFromScript(script))
+return function(script, subcollection)
+	local collectionName = "user." .. util.getUserFromScript(script)
+	if subcollection then
+		if subcollection:len() > 32 then
+			return nil
+		end
+		collectionName = collectionName .. "." .. subcollection
+	end
+	local collection = db.user:getCollection(collectionName)
 
 	return freeze({
+		collectionName = collectionName,
 		ObjectID = function(value)
 			checkTimeout()
 			return db.mongo.ObjectID(value)
