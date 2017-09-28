@@ -5,6 +5,7 @@ local unpack = unpack
 local pcall = pcall
 local error = error
 local exit = os.exit
+local roTable = require("rotable")
 
 ffi.cdef[[
 	void lua_enterprot();
@@ -46,7 +47,7 @@ local function makeProtectedFunc(func)
 	end
 end
 
-return {
+return roTable.deepFreeze({
 	runProtected = runProtected,
 	makeProtectedFunc = makeProtectedFunc
-}
+})

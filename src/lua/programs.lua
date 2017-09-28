@@ -6,6 +6,7 @@ local programsDb = db.internal:getCollection("programs")
 local logDb = db.internal:getCollection("program_log")
 local timeLeft = require("time").timeLeft
 local checkTimeout = require("time").checkTimeout
+local roTable = require("rotable")
 local tinsert = table.insert
 local tremove = table.remove
 local next = next
@@ -172,10 +173,10 @@ local function list(name)
 	return _fixUser(tostring(name), true)
 end
 
-return {
+return roTable.deepFreeze({
 	load = makeProtectedFunc(load),
 	transfer = makeProtectedFunc(transfer),
 	list = makeProtectedFunc(list),
 	delete = makeProtectedFunc(delete),
 	logs = logs
-}
+})

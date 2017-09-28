@@ -1,6 +1,7 @@
 local db = require("db")
 local dbintf = require("dbintf")
 local util = require("util")
+local scriptUtil = require("script_util")
 local setfenv = setfenv
 local load = load
 local next = next
@@ -10,6 +11,7 @@ local tinsert = table.insert
 local json = require("json_patched")
 local roTable = require("rotable")
 local TEMPLATE_SUB_ENV = require("subenv")
+local bitand = require("bit").band
 
 local CODE_BINARY_TYPE = db.CODE_BINARY_TYPE
 local CODE_TEXT_TYPE = db.CODE_TEXT_TYPE
@@ -20,6 +22,10 @@ local scriptsDb = db.internal:getCollection("scripts")
 
 local scriptCache = {}
 _G.coreScripts = {}
+
+local function flagSet(flags, flag)
+	return bitand(flags, flag) == flag
+end
 
 local LOAD_AS_OWNER = 1
 local LOAD_ONLY_INFORMATION = 2
@@ -112,7 +118,7 @@ local function loadScriptInternal(ctx, script, compile)
 		PROTECTED_SUB_ENV.load = PROTECTED_SUB_ENV.loadstring
 
 		local function loadScriptGame(scriptName, flags)
-			local asOwner = util.flagSet(flags, LOAD_AS_OWNER)
+			local asOwner = flagSet(flags, LOAD_AS_OWNER)
 			checkTimeout()
 			flags = flags or 0
 			return loadScript({
@@ -120,7 +126,7 @@ local function loadScriptInternal(ctx, script, compile)
 				isScriptor = false,
 				cli = isRoot,
 				caller = asOwner and callingScriptOwner or callingScriptCaller
-			}, callingScriptOwner, scriptName, util.flagSet(flags, LOAD_ONLY_INFORMATION))
+			}, callingScriptOwner, scriptName, flagSet(flags, LOAD_ONLY_INFORMATION))
 		end
 
 		PROTECTED_SUB_ENV.game = {
@@ -182,7 +188,7 @@ local function loadScriptInternal(ctx, script, compile)
 					return false, "Invalid binary data for source"
 				end
 				local codeBinary
-				ok, codeBinary, func = pcall(util.compileScript, code, script)
+				ok, codeBinary, func = pcall(scriptUtil.compileScript, code, script)
 				if not ok then
 					return false, "Compile error in " .. script
 				end

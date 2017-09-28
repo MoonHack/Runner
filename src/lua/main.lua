@@ -1,12 +1,8 @@
 package.path = "./?.luac;" .. package.path
 
-local unpack = unpack
-local error = error
-local type = type
-local next = next
-local tremove = table.remove
-local load = load
-local xpcall = xpcall
+local noGlobalLeaks = require("no_global_leaks")
+local DEF_G = noGlobalLeaks.snapshotGTable(_G)
+
 local json = require("json_patched")
 local uuid = require("uuid")
 local bit = require("bit")
@@ -17,14 +13,14 @@ local writeln = require("writeln")
 local random = require("random")
 local safePcall = require("safe_error").pcall
 local loadscript = require("loadscript")
+local unpack = unpack
+local error = error
+local type = type
+local next = next
+local tremove = table.remove
+local load = load
+local xpcall = xpcall
 local exit = os.exit
-
-local function loadMainScript(script, caller, isScriptor)
-	return loadscript({
-		caller = caller,
-		isScriptor = isScriptor
-	}, caller, script, false)
-end
 
 uuid.seed()
 
@@ -40,6 +36,18 @@ _G.loadfile = nil
 _G.load = nil
 _G.package = nil
 _G.print = nil
+
+noGlobalLeaks.fixLeaks(DEF_G, _G)
+
+DEF_G = nil
+noGlobalLeaks = nil
+
+local function loadMainScript(script, caller, isScriptor)
+	return loadscript({
+		caller = caller,
+		isScriptor = isScriptor
+	}, caller, script, false)
+end
 
 local function __run(runId, caller, scriptName, args)
 	local coreScript

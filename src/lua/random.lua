@@ -1,4 +1,5 @@
 local ffi = require("ffi")
+local roTable = require("rotable")
 
 ffi.cdef[[
 	size_t read_random(void *buffer, size_t len);
@@ -12,6 +13,6 @@ local function secureRandom(len)
 	return ffi.string(res, len)
 end
 
-return {
+return roTable.deepFreeze({
 	secureRandom = secureRandom
-}
+})

@@ -1,6 +1,6 @@
 local db = require("db")
 local scriptsDb = db.internal:getCollection("scripts")
-local util = require("util")
+local scriptUtil = require("script_util")
 
 local CODE_BINARY_TYPE = db.CODE_BINARY_TYPE
 local CODE_TEXT_TYPE = db.CODE_TEXT_TYPE
@@ -17,7 +17,7 @@ return function(ctx, args)
 
 	name = ctx.caller .. "." .. name
 
-	local ok, compiled = pcall(util.compileScript, source, name)
+	local ok, compiled = pcall(scriptUtil.compileScript, source, name)
 	if not ok then
 		return false, "Compile error\n" .. compiled
 	end

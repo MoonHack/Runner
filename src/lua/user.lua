@@ -1,5 +1,6 @@
 local db = require("db")
 local userDb = db.internal:getCollection("users")
+local roTable = require("rotable")
 
 local function getByName(name, projection)
 	if projection then
@@ -21,7 +22,7 @@ local function exists(name)
 	return false
 end
 
-return {
+return roTable.deepFreeze({
 	getByName = getByName,
 	exists = exists
-}
+})

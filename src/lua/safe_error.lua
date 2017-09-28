@@ -4,6 +4,7 @@ local xpcall = xpcall
 local strgsub = string.gsub
 local tostring = tostring
 local checkTimeout = require("time").checkTimeout
+local roTable = require("rotable")
 
 local AT = strbyte("@", 1)
 local function errorHandler(err)
@@ -34,10 +35,10 @@ local function errorHandler(err)
 	return msg
 end
 
-return {
+return roTable.deepFreeze({
 	errorHandler = errorHandler,
 	pcall = function(func, ...)
 		checkTimeout()
 		return xpcall(func, errorHandler, ...)
 	end
-}
+})

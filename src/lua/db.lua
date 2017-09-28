@@ -5,6 +5,7 @@ local dbUsers = mongo.Client(config.users):getDefaultDatabase()
 local time = require("time").time
 local tinsert = table.insert
 local json_encode = require("json_patched").encode
+local roTable = require("rotable")
 
 local function patchMongo(mongo)
 	mongo.Javascript = nil -- we don"t even have this enabled!
@@ -89,7 +90,7 @@ local function cursorToArray(cursor)
 	return res
 end
 
-return {
+return roTable.deepFreeze({
 	now = now,
 	cursorToArray = cursorToArray,
 	mongo = mongo,
@@ -97,4 +98,4 @@ return {
 	user = dbUsers,
 	CODE_BINARY_TYPE = 0x01,
 	CODE_TEXT_TYPE = 0x80
-}
+})
