@@ -481,7 +481,8 @@ int main() {
 					WRITE_AMQP("\1HARD_TIMEOUT\n", 14);
 					break;
 				case EXIT_KILLSWITCH:
-					WRITE_AMQP("\1KILLSWITCH\n", 13);
+					printf("Killswitch engaged!!!\n");
+					WRITE_AMQP("\1INTERNAL\n", 10);
 					break;
 				case EXIT_OK:
 					WRITE_AMQP("\1OK\n", 4);
