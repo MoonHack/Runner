@@ -48,8 +48,8 @@ local function deepFreeze(tbl)
 	return freeze(ret)
 end
 
-return deepFreeze({
+return {
 	freeze = freeze,
 	deepFreeze = deepFreeze,
 	protectTblFunction = protectTblFunction
-})
+}

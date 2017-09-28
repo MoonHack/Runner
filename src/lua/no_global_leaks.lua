@@ -1,6 +1,5 @@
 local next = next
 local print = print
-local roTable = require("rotable")
 local util = require("util")
 
 local function snapshotGTable(gTable)
@@ -28,7 +27,7 @@ local function fixLeaks(gSnapshot, gTable)
 	return _fixLeaks(gSnapshot, gTable, {}, "_G.")
 end
 
-return roTable.deepFreeze({
+return {
 	snapshotGTable = snapshotGTable,
 	fixLeaks = fixLeaks
-})
+}

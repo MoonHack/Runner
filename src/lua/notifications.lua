@@ -2,7 +2,6 @@ local ffi = require("ffi")
 local checkTimeout = require("time").checkTimeout
 local db = require("db")
 local notificationDb = db.internal:getCollection("notifications")
-local roTable = require("rotable")
 
 ffi.cdef[[
 	void notify_user(const char *name, const char *data);
@@ -20,6 +19,6 @@ local function notifyUser(from, to, msg)
 	checkTimeout()
 end
 
-return roTable.deepFreeze({
+return {
 	notifyUser = notifyUser
-})
+}

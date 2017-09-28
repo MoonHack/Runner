@@ -2,7 +2,7 @@ local db = require("db")
 local util = require("util")
 local tinsert = table.insert
 local checkTimeout = require("time").checkTimeout
-local freeze = require("rotable").freeze
+local deepFreeze = require("rotable").deepFreeze
 local strlen = string.len
 local strmatch = string.match
 
@@ -63,7 +63,7 @@ return function(script, subcollection)
 	end
 	local collection = db.user:getCollection(collectionName)
 
-	return freeze({
+	return deepFreeze({
 		collectionName = collectionName,
 
 		ObjectID = function(value)

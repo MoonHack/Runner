@@ -76,4 +76,4 @@ local SUB_ENV = {
 
 SUB_ENV._G = SUB_ENV
 
-return roTable.deepFreeze(SUB_ENV, false)
+return SUB_ENV

@@ -1,6 +1,5 @@
 local json = require("dkjson")
 local safePcall = require("safe_error").pcall
-local roTable = require("rotable")
 
 local function json_encodeAll_exception(reason, value, state, defaultmessage)
 	if reason ~= "unsupported type" then
@@ -21,7 +20,7 @@ local function makeSafeSingle(func)
 	end
 end
 
-return roTable.deepFreeze({
+return {
 	encode = function(tbl)
 		return json.encode(tbl)
 	end,
@@ -32,4 +31,4 @@ return roTable.deepFreeze({
 	encodeAllSafe = makeSafeSingle(json_encodeAll),
 	decodeSafe = makeSafeSingle(json.decode),
 	encodeSafe = makeSafeSingle(json.encode)
-})
+}

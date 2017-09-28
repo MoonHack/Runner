@@ -2,8 +2,7 @@ local config = require("config").mongo
 local time = require("time").time
 local tinsert = table.insert
 local json_encode = require("json_patched").encode
-local roTable = require("rotable")
-local mongo = roTable.deepFreeze(require("mongo"))
+local mongo = require("mongo")
 local dbCore = mongo.Client(config.core):getDefaultDatabase()
 local dbUsers = mongo.Client(config.users):getDefaultDatabase()
 
@@ -157,7 +156,7 @@ local function cursorToArray(cursor)
 	return res
 end
 
-return roTable.deepFreeze({
+return {
 	now = now,
 	cursorToArray = cursorToArray,
 	mongo = mongo,
@@ -165,4 +164,4 @@ return roTable.deepFreeze({
 	user = dbUsers,
 	CODE_BINARY_TYPE = 0x01,
 	CODE_TEXT_TYPE = 0x80
-})
+}

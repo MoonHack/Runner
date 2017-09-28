@@ -1,7 +1,6 @@
 local strmatch = string.match
 local next = next
 local type = type
-local roTable = require("rotable")
 
 local function shallowCopy(tbl)
 	local ret = {}
@@ -43,11 +42,11 @@ local function getUserFromScript(script)
 	return strmatch(script, "^(.+)%.")
 end
 
-return roTable.deepFreeze({
+return {
 	shallowCopy = shallowCopy,
 	deepCopy = deepCopy,
 	getUserFromScript = getUserFromScript,
 	compileScript = compileScript,
 	flagSet = flagSet,
 	scriptPrint = scriptPrint
-})
+}

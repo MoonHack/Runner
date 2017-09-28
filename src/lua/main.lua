@@ -1,5 +1,17 @@
 package.path = "./?.luac;" .. package.path
 
+do
+	local deepFreeze = require("rotable").deepFreeze
+	local _require = require
+	_G.require = function(module)
+		local mod = _require(module)
+		if type(mod) ~= "table" then
+			return mod
+		end
+		return deepFreeze(mod)
+	end
+end
+
 local noGlobalLeaks = require("no_global_leaks")
 local DEF_G = noGlobalLeaks.snapshotGTable(_G)
 

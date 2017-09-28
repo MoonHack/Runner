@@ -4,7 +4,6 @@ local strfind = string.find
 local error = error
 local json = require("json_patched")
 local writeln = require("writeln")
-local roTable = require("rotable")
 
 local function compileScript(code, name)
 	local _ENV = {}
@@ -36,7 +35,7 @@ local function scriptPrint(script, initial)
 	end
 end
 
-return roTable.deepFreeze({
+return {
 	compileScript = compileScript,
 	scriptPrint = scriptPrint
-})
+}

@@ -2,7 +2,6 @@ local ffi = require("ffi")
 local error = error
 local exit = os.exit
 local tonumber = tonumber
-local roTable = require("rotable")
 
 ffi.cdef[[
 	typedef long time_t;
@@ -62,7 +61,7 @@ local function sleep(milliseconds)
 	checkTimeout()
 end
 
-return roTable.deepFreeze({
+return {
 	setTimes = setTimes,
 	getTimes = getTimes,
 	timeLeft = timeLeft,
@@ -71,4 +70,4 @@ return roTable.deepFreeze({
 	checkTimeout = checkTimeout,
 	disableTimeout = disableTimeout,
 	enableTimeout = enableTimeout
-})
+}

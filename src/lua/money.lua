@@ -1,6 +1,5 @@
 local db = require("db")
 local user = require("user")
-local roTable = require("rotable")
 local userDb = db.internal:getCollection("users")
 local logDb = db.internal:getCollection("money_log")
 local timeUtil = require("time")
@@ -68,10 +67,10 @@ local function transfer(from, to, amount)
 	return true
 end
 
-return roTable.deepFreeze({
+return {
 	give = give,
 	take = take,
 	logs = logs,
 	transfer = makeProtectedFunc(transfer),
 	balance = balance
-})
+}
