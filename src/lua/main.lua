@@ -17,12 +17,10 @@ local checkTimeout = timeUtil.checkTimeout
 local writeln = require("writeln")
 local random = require("random")
 local safePcall = require("safe_error").pcall
+local loadscript = require("loadscript")
 
 local exit = os.exit
-
 local CALLER
-
-local loadscript = require("loadscript")
 
 local function loadMainScript(script, isScriptor)
 	return loadscript({

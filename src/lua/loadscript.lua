@@ -70,9 +70,9 @@ loadCoreScript("programs.unload")
 
 _G.coreScripts = nil
 
-local loadscript
+local loadScript
 
-local function loadscriptInternal(ctx, script, compile)
+local function loadScriptInternal(ctx, script, compile)
 	if type(script) ~= "string" then
 		return false, "Script name must be a string"
 	end
@@ -115,7 +115,7 @@ local function loadscriptInternal(ctx, script, compile)
 			local asOwner = util.flagSet(flags, LOAD_AS_OWNER)
 			checkTimeout()
 			flags = flags or 0
-			return loadscript({
+			return loadScript({
 				callingScript = script,
 				isScriptor = false,
 				cli = isRoot,
@@ -210,9 +210,9 @@ local function loadscriptInternal(ctx, script, compile)
 	return true, data
 end
 
-loadscript = function(ctx, parentOwner, script, onlyInformative)
+loadScript = function(ctx, parentOwner, script, onlyInformative)
 	local runnable = ctx and not onlyInformative
-	local ok, data = loadscriptInternal(ctx, script, runnable)
+	local ok, data = loadScriptInternal(ctx, script, runnable)
 	if not ok then
 		return false, data
 	end
@@ -237,6 +237,4 @@ loadscript = function(ctx, parentOwner, script, onlyInformative)
 	return true, info
 end
 
---_G.loadscript = loadscript
-
-return loadscript
+return loadScript
