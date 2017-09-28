@@ -96,7 +96,6 @@ TEMPLATE_SUB_ENV = roTable.deepFreeze(SUB_ENV, false)
 
 local CALLER
 
-local writeln = writeln
 local loadscript = require("loadscript")
 
 local function loadMainScript(script, isScriptor)
@@ -120,7 +119,6 @@ _G.loadfile = nil
 _G.load = nil
 _G.package = nil
 _G.print = nil
-_G.writeln = nil
 
 local function __run(_runId, _caller, _script, args)
 	do
