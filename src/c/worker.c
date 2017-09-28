@@ -158,7 +158,7 @@ static void lua_init() {
 		exit(1);
 	}
 
-	// run_id, caller, script, args
+	// caller, script, args
 	lua_main = luaL_ref(L, LUA_REGISTRYINDEX);
 }
 
@@ -376,9 +376,10 @@ int main() {
 		arepqueue.len = command.run_id_len + 25;
 		memcpy(arepqueue.bytes + 25, run_id, command.run_id_len);
 
+		free(run_id);
+
 		pid_t subworker_master = fork();
 		if (subworker_master > 0) {
-			free(run_id);
 			free(caller);
 			free(script);
 			free(args);
@@ -401,6 +402,8 @@ int main() {
 
 		pid_t subworker = fork();
 		if (subworker == 0) {
+			free(arepqueue.bytes);
+
 			close(stdout_pipe[0]);
 			pipe_fh = fdopen(stdout_pipe[1], "w");
 
@@ -408,8 +411,6 @@ int main() {
 				perror("CLONE_FILES");
 				exit(1);
 			}
-
-			free(arepqueue.bytes);
 
 			lua_prot_depth = 0;
 
@@ -421,28 +422,27 @@ int main() {
 
 			add_task_to_cgroup(getpid());
 
-			urandom_fh = fopen("/dev/urandom", "rb");
-
 			if (secure_me_sub(uid, gid)) {
 				exit(1);
 			}
 
 			lua_rawgeti(L, LUA_REGISTRYINDEX, lua_main);
-			lua_pushlstring(L, run_id, command.run_id_len);
+
 			lua_pushlstring(L, caller, command.caller_len);
 			lua_pushlstring(L, script, command.script_len);
 			lua_pushlstring(L, args, command.args_len);
-			lua_call(L, 4, 0);
-			free(run_id);
+
 			free(caller);
 			free(script);
 			free(args);
+
+			lua_call(L, 4, 0);
+
 			exit(0);
 		} else if(subworker < 0) {
 			exit(1);
 		}
 
-		free(run_id);
 		free(caller);
 		free(script);
 		free(args);

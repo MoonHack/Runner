@@ -49,7 +49,7 @@ local function loadMainScript(script, caller, isScriptor)
 	}, caller, script, false)
 end
 
-local function __run(runId, caller, scriptName, args)
+local function __run(caller, scriptName, args)
 	local coreScript
 
 	do
