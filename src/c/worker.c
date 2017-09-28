@@ -436,7 +436,7 @@ int main() {
 			free(script);
 			free(args);
 
-			lua_call(L, 4, 0);
+			lua_call(L, 3, 0);
 
 			exit(0);
 		} else if(subworker < 0) {
