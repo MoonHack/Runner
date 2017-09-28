@@ -6,6 +6,7 @@ local setfenv = setfenv
 local load = load
 local next = next
 local type = type
+local pcall = pcall
 local timeUtil = require("time")
 local checkTimeout = timeUtil.checkTimeout
 local tinsert = table.insert
