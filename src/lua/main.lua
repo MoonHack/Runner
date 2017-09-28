@@ -69,7 +69,7 @@ local function __run(_runId, _caller, _script, args)
 		if args and type(args) == "table" then
 			for k, v in next, args do
 				if type(v) == "table" and v["$scriptor"] then
-					args[k] = loadMainScript(v["$scriptor"], true)
+					args[k] = loadMainScript(v["$scriptor"], _caller, true)
 				end
 			end
 		end
