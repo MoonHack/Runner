@@ -4,6 +4,7 @@ local safeError = require("safe_error")
 local json = require("json_patched")
 local util = require("util")
 local random = require("random")
+local bit = require("bit")
 
 local SUB_ENV = {
 	assert = assert,
@@ -60,20 +61,19 @@ local SUB_ENV = {
 			"HIDDEN",
 			"PUBLIC"
 		}
+	},
+	util = {
+		freeze = roTable.freeze,
+		deepFreeze = roTable.deepFreeze,
+		timeLeft = timeUtil.timeLeft,
+		shallowCopy = util.shallowCopy,
+		deepCopy = util.deepCopy,
+		secureRandom = random.secureRandom,
+		microtime = timeUtil.time,
+		sleep = timeUtil.sleep
 	}
 }
 
 SUB_ENV._G = SUB_ENV
-
-SUB_ENV.util = {
-	freeze = roTable.freeze,
-	deepFreeze = roTable.deepFreeze,
-	timeLeft = timeUtil.timeLeft,
-	shallowCopy = util.shallowCopy,
-	deepCopy = util.deepCopy,
-	secureRandom = random.secureRandom,
-	microtime = timeUtil.time,
-	sleep = timeUtil.sleep
-}
 
 return roTable.deepFreeze(SUB_ENV, false)

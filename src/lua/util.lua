@@ -40,6 +40,7 @@ local function deepCopy(tbl)
 			ret[k] = _t
 		end
 	end
+	return ret
 end
 
 local function getUserFromScript(script)
