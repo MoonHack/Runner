@@ -3,6 +3,8 @@ local util = require("util")
 local tinsert = table.insert
 local checkTimeout = require("time").checkTimeout
 local freeze = require("rotable").freeze
+local strlen = string.len
+local strmatch = string.match
 
 local function performBulk(bulk)
 	local res, err = bulk:execute()
@@ -54,7 +56,7 @@ end
 return function(script, subcollection)
 	local collectionName = "user." .. util.getUserFromScript(script)
 	if subcollection then
-		if subcollection:len() > 32 then
+		if strlen(subcollection) > 32 or strmatch(subcollection, "[^a-z_0-9]") then
 			return nil
 		end
 		collectionName = collectionName .. "." .. subcollection
