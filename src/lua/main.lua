@@ -14,7 +14,6 @@ local bit = require("bit")
 local util = require("util")
 local timeUtil = require("time")
 local checkTimeout = timeUtil.checkTimeout
-local roTable = require("rotable")
 local writeln = require("writeln")
 local random = require("random")
 local safePcall = require("safe_error").pcall
