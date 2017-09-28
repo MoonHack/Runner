@@ -130,8 +130,6 @@ static void add_task_to_cgroup(pid_t pid) {
 	fclose(fd);
 }
 
-
-
 void lua_enterprot() {
 	if (++lua_prot_depth == 1) {
 		set_memory_limit(TASK_MEMORY_LIMIT_HIGH);

@@ -133,7 +133,7 @@ local function transfer(from, to, serials)
 	end
 
 	local txn = uuid()
-	
+
 	programsDb:updateMany({ owner = from, _id = { ["$in"] = serials } }, { ["$set"] = { owner = to, lastTransaction = txn } })
 	local affected = db.cursorToArray(programsDb:find({ lastTransaction = txn }, { projection = { _id = 1, name = 1 } }))
 	logDb:insert({ action = "transfer", from = from, to = to, programs = affected, date = db.now() })
@@ -163,9 +163,9 @@ local function load(name, serials, load)
 
 	local affected = db.cursorToArray(programsDb:find({ owner = from, _id = { ["$in"] = affectedSerials } }, { projection = { _id = 1, name = 1 } }))
 	logDb:insert({ action = load and "load" or "unload", from = name, programs = affected, date = db.now() })
-	
+
 	_save(ctx.caller, stored)
-	
+
 	return true, affected
 end
 

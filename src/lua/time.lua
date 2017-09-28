@@ -5,12 +5,12 @@ local tonumber = tonumber
 
 ffi.cdef[[
 	typedef long time_t;
- 
+
  	typedef struct timeval {
 		time_t tv_sec;
 		time_t tv_usec;
 	} timeval;
- 
+
 	int gettimeofday(struct timeval* t, void* tzp);
 
 	int poll(struct pollfd *fds, unsigned long nfds, int timeout);
