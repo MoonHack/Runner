@@ -1,6 +1,5 @@
 package.path = "./?.luac;" .. package.path
 
-local runId = "UNKNOWN"
 local unpack = unpack
 local error = error
 local type = type
@@ -18,15 +17,13 @@ local writeln = require("writeln")
 local random = require("random")
 local safePcall = require("safe_error").pcall
 local loadscript = require("loadscript")
-
 local exit = os.exit
-local CALLER
 
-local function loadMainScript(script, isScriptor)
+local function loadMainScript(script, caller, isScriptor)
 	return loadscript({
-		caller = CALLER,
+		caller = caller,
 		isScriptor = isScriptor
-	}, CALLER, script, false)
+	}, caller, script, false)
 end
 
 uuid.seed()
@@ -45,23 +42,24 @@ _G.package = nil
 _G.print = nil
 
 local function __run(_runId, _caller, _script, args)
+	local coreScript
+	local runId = "UNKNOWN"
+
 	do
 		local a, b, c, d = random.secureRandom(4):byte(1,4)
 		local seed = a*0x1000000 + b*0x10000 + c *0x100 + d
 		uuid.randomseed(seed)
 
 		runId = _runId or "UNKNOWN"
-		CAN_SOFT_KILL = true
 		timeUtil.setTimes(timeUtil.time(), 5000)
 
 		local ok
-		CALLER = _caller
-		ok, CORE_SCRIPT = loadMainScript(_script, false)
+		ok, coreScript = loadMainScript(_script, _caller, false)
 		if not ok then
 			writeln(json.encodeAll({
 				type = "error",
 				script = _script,
-				data = CORE_SCRIPT
+				data = coreScript
 			}))
 			return
 		end
@@ -80,32 +78,32 @@ local function __run(_runId, _caller, _script, args)
 	end
 
 	local _ENV = {}
-	local res = {safePcall(CORE_SCRIPT.run, args)}
+	local res = {safePcall(coreScript.run, args)}
 	local _res
 	if res[1] then
 		if #res == 1 then
 			_res = {
 				type = "return",
-				script = CORE_SCRIPT.name
+				script = coreScript.name
 			}
 		elseif #res == 2 then
 			_res = {
 				type = "return",
-				script = CORE_SCRIPT.name,
+				script = coreScript.name,
 				data = res[2]
 			}
 		else
 			tremove(res, 1)
 			_res = {
 				type = "return",
-				script = CORE_SCRIPT.name,
+				script = coreScript.name,
 				data = res
 			}
 		end
 	else
 		_res = {
 			type = "error",
-			script = CORE_SCRIPT.name,
+			script = coreScript.name,
 			data = res[2]
 		}
 	end
