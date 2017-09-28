@@ -1,10 +1,10 @@
 package.path = "./?.luac;" .. package.path
 
 local type = type
-local deepFreeze = require("rotable").deepFreeze
 
 do
 	local _require = _G.require
+	local deepFreeze = _require("rotable").deepFreeze
 	_G.require = function(module)
 		local mod = _require(module)
 		if type(mod) ~= "table" then
@@ -25,6 +25,7 @@ local writeln = require("writeln")
 local random = require("random")
 local safePcall = require("safe_error").pcall
 local loadscript = require("loadscript")
+local killSwitch = require("killswitch")
 local unpack = unpack
 local error = error
 local next = next
@@ -38,9 +39,9 @@ uuid.seed()
 
 string.dump = nil
 
-local NULL_ENV = {}
-NULL_ENV._G = NULL_ENV
-deepFreeze(NULL_ENV)
+local NULL_ENV = killSwitch.boobyTrap({
+	__protected = true
+})
 
 do
 	local setfenv = setfenv
@@ -48,6 +49,8 @@ do
 	for k, _ in next, __G do
 		__G[k] = nil
 	end
+	__G.__protected = true
+	killSwitch.boobyTrap(__G)
 
 	if setfenv then
 		setfenv(1, NULL_ENV)

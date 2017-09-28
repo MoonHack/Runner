@@ -29,7 +29,7 @@
 #define EXIT_OK 0
 #define EXIT_HARD_TIMEOUT 5
 #define EXIT_SOFT_TIMEOUT 6
-#define EXIT_FORCED 7
+#define EXIT_KILLSWITCH 7
 #define EXIT_ERROR 4
 
 FILE *urandom_fh;
@@ -480,9 +480,9 @@ int main() {
 				case EXIT_HARD_TIMEOUT:
 					WRITE_AMQP("\1HARD_TIMEOUT\n", 14);
 					break;
-				//case EXIT_FORCED:
-				//	WRITE_AMQP("\1HARD_KILLED\n", 13);
-				//	break;
+				case EXIT_KILLSWITCH:
+					WRITE_AMQP("\1KILLSWITCH\n", 13);
+					break;
 				case EXIT_OK:
 					WRITE_AMQP("\1OK\n", 4);
 					break;
