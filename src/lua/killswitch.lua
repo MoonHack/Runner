@@ -1,7 +1,7 @@
 local exit = os.exit
 local dsetmetatable = debug.setmetatable
 local dtraceback = debug.traceback
-local print = print
+local print = io.write
 
 local function killSwitch()
 	print(dtraceback())
