@@ -1,8 +1,8 @@
 package.path = "./?.luac;" .. package.path
 
 do
-	local deepFreeze = require("rotable").deepFreeze
-	local _require = require
+	local _require = _G.require
+	local deepFreeze = _require("rotable").deepFreeze
 	_G.require = function(module)
 		local mod = _require(module)
 		if type(mod) ~= "table" then
