@@ -157,13 +157,12 @@ local function loadScriptInternal(ctx, script, compile)
 			db = dbintf(script),
 			customDb = function(name)
 				return dbintf(script, name)
-			end,
-			cache = {} -- Not protected on purpose, like #G
+			end
 		}
 
 		roTable.freeze(PROTECTED_SUB_ENV.game.script)
 		roTable.freeze(PROTECTED_SUB_ENV.game)
-		roTable.freeze(PROTECTED_SUB_ENV)
+		roTable.deepFreeze(PROTECTED_SUB_ENV)
 
 		do
 			local _ENV = {}
