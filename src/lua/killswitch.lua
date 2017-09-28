@@ -3,10 +3,8 @@ local dsetmetatable = debug.setmetatable
 
 local dtraceback = debug.traceback
 local print = io.write
-local tostring = tostring
 
 local function killSwitch(a,b)
-	print(tostring(b))
 	print(dtraceback())
 	exit(7) -- EXIT_KILLSWITCH
 end
