@@ -1,4 +1,5 @@
 local ffi = require("ffi")
+local error = error
 
 ffi.cdef[[
 	size_t read_random(void *buffer, size_t len);

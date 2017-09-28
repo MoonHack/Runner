@@ -1,7 +1,9 @@
 local db = require("db")
+local tostring = tostring
 local userDb = db.internal:getCollection("users")
 
 local function getByName(name, projection)
+	name = tostring(name)
 	if projection then
 		projection = { projection = projection }
 	end

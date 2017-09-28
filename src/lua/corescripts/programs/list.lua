@@ -1,5 +1,4 @@
 local programs = require("programs")
-local tinsert = table.insert
 local next = next
 return function(ctx, args)
 	local ok, list, info = programs.list(ctx.caller)

@@ -7,6 +7,8 @@ local timeLeft = timeUtil.timeLeft
 local checkTimeout = timeUtil.checkTimeout
 local tinsert = table.insert
 local makeProtectedFunc = require("protected_mode").makeProtectedFunc
+local tostring = tostring
+local tonumber = tonumber
 
 local function logs(user, skip, limit)
 	if not limit or limit > 50 then

@@ -13,6 +13,7 @@ local next = next
 local type = type
 local ObjectID = db.mongo.ObjectID
 local makeProtectedFunc = require("protected_mode").makeProtectedFunc
+local tostring = tostring
 
 local function logs(user, skip, limit)
 	if not limit or limit > 50 then

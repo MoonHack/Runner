@@ -1,5 +1,6 @@
 local db = require("db")
 local notificationDb = db.internal:getCollection("notifications")
+local tonumber = tonumber
 
 return function (ctx, args)
 	args = args or {}

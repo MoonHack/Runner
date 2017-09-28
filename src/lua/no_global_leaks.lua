@@ -1,5 +1,6 @@
 local next = next
 local print = print
+local type = type
 local util = require("util")
 
 local function snapshotGTable(gTable)

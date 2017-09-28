@@ -1,6 +1,9 @@
 local db = require("db")
 local scriptsDb = db.internal:getCollection("scripts")
 local scriptUtil = require("script_util")
+local tonumber = tonumber
+local tostring = tostring
+local pcall = pcall
 
 local CODE_BINARY_TYPE = db.CODE_BINARY_TYPE
 local CODE_TEXT_TYPE = db.CODE_TEXT_TYPE

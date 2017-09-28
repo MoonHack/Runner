@@ -3,6 +3,8 @@ local scriptsDb = db.internal:getCollection("scripts")
 local coreScripts = _G.coreScripts
 local next = next
 local tinsert = table.insert
+local tostring = tostring
+local tonumber = tonumber
 
 return function(ctx, args)
 	local name = ctx.caller .. "." .. tostring(args.name)
