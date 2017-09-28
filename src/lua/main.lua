@@ -1,5 +1,7 @@
 package.path = "./?.luac;" .. package.path
 
+local type = type
+
 do
 	local _require = _G.require
 	local deepFreeze = _require("rotable").deepFreeze
@@ -27,7 +29,6 @@ local safePcall = require("safe_error").pcall
 local loadscript = require("loadscript")
 local unpack = unpack
 local error = error
-local type = type
 local next = next
 local tremove = table.remove
 local load = load
