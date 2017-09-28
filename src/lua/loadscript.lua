@@ -160,8 +160,6 @@ local function loadScriptInternal(ctx, script, compile)
 			end
 		}
 
-		roTable.freeze(PROTECTED_SUB_ENV.game.script)
-		roTable.freeze(PROTECTED_SUB_ENV.game)
 		roTable.deepFreeze(PROTECTED_SUB_ENV)
 
 		do
