@@ -14,7 +14,7 @@ local function compileScript(code, name)
 	if not strfind(code, "end$") then
 		error("Code must end with \"end\"")
 	end
-	local func, err = load("local cache; return " .. code, name, "t", {})
+	local func, err = load("local _L; return " .. code, name, "t", {})
 	if not func then
 		error(err)
 	end

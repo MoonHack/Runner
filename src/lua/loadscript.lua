@@ -104,7 +104,6 @@ local function loadScriptInternal(ctx, script, compile)
 
 		PROTECTED_SUB_ENV.constants = util.deepCopy(TEMPLATE_SUB_ENV.constants)
 		PROTECTED_SUB_ENV.constants.START_TIME, PROTECTED_SUB_ENV.constants.KILL_TIME = timeUtil.getTimes()
-		roTable.deepFreeze(PROTECTED_SUB_ENV.constants)
 
 		PROTECTED_SUB_ENV.print = scriptUtil.scriptPrint(callingScript, isRoot)
 		PROTECTED_SUB_ENV.loadstring = function(str)
