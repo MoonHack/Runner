@@ -2,7 +2,7 @@ local mongo = require("mongo")
 local config = require("config").mongo
 local dbCore = mongo.Client(config.core):getDefaultDatabase()
 local dbUsers = mongo.Client(config.users):getDefaultDatabase()
-local time = time -- time in ms from main
+local time = require("time").time
 local tinsert = table.insert
 local json_encode = require("json_patched").encode
 
@@ -71,7 +71,7 @@ end
 patchMongo(mongo)
 
 local function now()
-	return mongo.DateTime(time() * 1000)
+	return mongo.DateTime(time())
 end
 
 local function cursorToArray(cursor)
