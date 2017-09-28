@@ -4,35 +4,15 @@ local util = require("util")
 local setfenv = setfenv
 local load = load
 local next = next
-local strdump = string.dump
 local checkTimeout = require("time").checkTimeout
-local io = io
 local tinsert = table.insert
 local writeln = require("writeln")
-local json = require("dkjson")
+local json = require("json_patched")
 local roTable = require("rotable")
 
 local CODE_BINARY_TYPE = db.CODE_BINARY_TYPE
 local CODE_TEXT_TYPE = db.CODE_TEXT_TYPE
 
-local function flagSet(flags, flag)
-	return bit.band(flags, flag) == flag
-end
-
-function scriptPrint(script, initial)
-	return function(...)
-		local data = {...}
-		if #data == 1 then
-			data = data[1]
-		end
-		writeln(json.encode_all({
-			type = "print",
-			initial = initial or false,
-			script = script,
-			data = data
-		}))
-	end
-end
 local scriptPrint = scriptPrint
 
 local scriptsDb = db.internal:getCollection("scripts")
@@ -87,7 +67,6 @@ loadCoreScript("programs.transfer")
 loadCoreScript("programs.unload")
 
 _G.coreScripts = nil
-_G.scriptPrint = nil
 
 local loadscript
 
@@ -116,7 +95,7 @@ local function loadscriptInternal(ctx, script, compile)
 		local isRoot = (not ctx.callingScript) and (not ctx.isScriptor)
 
 		local PROTECTED_SUB_ENV = util.shallowCopy(TEMPLATE_SUB_ENV)
-		PROTECTED_SUB_ENV.print = scriptPrint(callingScript, isRoot)
+		PROTECTED_SUB_ENV.print = util.scriptPrint(callingScript, isRoot)
 		PROTECTED_SUB_ENV.loadstring = function(str)
 			return load(str, script .. "->load", "t", PROTECTED_SUB_ENV)
 		end
@@ -126,7 +105,7 @@ local function loadscriptInternal(ctx, script, compile)
 		PROTECTED_SUB_ENV.load = PROTECTED_SUB_ENV.loadstring
 
 		local function loadScriptGame(scriptName, flags)
-			local asOwner = flagSet(flags, LOAD_AS_OWNER)
+			local asOwner = util.flagSet(flags, LOAD_AS_OWNER)
 			checkTimeout()
 			flags = flags or 0
 			return loadscript({
@@ -134,7 +113,7 @@ local function loadscriptInternal(ctx, script, compile)
 				isScriptor = false,
 				cli = isRoot,
 				caller = asOwner and callingScriptOwner or CORE_SCRIPT.caller
-			}, callingScriptOwner, scriptName, flagSet(flags, LOAD_ONLY_INFORMATION))
+			}, callingScriptOwner, scriptName, util.flagSet(flags, LOAD_ONLY_INFORMATION))
 		end
 
 		PROTECTED_SUB_ENV.game = {
