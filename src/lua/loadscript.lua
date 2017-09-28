@@ -5,6 +5,7 @@ local scriptUtil = require("script_util")
 local setfenv = setfenv
 local load = load
 local next = next
+local type = type
 local timeUtil = require("time")
 local checkTimeout = timeUtil.checkTimeout
 local tinsert = table.insert
