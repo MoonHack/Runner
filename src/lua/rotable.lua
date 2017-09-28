@@ -3,7 +3,7 @@ local setmetatable = debug.setmetatable
 local error = error
 local type = type
 
-local function _errorReadOnly()
+local function errorReadOnly()
 	error("Read-Only")
 end
 
@@ -25,7 +25,7 @@ local function freeze(tbl)
 	end
 
 	mt.__metatable = "PROTECTED"
-	mt.__newindex = _errorReadOnly
+	mt.__newindex = errorReadOnly
 
 	setmetatable(tbl, mt)
 	return tbl
@@ -51,5 +51,6 @@ end
 return {
 	freeze = freeze,
 	deepFreeze = deepFreeze,
-	protectTblFunction = protectTblFunction
+	protectTblFunction = protectTblFunction,
+	errorReadOnly = errorReadOnly
 }
