@@ -7,7 +7,6 @@ local next = next
 local timeUtil = require("time")
 local checkTimeout = timeUtil.checkTimeout
 local tinsert = table.insert
-local writeln = require("writeln")
 local json = require("json_patched")
 local roTable = require("rotable")
 local TEMPLATE_SUB_ENV = require("subenv")

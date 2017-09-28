@@ -8,6 +8,7 @@ local type = type
 local load = load
 local bit = require("bit")
 local json = require("json_patched")
+local writeln = require("writeln")
 
 local function shallowCopy(tbl)
 	local ret = {}
