@@ -38,10 +38,10 @@ local function deepFreeze(tbl)
 	for k, v in next, tbl do
 		if v == tbl then
 			ret[k] = ret
+		elseif getmetatable(v) == "PROTECTED" then
+			ret[k] = v
 		elseif type(v) ~= "table" then
 			ret[k] = freeze(v)
-		elseif v.__protected and getmetatable(v) == "PROTECTED" then
-			ret[k] = v
 		else
 			ret[k] = deepFreeze(v, true)
 		end
