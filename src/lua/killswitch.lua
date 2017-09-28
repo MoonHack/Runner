@@ -1,9 +1,12 @@
 local exit = os.exit
 local dsetmetatable = debug.setmetatable
+
 local dtraceback = debug.traceback
 local print = io.write
+local tconcat = table.concat
 
-local function killSwitch()
+local function killSwitch(...)
+	print(tconcat({...}))
 	print(dtraceback())
 	exit(7) -- EXIT_KILLSWITCH
 end
