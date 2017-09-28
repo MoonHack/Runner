@@ -92,10 +92,9 @@ local function loadScriptInternal(ctx, script, compile)
 			return false, "Script not found"
 		end
 		data = data:value()
-		scriptCache[data.name] = data
+		script = data.name
+		scriptCache[script] = data
 	end
-
-	script = data.name
 
 	if compile and not data.__func then
 		local callingScriptOwner = data.owner
