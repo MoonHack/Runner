@@ -16,9 +16,7 @@ do
 	end
 end
 
-local noGlobalLeaks = require("no_global_leaks")
-local DEF_G = noGlobalLeaks.snapshotGTable(_G)
-
+local require = require
 local json = require("json_patched")
 local uuid = require("uuid")
 local bit = require("bit")
@@ -36,26 +34,25 @@ local tremove = table.remove
 local load = load
 local xpcall = xpcall
 local exit = os.exit
+local collectgarbage = collectgarbage
+local setfenv = setfenv
 
 uuid.seed()
 
 string.dump = nil
-_G.os = nil
-_G.ffi = nil
-_G.jit = nil
-_G.debug = nil
-_G.io = nil
-_G.require = nil
-_G.dofile = nil
-_G.loadfile = nil
-_G.load = nil
-_G.package = nil
-_G.print = nil
 
-noGlobalLeaks.fixLeaks(DEF_G, _G)
+local __G = _G
+for k, _ in next, __G do
+	__G[k] = nil
+end
 
-DEF_G = nil
-noGlobalLeaks = nil
+if setfenv then
+	setfenv(1, require("subenv"))
+	setfenv = nil
+end
+require = nil
+__G = nil
+local _ENV = _G
 
 local function loadMainScript(script, caller, isScriptor)
 	return loadscript({
@@ -141,5 +138,6 @@ local function __run(caller, scriptName, args)
 end
 
 collectgarbage()
+collectgarbage = nil
 
 return __run
