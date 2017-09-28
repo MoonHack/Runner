@@ -2,8 +2,6 @@ package.path = "./?.luac;" .. package.path
 
 local type = type
 
-local deepFreeze = require("rotable").deepFreeze
-
 do
 	local _require = _G.require
 	local deepFreeze = _require("rotable").deepFreeze
