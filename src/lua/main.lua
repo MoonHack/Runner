@@ -47,14 +47,14 @@ do
 
 	if setfenv then
 		setfenv(1, require("subenv"))
-		setfenv = nil
 	end
-	__G = nil
 end
 
-require = nil
-
 local _ENV = _G
+if require then
+	_ENV = require("subenv")
+	require = nil
+end
 
 local function loadMainScript(script, caller, isScriptor)
 	return loadscript({
