@@ -65,6 +65,7 @@ return function(script, subcollection)
 
 	return freeze({
 		collectionName = collectionName,
+
 		ObjectID = function(value)
 			checkTimeout()
 			return db.mongo.ObjectID(value)
@@ -76,6 +77,34 @@ return function(script, subcollection)
 			end
 			return db.mongo.DateTime(value)
 		end,
+		Timestamp = function(time, incr)
+			return db.mongo.Timestamp(time, incr)
+		end,
+		Regex = function(regex, options)
+			return db.mongo.Regex(regex, options)
+		end,
+		Double = function(value)
+			return db.mongo.Double(value)
+		end,
+		Int32 = function(value)
+			return db.mongo.Int32(value)
+		end,
+		Int64 = function(value)
+			return db.mongo.Int64(value)
+		end,
+		MaxKey = function()
+			return db.mongo.MaxKey
+		end,
+		MinKey = function()
+			return db.mongo.MinKey
+		end,
+		Null = function()
+			return db.mongo.Null
+		end,
+		typeOf = function(value)
+			return db.mongo.type(value)
+		end,
+
 		insert = function(data)
 			checkTimeout()
 			local res, err

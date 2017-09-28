@@ -1,11 +1,11 @@
-local mongo = require("mongo")
 local config = require("config").mongo
-local dbCore = mongo.Client(config.core):getDefaultDatabase()
-local dbUsers = mongo.Client(config.users):getDefaultDatabase()
 local time = require("time").time
 local tinsert = table.insert
 local json_encode = require("json_patched").encode
 local roTable = require("rotable")
+local mongo = roTable.deepFreeze(require("mongo"))
+local dbCore = mongo.Client(config.core):getDefaultDatabase()
+local dbUsers = mongo.Client(config.users):getDefaultDatabase()
 
 local function patchMongo(mongo)
 	mongo.Javascript = nil -- we don"t even have this enabled!
