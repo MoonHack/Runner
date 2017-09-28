@@ -27,7 +27,8 @@ local function freeze(tbl)
 	mt.__metatable = "PROTECTED"
 	mt.__newindex = _errorReadOnly
 
-	return setmetatable(tbl, mt)
+	setmetatable(tbl, mt)
+	return tbl
 end
 
 local function deepFreeze(tbl)

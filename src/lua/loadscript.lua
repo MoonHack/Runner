@@ -9,6 +9,7 @@ local tinsert = table.insert
 local writeln = require("writeln")
 local json = require("json_patched")
 local roTable = require("rotable")
+local TEMPLATE_SUB_ENV = require("subenv")
 
 local CODE_BINARY_TYPE = db.CODE_BINARY_TYPE
 local CODE_TEXT_TYPE = db.CODE_TEXT_TYPE
