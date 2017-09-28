@@ -164,7 +164,7 @@ local function loadscriptInternal(ctx, script, compile)
 			},
 			db = dbintf(script),
 			customDb = function(name)
-				return dbintf(script)
+				return dbintf(script, name)
 			end,
 			cache = {} -- Not protected on purpose, like #G
 		}
