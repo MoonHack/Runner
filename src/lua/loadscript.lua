@@ -5,11 +5,12 @@ local setfenv = setfenv
 local load = load
 local next = next
 local strdump = string.dump
-local checkTimeout = checkTimeout
+local checkTimeout = require("time").checkTimeout
 local io = io
 local tinsert = table.insert
-local writeln = writeln
+local writeln = require("writeln")
 local json = require("dkjson")
+local roTable = require("rotable")
 
 local CODE_BINARY_TYPE = db.CODE_BINARY_TYPE
 local CODE_TEXT_TYPE = db.CODE_TEXT_TYPE
@@ -170,9 +171,9 @@ local function loadscriptInternal(ctx, script, compile)
 			cache = {} -- Not protected on purpose, like #G
 		}
 
-		freeze(PROTECTED_SUB_ENV.game.script)
-		freeze(PROTECTED_SUB_ENV.game)
-		freeze(PROTECTED_SUB_ENV)
+		roTable.freeze(PROTECTED_SUB_ENV.game.script)
+		roTable.freeze(PROTECTED_SUB_ENV.game)
+		roTable.freeze(PROTECTED_SUB_ENV)
 
 		do
 			local _ENV = {}

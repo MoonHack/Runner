@@ -4,13 +4,14 @@ local uuid = require("uuid")
 local userDb = db.internal:getCollection("users")
 local programsDb = db.internal:getCollection("programs")
 local logDb = db.internal:getCollection("program_log")
-local timeLeft = timeLeft
-local checkTimeout = checkTimeout
+local timeLeft = require("time").timeLeft
+local checkTimeout = require("time").checkTimeout
 local tinsert = table.insert
 local tremove = table.remove
 local next = next
 local type = type
 local ObjectID = db.mongo.ObjectID
+local makeProtectedFunc = require("protected_mode").makeProtectedFunc
 
 local function logs(user, skip, limit)
 	if not limit or limit > 50 then

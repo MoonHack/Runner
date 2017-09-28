@@ -2,9 +2,10 @@ local db = require("db")
 local user = require("user")
 local userDb = db.internal:getCollection("users")
 local logDb = db.internal:getCollection("money_log")
-local timeLeft = timeLeft
-local checkTimeout = checkTimeout
+local timeLeft = require("time").timeLeft
+local checkTimeout = require("time").checkTimeout
 local tinsert = table.insert
+local makeProtectedFunc = require("protected_mode").makeProtectedFunc
 
 local function logs(user, skip, limit)
 	if not limit or limit > 50 then

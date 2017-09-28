@@ -1,4 +1,4 @@
-local notifyUser = notifyUser
+local notifyUser = require("notifications").notifyUser
 return function (ctx, args)
 	local source
 	if ctx.callingScript then

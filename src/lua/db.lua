@@ -2,12 +2,11 @@ local mongo = require("mongo")
 local config = require("config").mongo
 local dbCore = mongo.Client(config.core):getDefaultDatabase()
 local dbUsers = mongo.Client(config.users):getDefaultDatabase()
-local time = os.time
+local time = time -- time in ms from main
 local tinsert = table.insert
-local json = require("dkjson")
-local json_encode = json.encode
+local json_encode = require("json_patched").encode
 
-local function patch_mongo(mongo)
+local function patchMongo(mongo)
 	mongo.Javascript = nil -- we don"t even have this enabled!
 
 	local function make__tojson(struct, func, raw)
@@ -69,7 +68,7 @@ local function patch_mongo(mongo)
 	end)
 end
 
-patch_mongo(mongo)
+patchMongo(mongo)
 
 local function now()
 	return mongo.DateTime(time() * 1000)

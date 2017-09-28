@@ -1,6 +1,8 @@
 local db = require("db")
 local util = require("util")
 local tinsert = table.insert
+local checkTimeout = require("time").checkTimeout
+local freeze = require("rotable").freeze
 
 local function performBulk(bulk)
 	local res, err = bulk:execute()
