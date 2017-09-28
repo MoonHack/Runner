@@ -48,9 +48,9 @@ local function deepFreeze(tbl)
 	return freeze(ret)
 end
 
-return {
+return deepFreeze({
 	freeze = freeze,
 	deepFreeze = deepFreeze,
 	protectTblFunction = protectTblFunction,
 	errorReadOnly = errorReadOnly
-}
+})
