@@ -33,23 +33,27 @@ local load = load
 local xpcall = xpcall
 local exit = os.exit
 local collectgarbage = collectgarbage
-local setfenv = setfenv
 
 uuid.seed()
 
 string.dump = nil
 
-local __G = _G
-for k, _ in next, __G do
-	__G[k] = nil
+do
+	local setfenv = setfenv
+	local __G = _G
+	for k, _ in next, __G do
+		__G[k] = nil
+	end
+
+	if setfenv then
+		setfenv(1, require("subenv"))
+		setfenv = nil
+	end
+	__G = nil
 end
 
-if setfenv then
-	setfenv(1, require("subenv"))
-	setfenv = nil
-end
 require = nil
-__G = nil
+
 local _ENV = _G
 
 local function loadMainScript(script, caller, isScriptor)
