@@ -1,9 +1,10 @@
 local exit = os.exit
 local dsetmetatable = debug.setmetatable
 local dtraceback = debug.traceback
+local print = print
 
 local function killSwitch()
-	dtraceback()
+	print(dtraceback())
 	exit(7) -- EXIT_KILLSWITCH
 end
 
