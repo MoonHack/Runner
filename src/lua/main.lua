@@ -1,10 +1,10 @@
 package.path = "./?.luac;" .. package.path
 
 local type = type
+local deepFreeze = require("rotable").deepFreeze
 
 do
 	local _require = _G.require
-	local deepFreeze = _require("rotable").deepFreeze
 	_G.require = function(module)
 		local mod = _require(module)
 		if type(mod) ~= "table" then
@@ -38,6 +38,10 @@ uuid.seed()
 
 string.dump = nil
 
+local NULL_ENV = {}
+NULL_ENV._G = NULL_ENV
+deepFreeze(NULL_ENV)
+
 do
 	local setfenv = setfenv
 	local __G = _G
@@ -46,15 +50,11 @@ do
 	end
 
 	if setfenv then
-		setfenv(1, require("subenv"))
+		setfenv(1, NULL_ENV)
 	end
 end
 
-local _ENV = _G
-if require then
-	_ENV = require("subenv")
-	require = nil
-end
+local _ENV = NULL_ENV
 
 local function loadMainScript(script, caller, isScriptor)
 	return loadscript({
