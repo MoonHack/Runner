@@ -109,7 +109,7 @@ local function patchMongo(mongo)
 	mt.__eq = __equals1
 	mt.__lt = __lt1
 	mt.__le = __le1
-	
+
 	local _int32 = mongo.Int32(0)
 	mt = make__tojson(_int32, _int32.unpack)
 	mt.__eq = __equals1
