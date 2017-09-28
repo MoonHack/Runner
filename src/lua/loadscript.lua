@@ -4,7 +4,8 @@ local util = require("util")
 local setfenv = setfenv
 local load = load
 local next = next
-local checkTimeout = require("time").checkTimeout
+local timeUtil = require("time")
+local checkTimeout = timeUtil.checkTimeout
 local tinsert = table.insert
 local writeln = require("writeln")
 local json = require("json_patched")
@@ -96,6 +97,11 @@ local function loadscriptInternal(ctx, script, compile)
 		local isRoot = (not ctx.callingScript) and (not ctx.isScriptor)
 
 		local PROTECTED_SUB_ENV = util.shallowCopy(TEMPLATE_SUB_ENV)
+		
+		PROTECTED_SUB_ENV.constants = util.deepCopy(TEMPLATE_SUB_ENV.constants)
+		PROTECTED_SUB_ENV.constants.START_TIME, PROTECTED_SUB_ENV.constants.KILL_TIME = timeUtil.getTimes()
+		roTable.deepFreeze(PROTECTED_SUB_ENV.constants)
+
 		PROTECTED_SUB_ENV.print = util.scriptPrint(callingScript, isRoot)
 		PROTECTED_SUB_ENV.loadstring = function(str)
 			return load(str, script .. "->load", "t", PROTECTED_SUB_ENV)

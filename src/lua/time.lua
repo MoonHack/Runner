@@ -36,9 +36,13 @@ local function checkTimeout()
 	end
 end
 
-local function setTimes(start, kill)
+local function setTimes(start, timeout)
 	START_TIME = start
-	KILL_TIME = start + kill
+	KILL_TIME = start + timeout
+end
+
+local function getTimes()
+	return START_TIME, KILL_TIME
 end
 
 local function disableTimeout()
@@ -59,6 +63,7 @@ end
 
 return {
 	setTimes = setTimes,
+	getTimes = getTimes,
 	timeLeft = timeLeft,
 	time = time,
 	sleep = sleep,
