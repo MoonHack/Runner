@@ -107,7 +107,7 @@ local function loadScriptInternal(ctx, script, compile)
 		PROTECTED_SUB_ENV.constants = util.deepCopy(TEMPLATE_SUB_ENV.constants)
 		PROTECTED_SUB_ENV.constants.START_TIME, PROTECTED_SUB_ENV.constants.KILL_TIME = timeUtil.getTimes()
 
-		PROTECTED_SUB_ENV.print = scriptUtil.scriptPrint(callingScript, isRoot)
+		PROTECTED_SUB_ENV.print = scriptUtil.scriptPrint(script, isRoot)
 		PROTECTED_SUB_ENV.loadstring = function(str)
 			return load(str, script .. "->load", "t", PROTECTED_SUB_ENV)
 		end
