@@ -19,54 +19,121 @@ local function patchMongo(mongo)
 				return json_encode(func(self), state)
 			end
 		end
+		return mt
 	end
 
-	make__tojson(mongo.Binary("",0x80), function(self)
+	local function __equalst(self, other)
+		return mongo.type(self) == mongo.type(other)
+	end
+
+	local function __equals1(self, other)
+		if not __equalst(self, other) then
+			return false
+		end
+		return other and self:unpack() == other:unpack()
+	end
+
+	local function __equals2(self, other)
+		if not __equalst(self, other) then
+			return false
+		end
+		local a, b = self:unpack()
+		local x, y = other:unpack()
+		return other and a == x and b == y
+	end
+
+	local function __lt1(self, other)
+		if not __equalst(self, other) then
+			return false
+		end
+		return self:unpack() < other:unpack()
+	end
+
+	local function __le1(self, other)
+		if not __equalst(self, other) then
+			return false
+		end
+		return self:unpack() <= other:unpack()
+	end
+
+	local mt
+
+	mt = make__tojson(mongo.Binary("", 0x80), function(self)
 		local bin, typ = self:unpack()
 		return { ["$binary"] = bin, ["$type"] = typ }
 	end)
+	mt.__eq = __equals2
 
 	local _oid = mongo.ObjectID()
 	if _oid.unpack then
-		make__tojson(_oid, function(self)
+		mt = make__tojson(_oid, function(self)
 			return { ["$oid"] = self:unpack() }
 		end)
+		mt.__eq = __equals1
 	else
-		make__tojson(_oid, function(self)
+		mt = make__tojson(_oid, function(self)
 			return { ["$oid"] = tostring(self) }
 		end)
+		mt.__eq = function(self, other)
+			if not __equalst(self, other) then
+				return false
+			end
+			return tostring(self) == tostring(other)
+		end
 	end
 
-	make__tojson(mongo.DateTime(0), function(self)
+	mt = make__tojson(mongo.DateTime(0), function(self)
 		return { ["$date"] = { ["$numberLong"] = tostring(self:unpack()) } }
 	end)
-	make__tojson(mongo.Timestamp(0, 0), function(self)
+	mt.__eq = __equals1
+	mt.__lt = __lt1
+	mt.__le = __le1
+
+	mt = make__tojson(mongo.Timestamp(0, 0), function(self)
 		local t, i = self:unpack()
 		return { ["$timestamp"] = { t = t, i = i } }
 	end)
+	mt.__eq = __equals2
 
-	make__tojson(mongo.Regex("", ""), function(self)
+	mt = make__tojson(mongo.Regex("", ""), function(self)
 		local re, opt = self:unpack()
 		return { ["$regex"] = re, ["$options"] = opt }
 	end)
+	mt.__eq = __equals2
 
 	local _double = mongo.Double(0)
-	make__tojson(_double, _double.unpack)
+	mt = make__tojson(_double, _double.unpack)
+	mt.__eq = __equals1
+	mt.__lt = __lt1
+	mt.__le = __le1
+	
 	local _int32 = mongo.Int32(0)
-	make__tojson(_int32, _int32.unpack)
-	make__tojson(mongo.Int64(0), function (self)
+	mt = make__tojson(_int32, _int32.unpack)
+	mt.__eq = __equals1
+	mt.__lt = __lt1
+	mt.__le = __le1
+
+	mt = make__tojson(mongo.Int64(0), function (self)
 		return { ["$numberLong"] = tostring(self:unpack()) }
 	end)
+	mt.__eq = __equals1
+	mt.__lt = __lt1
+	mt.__le = __le1
 
-	make__tojson(mongo.MinKey, function ()
+	mt = make__tojson(mongo.MinKey, function ()
 		return { ["$minKey"] = 1 }
 	end)
-	make__tojson(mongo.MaxKey, function ()
+	mt.__eq = __equalst
+
+	mt = make__tojson(mongo.MaxKey, function ()
 		return { ["$maxKey"] = 1 }
 	end)
-	make__tojson(mongo.Null, function ()
+	mt.__eq = __equalst
+
+	mt = make__tojson(mongo.Null, function ()
 		return nil
 	end)
+	mt.__eq = __equalst
 end
 
 patchMongo(mongo)
