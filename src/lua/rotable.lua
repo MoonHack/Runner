@@ -17,13 +17,17 @@ local function protectTblFunction(func)
 end
 
 local function freeze(tbl)
-	if type(tbl) == "table" then
-		tbl.__protected = true
+	local mt = getmetatable(tbl)
+	if mt then
+		if mt.__metatable == "PROTECTED" then
+			return tbl
+		end
+	else
+		mt = {}
 	end
 
-	local mt = getmetatable(tbl)
-	if not mt then
-		mt = {}
+	if type(tbl) == "table" then
+		tbl.__protected = true
 	end
 
 	mt.__metatable = "PROTECTED"
@@ -35,11 +39,10 @@ end
 
 local function deepFreeze(tbl)
 	local ret = {}
+
 	for k, v in next, tbl do
 		if v == tbl then
 			ret[k] = ret
-		elseif getmetatable(v) == "PROTECTED" then
-			ret[k] = v
 		elseif type(v) ~= "table" then
 			ret[k] = freeze(v)
 		else
