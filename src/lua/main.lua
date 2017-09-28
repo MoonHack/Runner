@@ -41,7 +41,7 @@ _G.load = nil
 _G.package = nil
 _G.print = nil
 
-local function __run(_runId, _caller, _script, args)
+local function __run(runId, caller, scriptName, args)
 	local coreScript
 
 	do
@@ -52,11 +52,11 @@ local function __run(_runId, _caller, _script, args)
 		timeUtil.setTimes(timeUtil.time(), 5000)
 
 		local ok
-		ok, coreScript = loadMainScript(_script, _caller, false)
+		ok, coreScript = loadMainScript(scriptName, caller, false)
 		if not ok then
 			writeln(json.encodeAll({
 				type = "error",
-				script = _script,
+				script = scriptName,
 				data = coreScript
 			}))
 			return
@@ -69,7 +69,7 @@ local function __run(_runId, _caller, _script, args)
 		if args and type(args) == "table" then
 			for k, v in next, args do
 				if type(v) == "table" and v["$scriptor"] then
-					args[k] = loadMainScript(v["$scriptor"], _caller, true)
+					args[k] = loadMainScript(v["$scriptor"], caller, true)
 				end
 			end
 		end
@@ -109,7 +109,7 @@ local function __run(_runId, _caller, _script, args)
 	if not ok then
 		_json = json.encodeAll({
 			type = "error",
-			script = CORE_SCRIPT.name,
+			script = coreScript.name,
 			data = _json
 		})
 	end
