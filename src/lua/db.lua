@@ -8,7 +8,7 @@ local json = require("dkjson")
 local json_encode = json.encode
 
 local function patch_mongo(mongo)
-	mongo.Javascript = nil -- we don't even have this enabled!
+	mongo.Javascript = nil -- we don"t even have this enabled!
 
 	local function make__tojson(struct, func, raw)
 		local mt = debug.getmetatable(struct)
@@ -21,7 +21,7 @@ local function patch_mongo(mongo)
 		end
 	end
 
-	make__tojson(mongo.Binary('',0x80), function(self)
+	make__tojson(mongo.Binary("",0x80), function(self)
 		local bin, typ = self:unpack()
 		return { ["$binary"] = bin, ["$type"] = typ }
 	end)
@@ -45,7 +45,7 @@ local function patch_mongo(mongo)
 		return { ["$timestamp"] = { t = t, i = i } }
 	end)
 
-	make__tojson(mongo.Regex('', ''), function(self)
+	make__tojson(mongo.Regex("", ""), function(self)
 		local re, opt = self:unpack()
 		return { ["$regex"] = re, ["$options"] = opt }
 	end)

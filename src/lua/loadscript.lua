@@ -71,6 +71,7 @@ loadCoreScript("notifications.recent")
 loadCoreScript("scripts.upload")
 loadCoreScript("scripts.delete")
 loadCoreScript("scripts.list")
+loadCoreScript("scripts.sleep")
 
 loadCoreScript("money.balance")
 loadCoreScript("money.log")
@@ -191,12 +192,12 @@ local function loadscriptInternal(ctx, script, compile)
 				local ok
 				local code, cType = data.code:unpack()
 				if cType ~= CODE_TEXT_TYPE then
-					return false, 'Invalid binary data for source'
+					return false, "Invalid binary data for source"
 				end
 				local codeBinary
 				ok, codeBinary, func = pcall(util.compileScript, code, script)
 				if not ok then
-					return false, 'Compile error in ' .. script
+					return false, "Compile error in " .. script
 				end
 				data.codeBinary = db.mongo.Binary(codeBinary, CODE_BINARY_TYPE)
 				scriptsDb:update({

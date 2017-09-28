@@ -19,7 +19,7 @@ local function logs(user, skip, limit)
 	if not skip or skip < 0 then
 		skip = 0
 	end
-	return true, db.cursorToArray(logDb:find({ ['$or'] = {{ from = user }, { to = user }} }, { sort = { date = -1 }, skip = skip, limit = limit }))
+	return true, db.cursorToArray(logDb:find({ ["$or"] = {{ from = user }, { to = user }} }, { sort = { date = -1 }, skip = skip, limit = limit }))
 end
 
 local function _fixSerials(name, _serials)
@@ -40,7 +40,7 @@ local function _fixSerials(name, _serials)
 end
 
 local function _save(name, programs)
-	userDb:updateOne({ name = tostring(name) }, { ['$set'] = { programs = programs }})
+	userDb:updateOne({ name = tostring(name) }, { ["$set"] = { programs = programs }})
 end
 
 local function _fixUser(name, list, toFix)
@@ -48,7 +48,7 @@ local function _fixUser(name, list, toFix)
 	if not toFix then
 		toFix = user.getByName(name, { programs = 1 })
 		if not toFix then
-			return false, 'User not found'
+			return false, "User not found"
 		end
 	end
 
@@ -96,16 +96,16 @@ local function delete(name, serials)
 	local userProgs
 	serials, userProgs = _fixSerials(name, serials)
 	if not serials then
-		return false, 'User not found'
+		return false, "User not found"
 	end
 	if timeLeft() < 1 then
 		checkTimeout()
-		return false, 'Program deletions require 1 second of runtime'
+		return false, "Program deletions require 1 second of runtime"
 	end
 
 	local txn = uuid()
 
-	programsDb:updateMany({ owner = from, _id = { ['$in'] = serials } }, { ['$set'] = { owner = "", lastTransaction = txn } })
+	programsDb:updateMany({ owner = from, _id = { ["$in"] = serials } }, { ["$set"] = { owner = "", lastTransaction = txn } })
 	local affected = db.cursorToArray(programsDb:find({ lastTransaction = txn }, { projection = { _id = 1, name = 1 } }))
 	programsDb:delete({ lastTransaction = txn })
 	logDb:insert({ action = "delete", from = name, programs = affected, date = db.now() })
@@ -118,21 +118,21 @@ local function transfer(from, to, serials)
 	to = tostring(to)
 	local userObjTo = user.getByName(to, { programs = 1 })
 	if not userObjTo then
-		return false, 'Target not found'
+		return false, "Target not found"
 	end
 	local userProgs
 	serials, userProgs = _fixSerials(from, serials)
 	if not serials then
-		return false, 'User not found'
+		return false, "User not found"
 	end
 	if timeLeft() < 1 then
 		checkTimeout()
-		return false, 'Program transfers require 1 second of runtime'
+		return false, "Program transfers require 1 second of runtime"
 	end
 
 	local txn = uuid()
 	
-	programsDb:updateMany({ owner = from, _id = { ['$in'] = serials } }, { ['$set'] = { owner = to, lastTransaction = txn } })
+	programsDb:updateMany({ owner = from, _id = { ["$in"] = serials } }, { ["$set"] = { owner = to, lastTransaction = txn } })
 	local affected = db.cursorToArray(programsDb:find({ lastTransaction = txn }, { projection = { _id = 1, name = 1 } }))
 	logDb:insert({ action = "transfer", from = from, to = to, programs = affected, date = db.now() })
 	_fixUser(from, userProgs)
@@ -145,7 +145,7 @@ local function load(name, serials, load)
 
 	serials, stored = _fixSerials(name, serials)
 	if not serials then
-		return false, 'User not found'
+		return false, "User not found"
 	end
 	local pMap = {}
 	for _, v in next, serials do
@@ -159,7 +159,7 @@ local function load(name, serials, load)
 		end
 	end
 
-	local affected = db.cursorToArray(programsDb:find({ owner = from, _id = { ['$in'] = affectedSerials } }, { projection = { _id = 1, name = 1 } }))
+	local affected = db.cursorToArray(programsDb:find({ owner = from, _id = { ["$in"] = affectedSerials } }, { projection = { _id = 1, name = 1 } }))
 	logDb:insert({ action = load and "load" or "unload", from = name, programs = affected, date = db.now() })
 	
 	_save(ctx.caller, stored)

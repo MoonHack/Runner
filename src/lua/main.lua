@@ -22,6 +22,7 @@ local uuid = require("uuid")
 local ffi = require("ffi")
 local db = require("db")
 local bit = require("bit")
+local util = require("util")
 local notificationDb = db.internal:getCollection("notifications")
 
 ffi.cdef[[
@@ -31,6 +32,15 @@ ffi.cdef[[
 	int poll(struct pollfd *fds, unsigned long nfds, int timeout);
 	void lua_writeln(const char *str);
 	size_t read_random(void *buffer, size_t len);
+
+	typedef long time_t;
+ 
+ 	typedef struct timeval {
+		time_t tv_sec;
+		time_t tv_usec;
+	} timeval;
+ 
+	int gettimeofday(struct timeval* t, void* tzp);
 ]]
 
 local function json_encodeAll_exception(reason, value, state, defaultmessage)
@@ -47,7 +57,11 @@ local function json_encodeAll(obj)
 end
 json.encode_all = json_encodeAll
 
-local time = os.time
+local gettimeofday_struct = ffi.new("timeval")
+function time()
+ 	ffi.C.gettimeofday(gettimeofday_struct, nil)
+ 	return (tonumber(gettimeofday_struct.tv_sec) * 1000) + (tonumber(gettimeofday_struct.tv_usec) / 1000)
+end
 local exit = os.exit
 
 local PROTECTION_DEPTH = 0
@@ -91,8 +105,8 @@ function secureRandom(len)
 	return ffi.string(res, len)
 end
 
-function sleep(seconds)
-	ffi.C.poll(nil, 0, seconds * 1000)
+function sleep(milliseconds)
+	ffi.C.poll(nil, 0, milliseconds)
 	checkTimeout()
 end
 
@@ -191,7 +205,6 @@ local SUB_ENV = {
 	tostring = tostring,
 	tonumber = tonumber,
 	ipairs = ipairs,
-	sleep = sleep,
 	pcall = function(func, ...)
 		checkTimeout()
 		return xpcall(func, errorHandler, ...)
@@ -216,11 +229,11 @@ local SUB_ENV = {
 		encode_safe = json.encode_safe
 	},
 	table = {
-		--foreach = table.foreach,
+		foreach = table.foreach,
 		sort = _protectTblFunction(table.sort),
 		remove = _protectTblFunction(table.remove),
 		insert = _protectTblFunction(table.insert),
-		--foreachi = table.foreachi,
+		foreachi = table.foreachi,
 		maxn = table.maxn,
 		getn = table.getn,
 		concat = table.concat
@@ -241,15 +254,14 @@ local SUB_ENV = {
 	setmetatable = setmetatable,
 	constants = {
 		accessLevels = {
-			'PRIVATE',
-			'HIDDEN',
-			'PUBLIC'
+			"PRIVATE",
+			"HIDDEN",
+			"PUBLIC"
 		},
 		startTime = START_TIME,
 		killTime = KILL_TIME
 	}
 }
-SUB_ENV.math.secureRandom = secureRandom
 
 SUB_ENV._G = SUB_ENV
 
@@ -287,7 +299,12 @@ end
 SUB_ENV.util = {
 	freeze = freeze,
 	deepFreeze = deepFreeze,
-	timeLeft = timeLeft
+	timeLeft = timeLeft,
+	shallowCopy = util.shallowCopy,
+	deepCopy = util.deepCopy,
+	secureRandom = secureRandom,
+	microtime = time,
+	sleep = sleep
 }
 
 TEMPLATE_SUB_ENV = deepFreeze(SUB_ENV, false)
@@ -331,7 +348,7 @@ local function __run(_runId, _caller, _script, args)
 		runId = _runId or "UNKNOWN"
 		CAN_SOFT_KILL = true
 		START_TIME = time()
-		KILL_TIME = START_TIME + 6
+		KILL_TIME = START_TIME + 5000
 
 		local ok
 		CALLER = _caller
@@ -345,14 +362,14 @@ local function __run(_runId, _caller, _script, args)
 			return
 		end
 
-		if args and args ~= '' then
+		if args and args ~= "" then
 			args = json.decode(args)
 		end
 
 		if args and type(args) == "table" then
 			for k, v in next, args do
-				if type(v) == "table" and v.__scriptor then
-					args[k] = loadMainScript(v.__scriptor, true)
+				if type(v) == "table" and v["$scriptor"] then
+					args[k] = loadMainScript(v["$scriptor"], true)
 				end
 			end
 		end

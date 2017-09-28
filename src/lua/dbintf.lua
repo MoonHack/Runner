@@ -121,7 +121,7 @@ return function(script, subcollection)
 			end
 			local cursor = collection:find(query, _options)
 			if not cursor then
-				return nil, 'Query error'
+				return nil, "Query error"
 			end
 			return makeSafeCursor(cursor)
 		end,

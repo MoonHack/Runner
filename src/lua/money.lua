@@ -13,14 +13,14 @@ local function logs(user, skip, limit)
 	if not skip or skip < 0 then
 		skip = 0
 	end
-	return true, db.cursorToArray(logDb:find({ ['$or'] = {{ from = user }, { to = user }} }, { sort = { date = -1 }, skip = skip, limit = limit }))
+	return true, db.cursorToArray(logDb:find({ ["$or"] = {{ from = user }, { to = user }} }, { sort = { date = -1 }, skip = skip, limit = limit }))
 end
 
 local function balance(user)
 	user = tostring(user)
 	local res = userDb:findOne({ name = user })
 	if not res then
-		return false, 'User not found'
+		return false, "User not found"
 	end
 	return true, res:value().balance or 0
 end
@@ -28,9 +28,9 @@ end
 local function give(user, amount)
 	user = tostring(user)
 	amount = tonumber(amount)
-	local res = userDb:findAndModify({ name = user }, { fields = { balance = 1 }, update = { ['$inc'] = { balance = amount } } })
+	local res = userDb:findAndModify({ name = user }, { fields = { balance = 1 }, update = { ["$inc"] = { balance = amount } } })
 	if not res then
-		return false, 'Target cannot store that much MU'
+		return false, "Target cannot store that much MU"
 	end
 	return true
 end
@@ -38,9 +38,9 @@ end
 local function take(user, amount)
 	user = tostring(user)
 	amount = tonumber(amount)
-	local res = userDb:findAndModify({ name = user, balance = { ['$gte'] = amount } }, { fields = { balance = 1 }, update = { ['$inc'] = { balance = -amount } } })
+	local res = userDb:findAndModify({ name = user, balance = { ["$gte"] = amount } }, { fields = { balance = 1 }, update = { ["$inc"] = { balance = -amount } } })
 	if not res then
-		return false, 'Source does not have enough MU'
+		return false, "Source does not have enough MU"
 	end
 	return true
 end
@@ -50,7 +50,7 @@ local function transfer(from, to, amount)
 	to = tostring(to)
 	amount = tonumber(amount)
 	if not from or not to or not amount then
-		return false, 'Missing parameters'
+		return false, "Missing parameters"
 	end
 	local ok, tr = take(from, amount)
 	if not ok then

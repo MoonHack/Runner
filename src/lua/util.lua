@@ -25,7 +25,7 @@ local function deepCopy(tbl)
 			ret[k] = tbls[v]
 		else
 			tbls[v] = {
-				__recursive = true
+				["$recursive"] = true
 			}
 			local _t = deepCopy(v)
 			tbls[v] = _t
@@ -41,10 +41,10 @@ end
 local function compileScript(code, name)
 	local _ENV = {}
 	if not code:find("^function *%(") then
-		error('Code must begin with "function("')
+		error("Code must begin with \"function(\"")
 	end
 	if not code:find("end$") then
-		error('Code must end with "end"')
+		error("Code must end with \"end\"")
 	end
 	local func, err = load("return " .. code, name, "t", {})
 	if not func then

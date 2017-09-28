@@ -41,7 +41,7 @@ return function(ctx, args)
 		query = { accessLevel = 3, system = true }
 		addSystem = true
 	else
-		return false, 'Unknown type'
+		return false, "Unknown type"
 	end
 
 	local scripts = db.cursorToArray(scriptsDb:find(query, { projection = {

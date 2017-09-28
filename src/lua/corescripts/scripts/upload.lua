@@ -12,14 +12,14 @@ return function(ctx, args)
 	local name = tostring(args.name)
 
 	if name:match("[^a-z0-9_]") or name:len() > 32 then
-		return false, 'Invalid script name'
+		return false, "Invalid script name"
 	end
 
 	name = ctx.caller .. "." .. name
 
 	local ok, compiled = pcall(util.compileScript, source, name)
 	if not ok then
-		return false, 'Compile error\n' .. compiled
+		return false, "Compile error\n" .. compiled
 	end
 
 	local now = db.now()
@@ -37,13 +37,13 @@ return function(ctx, args)
 
 	local res = scriptsDb:findAndModify({
 		name = name,
-		locked = { ['$exists'] = false }
+		locked = { ["$exists"] = false }
 	}, {
 		fields = {
 			name = 1
 		},
 		update = {
-			['$set'] = set
+			["$set"] = set
 		}
 	})
 	if not res then
@@ -52,5 +52,5 @@ return function(ctx, args)
 		set.owner = ctx.caller
 		scriptsDb:insert(set)
 	end
-	return true, 'Script uploaded'
+	return true, "Script uploaded"
 end
