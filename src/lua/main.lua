@@ -43,14 +43,12 @@ _G.print = nil
 
 local function __run(_runId, _caller, _script, args)
 	local coreScript
-	local runId = "UNKNOWN"
 
 	do
 		local a, b, c, d = random.secureRandom(4):byte(1,4)
 		local seed = a*0x1000000 + b*0x10000 + c *0x100 + d
 		uuid.randomseed(seed)
 
-		runId = _runId or "UNKNOWN"
 		timeUtil.setTimes(timeUtil.time(), 5000)
 
 		local ok
