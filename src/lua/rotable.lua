@@ -1,7 +1,8 @@
-local getmetatable = debug.getmetatable
-local setmetatable = debug.setmetatable
+local dgetmetatable = debug.getmetatable
+local dsetmetatable = debug.setmetatable
 local error = error
 local type = type
+local next = next
 
 local function errorReadOnly()
 	error("Read-Only")
@@ -16,41 +17,55 @@ local function protectTblFunction(func)
 	end
 end
 
+local function isFrozen(tbl, mt)
+	mt = mt or dgetmetatable(tbl)
+	return mt and (mt == "PROTECTED" or mt.__metatable == "PROTECTED")
+end
+
 local function freeze(tbl)
-	local mt = getmetatable(tbl)
+	local mt = dgetmetatable(tbl)
+
 	if mt then
-		if mt.__metatable == "PROTECTED" then
+		if isFrozen(tbl, mt) then
 			return tbl
 		end
 	else
 		mt = {}
 	end
 
-	if type(tbl) == "table" then
+	if type(tbl) == "table" and not tbl.__protected then
 		tbl.__protected = true
 	end
 
 	mt.__metatable = "PROTECTED"
 	mt.__newindex = errorReadOnly
+	dsetmetatable(tbl, mt)
 
-	setmetatable(tbl, mt)
 	return tbl
 end
 
-local function deepFreeze(tbl)
-	local ret = {}
+local function _deepFreeze(tbl, tbls)
+	if isFrozen(tbl) then
+		return tbl
+	end
 
 	for k, v in next, tbl do
-		if v == tbl then
-			ret[k] = ret
-		elseif type(v) ~= "table" then
-			ret[k] = freeze(v)
-		else
-			ret[k] = deepFreeze(v, true)
+		if type(v) ~= "table" then
+			freeze(v)
+		elseif not tbls[v] then
+			tbls[v] = true
+			_deepFreeze(v, tbls)
 		end
 	end
 
-	return freeze(ret)
+	return freeze(tbl)
+end
+
+local function deepFreeze(tbl)
+	if type(tbl) ~= "table" then
+		return freeze(tbl)
+	end
+	return _deepFreeze(tbl, {})
 end
 
 return deepFreeze({

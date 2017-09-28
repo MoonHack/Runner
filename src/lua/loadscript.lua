@@ -159,7 +159,7 @@ local function loadScriptInternal(ctx, script, compile)
 			end
 		}
 
-		roTable.deepFreeze(PROTECTED_SUB_ENV)
+		PROTECTED_SUB_ENV = roTable.deepFreeze(PROTECTED_SUB_ENV)
 
 		do
 			local _ENV = {}
