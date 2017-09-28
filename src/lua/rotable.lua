@@ -5,7 +5,7 @@ local type = type
 local next = next
 
 local function errorReadOnly()
-	error("Read-Only")
+	return error("Read-Only")
 end
 
 local function protectTblFunction(func)
