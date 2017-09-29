@@ -26,6 +26,9 @@
 
 #define BUFFER_LEN 65536
 
+#define RUN_ID_LEN 36
+#define REPLY_QUEUE_LEN (25 + RUN_ID_LEN)
+
 #define EXIT_OK 0
 #define EXIT_HARD_TIMEOUT 5
 #define EXIT_SOFT_TIMEOUT 6
@@ -38,7 +41,6 @@ lua_State *L;
 int lua_main;
 int lua_prot_depth = 0;
 int lua_exit_on_prot_leave = 0;
-int lua_alarm_delayed = 0;
 amqp_basic_properties_t props;
 
 #define cgroup_mem_limit "/var/root/cg_mem/memory.limit_in_bytes"
@@ -61,9 +63,9 @@ amqp_basic_properties_t props;
 	}
 
 #define COPYIN(VAR) \
-	VAR = malloc(command. VAR ## _len); \
-	memcpy(VAR, envelope.message.body.bytes + pos, command. VAR ## _len); \
-	pos += command. VAR ## _len;
+	VAR = malloc(VAR ## _len); \
+	memcpy(VAR, envelope.message.body.bytes + pos, VAR ## _len); \
+	pos += VAR ## _len;
 
 static void noop_hdlr() {
 
@@ -291,21 +293,22 @@ int main() {
 	amqp_basic_consume(aconn, 1, aqueue, amqp_empty_bytes, 0, 0, 0, amqp_empty_table);
 	die_on_amqp_error(amqp_get_rpc_reply(aconn), "Consuming");
 
-	char *caller, *script, *run_id, *args;
+	char *caller, *script, *args;
+	int caller_len, script_len, args_len;
 
 	int stdout_pipe[2];
 
 	int exitstatus;
 	FILE *stdout_fd;
-	char buffer[BUFFER_LEN + 1];
+	char buffer[BUFFER_LEN];
 
-	struct command_request_t command;
+	struct command_request_t *command;
 
 	// The 61 here suppresses the nullbyte, which is unnecessary
-	char arepqueue_bytes[61] = "moonhack_command_results_00000000-0000-0000-0000-000000000000";
+	char arepqueue_bytes[REPLY_QUEUE_LEN] = "moonhack_command_results_00000000-0000-0000-0000-000000000000";
 	amqp_bytes_t arepqueue;
 	arepqueue.bytes = arepqueue_bytes;
-	arepqueue.len = sizeof(arepqueue_bytes) / sizeof(arepqueue_bytes[0]);
+	arepqueue.len = REPLY_QUEUE_LEN;
 
 	amqp_bytes_t message_bytes;
 	props._flags = AMQP_BASIC_DELIVERY_MODE_FLAG;
@@ -337,31 +340,32 @@ int main() {
 			continue;
 		}
 
-		memcpy(&command, envelope.message.body.bytes, sizeof(struct command_request_t));
-
-		pos = sizeof(struct command_request_t);
-		if (pos + command.run_id_len + command.caller_len + command.script_len + command.args_len != envelope.message.body.len) {
-			printf("WRONGLEN\n");
-			amqp_destroy_envelope(&envelope);
-			continue;
-		}
-
-		if (command.run_id_len != 36) {
+		command = envelope.message.body.bytes;
+		if (command->run_id_len != RUN_ID_LEN) {
 			printf("WRONGLENRUNID\n");
 			amqp_destroy_envelope(&envelope);
 			continue;
 		}
 
-		COPYIN(run_id);
+		caller_len = command->caller_len;
+		script_len = command->script_len;
+		args_len = command->args_len;
+
+		pos = sizeof(struct command_request_t);
+		memcpy(arepqueue.bytes + 25, envelope.message.body.bytes + pos, RUN_ID_LEN);
+		pos += RUN_ID_LEN;
+
+		if (pos + caller_len + script_len + args_len != envelope.message.body.len) {
+			WRITE_AMQP("\1WRONGLEN\n", 10);
+			amqp_destroy_envelope(&envelope);
+			continue;
+		}
+
 		COPYIN(caller);
 		COPYIN(script);
 		COPYIN(args);
 
 		amqp_destroy_envelope(&envelope);
-
-		memcpy(arepqueue.bytes + 25, run_id, 36);
-
-		free(run_id);
 
 		pid_t subworker_master = fork();
 		if (subworker_master > 0) {
@@ -411,9 +415,9 @@ int main() {
 
 			lua_rawgeti(L, LUA_REGISTRYINDEX, lua_main);
 
-			lua_pushlstring(L, caller, command.caller_len);
-			lua_pushlstring(L, script, command.script_len);
-			lua_pushlstring(L, args, command.args_len);
+			lua_pushlstring(L, caller, caller_len);
+			lua_pushlstring(L, script, script_len);
+			lua_pushlstring(L, args, args_len);
 
 			free(caller);
 			free(script);
