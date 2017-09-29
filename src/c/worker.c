@@ -317,6 +317,8 @@ int main() {
 	int first_loop = 1;
 	uint64_t pos;
 
+	pid_t subworker, subworker_master;
+
 	amqp_envelope_t envelope;
 
 	while (1) {
@@ -367,7 +369,7 @@ int main() {
 
 		amqp_destroy_envelope(&envelope);
 
-		pid_t subworker_master = fork();
+		subworker_master = fork();
 		if (subworker_master > 0) {
 			free(caller);
 			free(script);
@@ -389,7 +391,7 @@ int main() {
 			exit(1);
 		}
 
-		pid_t subworker = fork();
+		subworker = fork();
 		if (subworker == 0) {
 			close(stdout_pipe[0]);
 			pipe_fh = fdopen(stdout_pipe[1], "w");
