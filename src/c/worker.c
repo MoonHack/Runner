@@ -32,9 +32,7 @@
 #define EXIT_KILLSWITCH 7
 #define EXIT_ERROR 4
 
-FILE *urandom_fh;
 FILE *pipe_fh;
-int null_fh;
 pid_t worker_pid;
 lua_State *L;
 int lua_main;
@@ -82,14 +80,6 @@ static void sigalrm_recvd() {
 
 static void sigalrm_killchild_rcvd() {
 	kill(worker_pid, SIGKILL);
-}
-
-size_t read_random(void *buffer, size_t len) {
-	if (!urandom_fh) {
-		return 0;
-	}
-	size_t res = fread(buffer, len, 1, urandom_fh);
-	return res;
 }
 
 void notify_user(const char *name, const char *data) {
@@ -292,9 +282,6 @@ int main() {
 		return 1;
 	}
 
-	urandom_fh = fopen("/dev/urandom", "rb");
-	null_fh = open("/dev/null", O_RDWR);
-
 	lua_init();
 
 	signal(SIGCHLD, noop_hdlr);
@@ -305,7 +292,6 @@ int main() {
 	die_on_amqp_error(amqp_get_rpc_reply(aconn), "Consuming");
 
 	char *caller, *script, *run_id, *args;
-	//int queue_name_len;
 
 	int stdout_pipe[2];
 

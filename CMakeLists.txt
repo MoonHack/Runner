@@ -51,4 +51,4 @@ add_executable (run src/c/run.c src/c/rmq_util.c)
 
 simple_add_lib(RABBITMQ worker run)
 simple_add_lib(LUAJIT worker)
-simple_add_lib(UUID run)
+simple_add_lib(UUID worker run)

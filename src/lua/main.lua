@@ -16,7 +16,6 @@ end
 
 local require = require
 local json = require("json_patched")
-local uuid = require("uuid")
 local bit = require("bit")
 local util = require("util")
 local timeUtil = require("time")
@@ -34,8 +33,6 @@ local load = load
 local xpcall = xpcall
 local exit = os.exit
 local collectgarbage = collectgarbage
-
-uuid.seed()
 
 string.dump = nil
 
@@ -70,10 +67,6 @@ local function __run(caller, scriptName, args)
 	local coreScript
 
 	do
-		local a, b, c, d = random.secureRandom(4):byte(1,4)
-		local seed = a*0x1000000 + b*0x10000 + c *0x100 + d
-		uuid.randomseed(seed)
-
 		timeUtil.setTimes(timeUtil.time(), 5000)
 
 		local ok
