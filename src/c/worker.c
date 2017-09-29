@@ -301,9 +301,11 @@ int main() {
 
 	struct command_request_t command;
 
+	// The 61 here suppresses the nullbyte, which is unnecessary
+	char arepqueue_bytes[61] = "moonhack_command_results_00000000-0000-0000-0000-000000000000";
 	amqp_bytes_t arepqueue;
-	arepqueue.bytes = malloc(36 + 25);
-	memcpy(arepqueue.bytes, "moonhack_command_results_", 25);
+	arepqueue.bytes = arepqueue_bytes;
+	arepqueue.len = sizeof(arepqueue_bytes) / sizeof(arepqueue_bytes[0]);
 
 	amqp_bytes_t message_bytes;
 	props._flags = AMQP_BASIC_DELIVERY_MODE_FLAG;
@@ -357,8 +359,7 @@ int main() {
 
 		amqp_destroy_envelope(&envelope);
 
-		arepqueue.len = command.run_id_len + 25;
-		memcpy(arepqueue.bytes + 25, run_id, command.run_id_len);
+		memcpy(arepqueue.bytes + 25, run_id, 36);
 
 		free(run_id);
 
@@ -386,8 +387,6 @@ int main() {
 
 		pid_t subworker = fork();
 		if (subworker == 0) {
-			free(arepqueue.bytes);
-
 			close(stdout_pipe[0]);
 			pipe_fh = fdopen(stdout_pipe[1], "w");
 
@@ -479,8 +478,6 @@ int main() {
 					break;
 			}
 		}
-
-		free(arepqueue.bytes);
 
 		exit(0);
 	}
