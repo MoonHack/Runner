@@ -33,8 +33,6 @@ int _main(int argc, char **argv) {
 	arepqueue.bytes = queue_name;
 	arepqueue.len = strlen(queue_name);
 
-	printf("Q: %s\n", queue_name);
-
 	amqp_table_t queue_attributes;
 	queue_attributes.num_entries = 1;
 	queue_attributes.entries = malloc(sizeof(amqp_table_entry_t) * queue_attributes.num_entries);
@@ -80,20 +78,19 @@ int _main(int argc, char **argv) {
 		1,
 		queue_attributes);
 
-	printf("Send: %s\n", amqp_error_string2(
-							amqp_basic_publish(aconn,
-								1,
-								amqp_empty_bytes,
-								aqueue,
-								0,
-								0,
-								&props,
-								message_bytes
-							)
-						)
-		);
+	if (amqp_basic_publish(aconn,
+		1,
+		amqp_empty_bytes,
+		aqueue,
+		0,
+		0,
+		&props,
+		message_bytes)) {
 
-	char buffer[65536];
+		printf("publish failed\n");
+		return 1;
+	}
+
 	amqp_basic_consume(aconn, 1, arepqueue, consumer_tag, 0, 1, 0, amqp_empty_table);
 	die_on_amqp_error(amqp_get_rpc_reply(aconn), "Consuming");
 	amqp_rpc_reply_t res;
@@ -104,10 +101,11 @@ int _main(int argc, char **argv) {
 		if (AMQP_RESPONSE_NORMAL != res.reply_type) {
 			break;
 		}
-		memcpy(buffer, envelope.message.body.bytes, envelope.message.body.len);
-		buffer[envelope.message.body.len] = 0;
-		printf("%s", buffer);
-		if (buffer[0] == '\1') {
+		if (envelope.message.body.len < 1) {
+			continue;
+		}
+		write(0, envelope.message.body.bytes, envelope.message.body.len);
+		if (((const char*)envelope.message.body.bytes)[0] == '\1') {
 			break;
 		}
 	}
