@@ -108,16 +108,28 @@ static void set_memory_limit(const char *memlimit) {
 	FILE *fd;
 
 	fd = fopen(cgroup_mem_limit, "w");
+	if (!fd) {
+		perror("fopen_cgroup_mem_limit");
+		exit(1);
+	}
 	fputs(memlimit, fd);
 	fclose(fd);
 
 	fd = fopen(cgroup_memsw_limit, "w");
+	if (!fd) {
+		perror("fopen_cgroup_memsw_limit");
+		exit(1);
+	}
 	fputs(memlimit, fd);
 	fclose(fd);
 }
 
 static void add_task_to_cgroup(pid_t pid) {
 	FILE *fd = fopen(cgroup_mem_tasks, "w");
+	if (!fd) {
+		perror("fopen_cgroup_mem_tasks");
+		exit(1);
+	}
 	fprintf(fd, "%d\n", pid);
 	fclose(fd);
 }
@@ -232,11 +244,6 @@ static int secure_me(int uid, int gid) {
 
 	if (symlink(".", "/var/root/var")) {
 		perror("symlink_var_root_var");
-		return 1;
-	}
-
-	if (mkdir("/var/root/dev", 0755)) {
-		perror("mkdir_dev");
 		return 1;
 	}
 
