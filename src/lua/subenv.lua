@@ -3,7 +3,7 @@ local roTable = require("rotable")
 local safeError = require("safe_error")
 local json = require("json_patched")
 local util = require("util")
-local random = require("random")
+local secureRandom = require("random")
 local bit = require("bit")
 
 return {
@@ -56,7 +56,7 @@ return {
 			PRIVATE = 1,
 		}
 	},
-	random = random,
+	secureRandom = secureRandom,
 	util = {
 		freeze = roTable.freeze,
 		deepFreeze = roTable.deepFreeze,
