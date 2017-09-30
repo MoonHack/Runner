@@ -101,7 +101,7 @@ local function loadScriptInternal(ctx, script, compile)
 	if compile and not data.__func then
 		local callingScriptOwner = data.owner
 		local callingScriptCaller = ctx.caller
-		local isRoot = (not ctx.callingScript) and (not ctx.isScriptor)
+		local isRoot = (not ctx.callingScript)
 
 		local PROTECTED_SUB_ENV = util.shallowCopy(TEMPLATE_SUB_ENV)
 
@@ -124,8 +124,7 @@ local function loadScriptInternal(ctx, script, compile)
 			flags = flags or 0
 			return loadScript({
 				callingScript = script,
-				isScriptor = false,
-				cli = isRoot,
+				cli = false,
 				caller = asOwner and callingScriptOwner or callingScriptCaller
 			}, callingScriptOwner, scriptName, flagSet(flags, LOAD_ONLY_INFORMATION))
 		end

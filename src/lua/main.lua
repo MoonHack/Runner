@@ -23,7 +23,7 @@ local checkTimeout = timeUtil.checkTimeout
 local writeln = require("writeln")
 local random = require("random")
 local safePcall = require("safe_error").pcall
-local loadscript = require("loadscript")
+local loadScript = require("loadscript")
 local killSwitch = require("killswitch")
 local unpack = unpack
 local error = error
@@ -56,13 +56,6 @@ end
 
 local _ENV = NULL_ENV
 
-local function loadMainScript(script, caller, isScriptor)
-	return loadscript({
-		caller = caller,
-		isScriptor = isScriptor
-	}, caller, script, false)
-end
-
 local function __run(caller, scriptName, args)
 	local coreScript
 
@@ -70,7 +63,10 @@ local function __run(caller, scriptName, args)
 		timeUtil.setTimes(timeUtil.time(), 5000)
 
 		local ok
-		ok, coreScript = loadMainScript(scriptName, caller, false)
+		ok, coreScript =  loadScript({
+			caller = caller,
+			cli = true
+		}, caller, scriptName, false)
 		if not ok then
 			writeln(json.encodeAll({
 				type = "error",
@@ -82,14 +78,6 @@ local function __run(caller, scriptName, args)
 
 		if args and args ~= "" then
 			args = json.decode(args)
-		end
-
-		if args and type(args) == "table" then
-			for k, v in next, args do
-				if type(v) == "table" and v["$scriptor"] then
-					args[k] = loadMainScript(v["$scriptor"], caller, true)
-				end
-			end
 		end
 	end
 
