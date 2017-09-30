@@ -38,7 +38,6 @@ return function(ctx, args)
 		query = { owner = ctx.caller }
 	elseif stype == "public" then
 		query = { accessLevel = 3 }
-		addSystem = true
 	elseif stype == "system" then
 		query = { accessLevel = 3, system = true }
 		addSystem = true
