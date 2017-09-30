@@ -5,19 +5,14 @@ local type = type
 local next = next
 local pcall = pcall
 local treadonly = table.setreadonly
-
-local function isFrozen(tbl, mt)
-	mt = mt or dgetmetatable(tbl)
-	return mt and (mt == "PROTECTED" or mt.__metatable == "PROTECTED")
-end
+local tisreadonly = table.isreadonly
 
 local function freeze(tbl)
+	if tisreadonly(tbl) then
+		return tbl
+	end
 	local mt = dgetmetatable(tbl)
-	if mt then
-		if isFrozen(tbl, mt) then
-			return tbl
-		end
-	elseif not mt then
+	if not mt then
 		mt = {}
 	end
 	mt.__metatable = "PROTECTED"
@@ -31,7 +26,7 @@ end
 
 local function _deepFreeze(tbl, tbls)
 	tbls[tbl] = true
-	if isFrozen(tbl) then
+	if tisreadonly(tbl) then
 		return tbl
 	end
 
