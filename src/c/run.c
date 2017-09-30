@@ -104,7 +104,9 @@ int _main(int argc, char **argv) {
 		if (envelope.message.body.len < 1) {
 			continue;
 		}
-		write(STDOUT_FILENO, envelope.message.body.bytes, envelope.message.body.len);
+		if (write(STDOUT_FILENO, envelope.message.body.bytes, envelope.message.body.len) < envelope.message.body.len) {
+			break;
+		}
 		if (((const char*)envelope.message.body.bytes)[0] == '\1') {
 			break;
 		}
