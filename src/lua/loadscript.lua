@@ -11,7 +11,7 @@ local timeUtil = require("time")
 local checkTimeout = timeUtil.checkTimeout
 local tinsert = table.insert
 local json = require("json_patched")
-local roTable = require("rotable")
+local deepFreeze = require("rotable").deepFreeze
 local TEMPLATE_SUB_ENV = require("subenv")
 local bitand = require("bit").band
 
@@ -73,7 +73,7 @@ loadCoreScript("programs.reorder")
 loadCoreScript("programs.transfer")
 loadCoreScript("programs.unload")
 
-roTable.deepFreeze(_G.coreScripts)
+deepFreeze(_G.coreScripts)
 
 _G.coreScripts = nil
 
@@ -164,7 +164,7 @@ local function loadScriptInternal(ctx, script, compile)
 			end
 		}
 
-		PROTECTED_SUB_ENV = roTable.deepFreeze(PROTECTED_SUB_ENV)
+		PROTECTED_SUB_ENV = deepFreeze(PROTECTED_SUB_ENV)
 
 		do
 			local _ENV = {}

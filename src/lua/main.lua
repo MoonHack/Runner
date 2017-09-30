@@ -2,10 +2,11 @@ package.path = "./?.luac;" .. package.path
 
 local type = type
 
+local deepFreeze = require("rotable").deepFreeze
+
 do
 	local _require = _G.require
 	_G._require = _require
-	local deepFreeze = _require("rotable").deepFreeze
 	_G.require = function(module)
 		local mod = _require(module)
 		if type(mod) ~= "table" then
@@ -38,9 +39,9 @@ local load = load
 local xpcall = xpcall
 local exit = os.exit
 
-local NULL_ENV = treadonly(killSwitch.boobyTrap({
-	__protected = true
-}))
+deepFreeze(_G, true)
+
+local NULL_ENV = treadonly(killSwitch.boobyTrap({}))
 
 do
 	local setfenv = setfenv
@@ -48,7 +49,6 @@ do
 	for k, _ in next, __G do
 		__G[k] = nil
 	end
-	__G.__protected = true
 	killSwitch.boobyTrap(__G)
 	treadonly(__G)
 

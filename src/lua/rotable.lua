@@ -24,28 +24,30 @@ local function freeze(tbl)
 	return tbl
 end
 
-local function _deepFreeze(tbl, tbls)
+local function _deepFreeze(tbl, exclude, tbls)
 	tbls[tbl] = true
 	if tisreadonly(tbl) then
 		return tbl
 	end
 
 	for k, v in next, tbl do
-		--print(k)
 		if type(v) == "table" and not tbls[v] then
-			_deepFreeze(v, tbls)
+			_deepFreeze(v, exclude, tbls)
 		end
 	end
 
+	if tbl == exclude then
+		return tbl
+	end
 	return freeze(tbl)
 end
 
-local function deepFreeze(tbl)
+local function deepFreeze(tbl, exclude)
 	if type(tbl) ~= "table" then
 		return freeze(tbl)
 	end
 
-	return _deepFreeze(tbl, {})
+	return _deepFreeze(tbl, exclude and tbl or nil, {})
 end
 
 return deepFreeze({
