@@ -86,7 +86,9 @@ class BaseTest:
 		for i in range(0, self.curtest + 1):
 			correct = self.result[i]
 			got = self.exec(self.user[i], self.script[i], json_dumps(self.args[i]))
-			for j in range(0, len(got)):
+			correct.append('[EOF]')
+			got.append(b'[EOF]')
+			for j in range(0, max(len(got),len(correct))):
 				gotO = got[j].decode('utf-8').strip(' \t\n\r')
 				correctO = correct[j]
 				if type(correctO) is not str:
