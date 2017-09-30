@@ -80,7 +80,9 @@ class BaseTest:
 			'balance': 0,
 		})
 		for q in self.queries:
-			mongoDb[q.collection].insert_one(q.data)
+			m = getattr(mongoDb[q.collection], q.operation)
+			m(q.data)
+		del q, m, mongoDb
 
 		isCorrect = True
 		for i in range(0, self.curtest + 1):
