@@ -27,7 +27,6 @@
 #define BUFFER_LEN 65536
 
 #define RUN_ID_LEN 36
-#define REPLY_QUEUE_LEN (25 + RUN_ID_LEN)
 
 #define EXIT_OK 0
 #define EXIT_HARD_TIMEOUT 5
@@ -161,15 +160,21 @@ void lua_leaveprot() {
 static void lua_init() {
 	L = luaL_newstate();
 	luaL_openlibs(L);
-	if(luaL_dofile(L, "init.luac")) {
+	lua_pushcfunction(L, pcall_interrhdl);
+	if(luaL_loadfile(L, "main.luac")) {
 		printf("Error loading Lua: %s\n", lua_tostring(L, -1));
+		exit(1);
+	}
+
+	if (lua_pcall(L, 0, 1, -2)) {
 		exit(1);
 	}
 
 	// caller, script, args
 	lua_main = luaL_ref(L, LUA_REGISTRYINDEX);
 
-	lua_pop(L, lua_gettop(L));
+	// By not popping it from the stack here, we can use it in the main function's runner
+	//lua_pop(L, lua_gettop(L));
 
 	lua_gc(L, LUA_GCCOLLECT, 0);
 	lua_gc(L, LUA_GCCOLLECT, 0);
@@ -323,10 +328,10 @@ int main() {
 	struct command_request_t *command;
 
 	// The 61 here suppresses the nullbyte, which is unnecessary
-	char arepqueue_bytes[REPLY_QUEUE_LEN] = "moonhack_command_results_00000000-0000-0000-0000-000000000000";
+	char arepqueue_bytes[] = "moonhack_command_results_00000000-0000-0000-0000-000000000000";
 	amqp_bytes_t arepqueue;
 	arepqueue.bytes = arepqueue_bytes;
-	arepqueue.len = REPLY_QUEUE_LEN;
+	arepqueue.len = sizeof(arepqueue_bytes) - 1;
 
 	amqp_bytes_t message_bytes;
 	props._flags = AMQP_BASIC_DELIVERY_MODE_FLAG;
@@ -433,7 +438,8 @@ int main() {
 				exit(1);
 			}
 
-			lua_pushcfunction(L, pcall_interrhdl);
+			 // By not popping it from the stack in lua_init, we don't need to push it here
+			//lua_pushcfunction(L, pcall_interrhdl);
 
 			lua_rawgeti(L, LUA_REGISTRYINDEX, lua_main);
 
@@ -446,8 +452,6 @@ int main() {
 			free(args);
 
 			if (lua_pcall(L, 3, 0, -5)) {
-				luaL_traceback(L, L, lua_tostring(L, -1), 0);
-				printf("%s\n", lua_tostring(L, -1));
 				exit(1);
 			}
 			exit(0);
