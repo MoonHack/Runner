@@ -1,5 +1,6 @@
 local exit = os.exit
 local dsetmetatable = debug.setmetatable
+local treadonly = table.setreadonly
 
 local dtraceback = debug.traceback
 local print = io.write
@@ -9,7 +10,7 @@ local function killSwitch(a,b)
 	exit(7) -- EXIT_KILLSWITCH
 end
 
-local _trapMt = {
+local _trapMt = treadonly({
 	__len = killSwitch,
 	__add = killSwitch,
 	__sub = killSwitch,
@@ -29,7 +30,7 @@ local _trapMt = {
 	__tostring = killSwitch,
 	__tojson = killSwitch,
 	__metatable = "PROTECTED"
-}
+})
 
 local function boobyTrap(obj)
 	dsetmetatable(obj, _trapMt)
