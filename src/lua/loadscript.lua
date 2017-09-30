@@ -116,6 +116,7 @@ local function loadScriptInternal(ctx, script, compile)
 		PROTECTED_SUB_ENV.load = PROTECTED_SUB_ENV.loadstring
 
 		local function loadScriptGame(scriptName, flags)
+			flags = flags or 0
 			local asOwner = flagSet(flags, LOAD_AS_OWNER)
 			checkTimeout()
 			flags = flags or 0

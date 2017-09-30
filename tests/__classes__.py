@@ -39,6 +39,12 @@ class BaseTest:
 			"initial": initial,
 		})
 
+	def expect_return_nodata(self):
+		self.result[self.curtest].append({
+			"type": "return",
+			"script": self.script[self.curtest],
+		})
+
 	def expect_return(self, result):
 		self.result[self.curtest].append({
 			"type": "return",
