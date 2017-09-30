@@ -178,9 +178,12 @@ local function loadScriptInternal(ctx, script, compile)
 
 			if not func then
 				local ok
-				local code, cType = data.code:unpack()
-				if cType ~= CODE_TEXT_TYPE then
-					return false, "Invalid binary data for source"
+				local code, cType = data.code
+				if type(code) ~= "string" then
+					code = code:unpack()
+					if cType ~= CODE_TEXT_TYPE then
+						return false, "Invalid binary data for source"
+					end
 				end
 				local codeBinary
 				ok, codeBinary, func = pcall(scriptUtil.compileScript, code, script)
