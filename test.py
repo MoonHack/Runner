@@ -13,15 +13,15 @@ mongoDb = MongoClient("mongodb://127.0.0.1").moonhack_core
 
 mypath = path.abspath("./%s/tests/" % path.dirname(__file__))
 for module in listdir(mypath):
-	if module == '__init__.py' or module[-3:] != '.py' or (module[0:2] == "__" and module[-5:-3] == "__"):
+	if module[-3:] != '.py' or (module[0:2] == "__" and module[-5:-3] == "__"):
 		continue
-	modname = "tests.%s" % module[:-3]
+	pymodule = module[:-3]
+	modname = "tests.%s" % pymodule
 	test = import_module(modname).test
 	if not test.name:
-		test.name = module[:-3]
+		test.name = pymodule
 	if test.slow and noSlow:
 		print("[SKIP] %s: Test slow, but TEST_NOSLOW set" % test.name)
 		continue
 	if not test.run(mongoDb):
 		exit(1)
-
