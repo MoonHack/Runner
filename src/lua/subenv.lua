@@ -6,7 +6,7 @@ local util = require("util")
 local random = require("random")
 local bit = require("bit")
 
-local SUB_ENV = {
+return {
 	assert = assert,
 	tostring = tostring,
 	tonumber = tonumber,
@@ -17,7 +17,7 @@ local SUB_ENV = {
 	error = error,
 	rawequal = rawequal,
 	rawget = rawget,
-	rawset = roTable.protectTblFunction(rawset),
+	rawset = rawset,
 	unpack = unpack,
 	json = {
 		encode = function(obj)
@@ -31,16 +31,7 @@ local SUB_ENV = {
 		decodeSafe = json.decodeSafe,
 		decodeSafe = json.encodeSafe
 	},
-	table = {
-		foreach = table.foreach,
-		sort = roTable.protectTblFunction(table.sort),
-		remove = roTable.protectTblFunction(table.remove),
-		insert = roTable.protectTblFunction(table.insert),
-		foreachi = table.foreachi,
-		maxn = table.maxn,
-		getn = table.getn,
-		concat = table.concat
-	},
+	table = table,
 	newproxy = newproxy,
 	next = next,
 	math = math,
@@ -73,7 +64,3 @@ local SUB_ENV = {
 		sleep = timeUtil.sleep
 	}
 }
-
-SUB_ENV._G = SUB_ENV
-
-return SUB_ENV

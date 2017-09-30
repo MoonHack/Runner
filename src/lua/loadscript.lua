@@ -53,8 +53,6 @@ local function loadCoreScript(name, accessLevel)
 	end
 end
 
-roTable.deepFreeze(_G.coreScripts)
-
 loadCoreScript("notifications.send")
 loadCoreScript("notifications.recent")
 
@@ -74,6 +72,8 @@ loadCoreScript("programs.log")
 loadCoreScript("programs.reorder")
 loadCoreScript("programs.transfer")
 loadCoreScript("programs.unload")
+
+roTable.deepFreeze(_G.coreScripts)
 
 _G.coreScripts = nil
 
@@ -107,6 +107,8 @@ local function loadScriptInternal(ctx, script, compile)
 
 		PROTECTED_SUB_ENV.constants = util.deepCopy(TEMPLATE_SUB_ENV.constants)
 		PROTECTED_SUB_ENV.constants.START_TIME, PROTECTED_SUB_ENV.constants.KILL_TIME = timeUtil.getTimes()
+
+		PROTECTED_SUB_ENV._G = PROTECTED_SUB_ENV
 
 		PROTECTED_SUB_ENV.print = scriptUtil.scriptPrint(script, isRoot)
 		PROTECTED_SUB_ENV.loadstring = function(str)

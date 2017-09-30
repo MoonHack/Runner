@@ -4,6 +4,7 @@ local type = type
 
 do
 	local _require = _G.require
+	_G._require = _require
 	local deepFreeze = _require("rotable").deepFreeze
 	_G.require = function(module)
 		local mod = _require(module)
@@ -29,6 +30,7 @@ local unpack = unpack
 local error = error
 local next = next
 local tremove = table.remove
+local treadonly = table.setreadonly
 local load = load
 local xpcall = xpcall
 local exit = os.exit
@@ -48,6 +50,7 @@ do
 	end
 	__G.__protected = true
 	killSwitch.boobyTrap(__G)
+	treadonly(__G)
 
 	if setfenv then
 		setfenv(1, NULL_ENV)

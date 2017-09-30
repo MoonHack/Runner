@@ -2,19 +2,17 @@ local config = require("config").mongo
 local time = require("time").time
 local tinsert = table.insert
 local json_encode = require("json_patched").encode
-local mongo = require("mongo")
-local errorReadOnly = require("rotable").errorReadOnly
+local mongo = _require("mongo")
+local roTable = require("rotable")
 local dbCore = mongo.Client(config.core):getDefaultDatabase()
 local dbUsers = mongo.Client(config.users):getDefaultDatabase()
 
 local function patchMongo(mongo)
-	mongo.Javascript = nil -- we don"t even have this enabled!
+	mongo.Javascript = nil -- we don't even have this enabled!
 
 	local function make__tojson(struct, func, raw)
 		local mt = debug.getmetatable(struct)
-		mt.__protected = true
 		mt.__metatable = "PROTECTED"
-		mt.__newindex = errorReadOnly
 		if raw then
 			mt.__tojson = func
 		else
@@ -137,9 +135,11 @@ local function patchMongo(mongo)
 		return nil
 	end)
 	mt.__eq = __equalst
+
+	return roTable.deepFreeze(mongo)
 end
 
-patchMongo(mongo)
+mongo = patchMongo(mongo)
 
 local function now()
 	return mongo.DateTime(time())
