@@ -37,7 +37,6 @@ local treadonly = table.setreadonly
 local load = load
 local xpcall = xpcall
 local exit = os.exit
-local collectgarbage = collectgarbage
 
 local NULL_ENV = treadonly(killSwitch.boobyTrap({
 	__protected = true
@@ -124,10 +123,6 @@ local function __run(caller, scriptName, args)
 		})
 	end
 	writeln(_json)
-	exit(0)
 end
-
-collectgarbage()
-collectgarbage = nil
 
 return __run

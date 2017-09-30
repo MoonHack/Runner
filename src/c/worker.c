@@ -71,6 +71,12 @@ static void noop_hdlr() {
 
 }
 
+static int pcall_interrhdl(lua_State *L) {
+	luaL_traceback(L, L, lua_tostring(L, -1), 1);
+	printf("Internal Lua error: %s\n", lua_tostring(L, -1));
+	exit(1);
+}
+
 static void sigalrm_recvd() {
 	if (lua_prot_depth > 0 && lua_exit_on_prot_leave == 0) {
 		lua_exit_on_prot_leave = EXIT_HARD_TIMEOUT;
@@ -162,6 +168,11 @@ static void lua_init() {
 
 	// caller, script, args
 	lua_main = luaL_ref(L, LUA_REGISTRYINDEX);
+
+	lua_pop(L, lua_gettop(L));
+
+	lua_gc(L, LUA_GCCOLLECT, 0);
+	lua_gc(L, LUA_GCCOLLECT, 0);
 }
 
 static int cgroup_init() {
@@ -422,6 +433,8 @@ int main() {
 				exit(1);
 			}
 
+			lua_pushcfunction(L, pcall_interrhdl);
+
 			lua_rawgeti(L, LUA_REGISTRYINDEX, lua_main);
 
 			lua_pushlstring(L, caller, caller_len);
@@ -432,8 +445,11 @@ int main() {
 			free(script);
 			free(args);
 
-			lua_call(L, 3, 0);
-
+			if (lua_pcall(L, 3, 0, -5)) {
+				luaL_traceback(L, L, lua_tostring(L, -1), 0);
+				printf("%s\n", lua_tostring(L, -1));
+				exit(1);
+			}
 			exit(0);
 		} else if(subworker < 0) {
 			exit(1);
