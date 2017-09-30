@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from pymongo import MongoClient
 from os import path, listdir, environ
 from importlib import import_module
