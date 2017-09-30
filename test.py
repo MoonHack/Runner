@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from os import path, listdir, environ
 from importlib import import_module
+from sys import exit
 
 noSlow = False
 try:
@@ -21,4 +22,6 @@ for module in listdir(mypath):
 	if test.slow and noSlow:
 		print("[SKIP] %s: Test slow, but TEST_NOSLOW set" % test.name)
 		continue
-	test.run(mongoDb)
+	if not test.run(mongoDb):
+		exit(1)
+

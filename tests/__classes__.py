@@ -87,11 +87,13 @@ class BaseTest:
 			correct = self.result[i]
 			got = self.exec(self.user[i], self.script[i], json_dumps(self.args[i]))
 			for j in range(0, len(got)):
-				got[j] = got[j].decode("utf-8")
+				gotO = got[j].decode("utf-8").strip(' \t\n\r')
 				correctO = correct[j]
-				gotO = got[j].strip(' \t\n\r')
 				if type(correctO) is not str:
-					gotO = json_loads(gotO)
+					try:
+						gotO = json_loads(gotO)
+					except:
+						pass
 				if gotO != correctO:
 					isCorrect = False
 					print("[FAIL] %s -> %s: t=%d,l=%d\nWant: %s\nGot:  %s" % (self.name, self.names[i], i, j, correctO, gotO))
