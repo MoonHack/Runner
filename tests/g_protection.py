@@ -21,11 +21,11 @@ test.create_script('return _G.game == game, _G == _G._G, _G[args]', name = 'test
 test.create_script('local g = game; game = nil; return game == g, _G.game == g, type(game), type(_G.game)', name = "test.test4")
 
 test.new_execution('Read non-existant, verify _G table basics', script = 'test.test3', args = 'meow')
-test.expect_return([True,True])
+test.expect_return([True, True])
 test.expect_ok()
 
 test.new_execution('Write new var fixed name', script = "test.test4")
-test.expect_return([True,True,'table','table'])
+test.expect_return([True, True, 'table', 'table'])
 test.expect_ok()
 
 test.new_execution('Overwrite game.script.load', args = {'p': ['game', 'script'], 'k': 'load'})

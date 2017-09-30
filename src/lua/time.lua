@@ -31,7 +31,7 @@ local function timeLeft()
 end
 
 local function checkTimeout()
-	if CANT_TIMEOUT <= 0 and timeLeft() < 0 then
+	if CANT_TIMEOUT <= 0 and START_TIME > 0 and timeLeft() < 0 then
 		exit(6) -- EXIT_SOFT_TIMEOUT
 	end
 end

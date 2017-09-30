@@ -16,6 +16,7 @@ do
 	end
 end
 
+local mrandomseed = math.randomseed
 _G.strdump = string.dump
 string.dump = nil
 
@@ -63,7 +64,7 @@ local function __run(caller, scriptName, args)
 	local coreScript
 
 	do
-		timeUtil.setTimes(timeUtil.time(), 5000)
+		mrandomseed(random.int64())
 
 		local ok
 		ok, coreScript =  loadScript({
@@ -83,6 +84,8 @@ local function __run(caller, scriptName, args)
 			args = json.decode(args)
 		end
 	end
+
+	timeUtil.setTimes(timeUtil.time(), 5000)
 
 	local _ENV = {}
 	local res = {safePcall(coreScript.run, args)}

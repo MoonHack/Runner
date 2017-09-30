@@ -56,13 +56,13 @@ return {
 			PRIVATE = 1,
 		}
 	},
+	random = random,
 	util = {
 		freeze = roTable.freeze,
 		deepFreeze = roTable.deepFreeze,
 		timeLeft = timeUtil.timeLeft,
 		shallowCopy = util.shallowCopy,
 		deepCopy = util.deepCopy,
-		secureRandom = random.secureRandom,
 		microtime = timeUtil.time,
 		sleep = timeUtil.sleep
 	}
