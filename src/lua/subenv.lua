@@ -48,9 +48,12 @@ return {
 	setmetatable = setmetatable,
 	constants = {
 		accessLevels = {
-			"PRIVATE",
-			"HIDDEN",
-			"PUBLIC"
+			[1] = "PRIVATE",
+			[2] = "HIDDEN",
+			[3] = "PUBLIC",
+			PUBLIC = 3,
+			HIDDEN = 2,
+			PRIVATE = 1,
 		}
 	},
 	util = {

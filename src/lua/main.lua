@@ -15,6 +15,9 @@ do
 	end
 end
 
+_G.strdump = string.dump
+string.dump = nil
+
 local require = require
 local json = require("json_patched")
 local bit = require("bit")
@@ -36,11 +39,9 @@ local xpcall = xpcall
 local exit = os.exit
 local collectgarbage = collectgarbage
 
-string.dump = nil
-
-local NULL_ENV = killSwitch.boobyTrap({
+local NULL_ENV = treadonly(killSwitch.boobyTrap({
 	__protected = true
-})
+}))
 
 do
 	local setfenv = setfenv

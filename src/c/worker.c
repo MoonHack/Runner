@@ -155,7 +155,7 @@ void lua_leaveprot() {
 static void lua_init() {
 	L = luaL_newstate();
 	luaL_openlibs(L);
-	if(luaL_dofile(L, "main.luac")) {
+	if(luaL_dofile(L, "init.luac")) {
 		printf("Error loading Lua: %s\n", lua_tostring(L, -1));
 		exit(1);
 	}

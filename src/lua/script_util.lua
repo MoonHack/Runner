@@ -1,5 +1,5 @@
 local load = load
-local strdump = string.dump
+local strdump = strdump
 local strfind = string.find
 local error = error
 local json = require("json_patched")
