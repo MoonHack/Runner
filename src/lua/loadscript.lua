@@ -53,6 +53,8 @@ local function loadCoreScript(name, accessLevel)
 	end
 end
 
+roTable.deepFreeze(_G.coreScripts)
+
 loadCoreScript("notifications.send")
 loadCoreScript("notifications.recent")
 
