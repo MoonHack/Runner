@@ -17,7 +17,7 @@ for module in listdir(mypath):
 	modname = "tests.%s" % module[:-3]
 	test = import_module(modname).test
 	if not test.name:
-		test.name = module
+		test.name = module[:-3]
 	if test.slow and noSlow:
 		print("[SKIP] %s: Test slow, but TEST_NOSLOW set" % test.name)
 		continue

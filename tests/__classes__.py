@@ -15,14 +15,18 @@ class BaseTest:
 		self.args = []
 		self.result = []
 		self.queries = []
+		self.names = []
 		self.curtest = -1
 		self.slow = False
 
-	def new_execution(self, user = "test", script = "test.test", args = None):
+	def new_execution(self, name = "", user = "test", script = "test.test", args = None):
+		if name == "":
+			name = str(self.curtest + 2)
 		self.user.append(user)
 		self.script.append(script)
 		self.args.append(args)
 		self.result.append([])
+		self.names.append(name)
 		self.curtest += 1
 
 	def expect_exitcode(self, res):
@@ -90,10 +94,10 @@ class BaseTest:
 					gotO = json_loads(gotO)
 				if gotO != correctO:
 					isCorrect = False
-					print("[FAIL] %s,t=%d,l=%d\nWant: %s\nGot:  %s" % (self.name, i, j, correctO, gotO))
+					print("[FAIL] %s -> %s: t=%d,l=%d\nWant: %s\nGot:  %s" % (self.name, self.names[i], i, j, correctO, gotO))
 					break
 			if isCorrect:
-				print("[OK] %s" % self.name)
+				print("[OK] %s -> %s" % (self.name, self.names[i]))
 			else:
 				break
 		return isCorrect
