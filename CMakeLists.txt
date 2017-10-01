@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 2.8.11)
 project (MoonHack_Runner C)
 
-find_program(CLANG_COMPILER clang-4.0 clang)
+find_program(MY_C_COMPILER clang-4.0 clang gcc)
 
-set(CMAKE_C_COMPILER "${CLANG_COMPILER}")
+set(CMAKE_C_COMPILER "${MY_C_COMPILER}")
 set(CMAKE_C_FLAGS "-Wall -Werror")
 set(CMAKE_C_FLAGS_RELEASE "-O3 -flto -DNDEBUG -D_FORTIFY_SOURCE=2 -march=native -fPIC")
 
@@ -48,7 +48,7 @@ set(luajit_dir ${CMAKE_CURRENT_SOURCE_DIR}/LuaJIT)
 set(luajit_a ${luajit_dir}/src/libluajit.a)
 add_custom_command(
 	OUTPUT ${luajit_a}
-	COMMAND make -C ${luajit_dir})
+	COMMAND env CMAKE_C_COMPILER=${CMAKE_C_COMPILER} make -C ${luajit_dir})
 
 add_executable (simple_master src/c/simple_master.c)
 add_executable (worker src/c/worker.c src/c/rmq_util.c ${LUAFILES_OUT} ${luajit_a})
