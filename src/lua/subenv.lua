@@ -44,7 +44,6 @@ return {
 	type = type,
 	getmetatable = getmetatable,
 	setmetatable = setmetatable,
-	collectgarbage = collectgarbage,
 	constants = {
 		accessLevels = {
 			[1] = "PRIVATE",
