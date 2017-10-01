@@ -494,7 +494,7 @@ int main() {
 		if (WIFSIGNALED(exitstatus)) {
 			switch(WTERMSIG(exitstatus)) {
 				case 9: // SIGKILL, really only happens when OOM
-					WRITE_AMQP("\1MEMORY_LIMIT\n", 14);
+					WRITE_AMQP("\1HARD_MEMORY_LIMIT\n", 14);
 					break;
 				default:
 					WRITE_AMQP("\1INTERNAL\n", 10);
@@ -516,7 +516,7 @@ int main() {
 					WRITE_AMQP("\1OK\n", 4);
 					break;
 				case EXIT_MEMLIMIT:
-					WRITE_AMQP("\1MEMORY_LIMIT\n", 14);
+					WRITE_AMQP("\1SOFT_MEMORY_LIMIT\n", 14);
 					break;
 				default:
 					WRITE_AMQP("\1INTERNAL\n", 10);
