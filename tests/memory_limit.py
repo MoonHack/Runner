@@ -13,11 +13,11 @@ test.create_script('''
 		ln = string.len(_L)
 		util.sleep(0.1)
 		un = resources.memory.getUsage()
-		if un <= u or ln <= l then
+		if un == u or ln <= l then
 			return false, i, un, u, ln, l
 		end
-		--l = ln
-		--u = un
+		l = ln
+		u = un
 	end
 	return true
 ''', name = "test.test2")
