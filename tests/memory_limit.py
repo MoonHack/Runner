@@ -24,7 +24,7 @@ test.create_script('''
 
 test.new_execution('Killer')
 test.expect_print('ok')
-test.expect_exitcode('MEMORY_LIMIT')
+test.expect_exitcode('SOFT_MEMORY_LIMIT')
 
 test.new_execution('Monitor', script = "test.test2")
 test.expect_return(True)
