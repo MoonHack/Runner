@@ -20,6 +20,7 @@
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
+#include <luajit.h>
 
 #include "./rmq_util.h"
 #include "./config.h"
@@ -33,8 +34,10 @@
 #define EXIT_SOFT_TIMEOUT 6
 #define EXIT_KILLSWITCH 7
 #define EXIT_ERROR 4
+#define EXIT_MEMLIMIT 1
 
-uint32_t current_memlimit;
+size_t current_memlimit;
+size_t current_memlimit_hard;
 
 FILE *pipe_fh;
 pid_t worker_pid;
@@ -113,48 +116,12 @@ void lua_writeln(const char *str) {
 	}
 }
 
-static uint32_t read_num_file(const char *filename) {
-	FILE *fd = fopen(filename, "r");
-	if (!fd) {
-		perror("fopen_read_ull_file");
-		return 0;
-	}
-	char buff[20];
-	buff[0] = 0;
-	fgets(buff, 20, fd);
-	uint32_t ret = strtoul(buff, NULL, 10);
-	fclose(fd);
-	return ret;
-}
-
-uint32_t lua_get_memory_limit() {
+size_t lua_get_memory_limit() {
 	return current_memlimit;
 }
 
-uint32_t lua_get_memory_usage() {
-	return read_num_file(cgroup_memsw_usage);
-}
-
-static void set_memory_limit(const char *memlimit) {
-	FILE *fd;
-
-	fd = fopen(cgroup_mem_limit, "w");
-	if (!fd) {
-		perror("fopen_cgroup_mem_limit");
-		exit(1);
-	}
-	fputs(memlimit, fd);
-	fclose(fd);
-
-	fd = fopen(cgroup_memsw_limit, "w");
-	if (!fd) {
-		perror("fopen_cgroup_memsw_limit");
-		exit(1);
-	}
-	fputs(memlimit, fd);
-	fclose(fd);
-
-	current_memlimit = read_num_file(cgroup_memsw_limit);
+size_t lua_get_memory_usage() {
+	return luaJIT_get_memory_usage(L);
 }
 
 static void add_task_to_cgroup(pid_t pid) {
@@ -169,19 +136,20 @@ static void add_task_to_cgroup(pid_t pid) {
 
 void lua_enterprot() {
 	if (++lua_prot_depth == 1) {
-		set_memory_limit(TASK_MEMORY_LIMIT_HIGH);
+		luaJIT_set_memory_limits(L, 0, 0);
 	}
 }
 
 void lua_leaveprot() {
 	--lua_prot_depth;
 	if (lua_prot_depth < 0) {
-		exit(3);
+		exit(EXIT_ERROR);
 	} else if (lua_prot_depth == 0) {
 		if (lua_exit_on_prot_leave) {
 			exit(lua_exit_on_prot_leave);
+		} else {
+			luaJIT_set_memory_limits(L, current_memlimit, current_memlimit_hard);
 		}
-		set_memory_limit(TASK_MEMORY_LIMIT);
 	}
 }
 
@@ -206,6 +174,8 @@ static void lua_init() {
 
 	lua_gc(L, LUA_GCCOLLECT, 0);
 	lua_gc(L, LUA_GCCOLLECT, 0);
+
+	luaJIT_set_memory_limits(L, current_memlimit, current_memlimit_hard);
 }
 
 static int cgroup_init() {
@@ -223,7 +193,23 @@ static int cgroup_init() {
 		return 1;
 	}
 
-	set_memory_limit(TASK_MEMORY_LIMIT);
+	FILE *fd;
+
+	fd = fopen(cgroup_mem_limit, "w");
+	if (!fd) {
+		perror("fopen_cgroup_mem_limit");
+		exit(1);
+	}
+	fputs(TASK_MEMORY_LIMIT_HIGH, fd);
+	fclose(fd);
+
+	fd = fopen(cgroup_memsw_limit, "w");
+	if (!fd) {
+		perror("fopen_cgroup_memsw_limit");
+		exit(1);
+	}
+	fputs(TASK_MEMORY_LIMIT_HIGH, fd);
+	fclose(fd);
 	return 0;
 }
 
@@ -330,6 +316,9 @@ static int secure_me_sub(int uid, int gid) {
 int main() {
 	int uid = getuid();
 	int gid = getgid();
+
+	current_memlimit = TASK_MEMORY_LIMIT;
+	current_memlimit_hard = current_memlimit + (1 * 1024 * 1024);
 
 	if (secure_me(uid, gid)) {
 		return 1;
@@ -532,6 +521,9 @@ int main() {
 					break;
 				case EXIT_OK:
 					WRITE_AMQP("\1OK\n", 4);
+					break;
+				case EXIT_MEMLIMIT:
+					WRITE_AMQP("\1MEMORY_LIMIT\n", 14);
 					break;
 				default:
 					WRITE_AMQP("\1INTERNAL\n", 10);

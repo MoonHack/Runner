@@ -27,7 +27,7 @@ return {
 		encodeAll = json.encodeAll,
 		encodeAllSafe = json.encodeAllSafe,
 		decodeSafe = json.decodeSafe,
-		decodeSafe = json.encodeSafe
+		encodeSafe = json.encodeSafe
 	},
 	table = table,
 	newproxy = newproxy,
@@ -44,6 +44,7 @@ return {
 	type = type,
 	getmetatable = getmetatable,
 	setmetatable = setmetatable,
+	collectgarbage = collectgarbage,
 	constants = {
 		accessLevels = {
 			[1] = "PRIVATE",
