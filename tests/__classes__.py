@@ -35,7 +35,9 @@ class BaseTest:
 	def expect_ok(self):
 		self.expect_exitcode('OK')
 
-	def expect_print(self, result, script = 'test.test', initial = True):
+	def expect_print(self, result, script = None, initial = True):
+		if script == None:
+			script = self.script[self.curtest]
 		self.result[self.curtest].append({
 			'type': 'print',
 			'script': script,
