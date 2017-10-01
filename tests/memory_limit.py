@@ -1,7 +1,14 @@
 from tests.__classes__ import BaseTest
 
 test = BaseTest('Memory limit')
-test.create_script('print("ok"); local a = {}; while true do table.insert(a, "ok") end; return a')
+test.create_script('''
+	print("ok")
+	local a = {}
+	while true do
+		table.insert(a, "ok")
+	end
+	return a
+''')
 test.create_script('''
 	local _L = "" --secureRandom.bytes(102400)
 	local un = 0

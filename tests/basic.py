@@ -2,7 +2,10 @@ from tests.__classes__ import BaseTest
 
 test = BaseTest('Basic health check')
 test.create_script('return ctx, args')
-test.create_script('local ok, scr = game.script.load("test.test"); return ok, scr, scr.run(args)', name = 'test.test2')
+test.create_script('''
+	local ok, scr = game.script.load("test.test")
+	return ok, scr, scr.run(args)
+''', name = 'test.test2')
 
 test.new_execution('CLI called no args')
 test.expect_return({'caller':'test','cli':True})

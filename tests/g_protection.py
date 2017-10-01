@@ -17,6 +17,7 @@ test.create_script('''
 	rawset(x, args.k, args.v or true)
 	print(x)
 ''', name = "test.test2")
+
 test.create_script('return _G.game == game, _G == _G._G, _G[args]', name = 'test.test3')
 test.create_script('local g = game; game = nil; return game == g, _G.game == g, type(game), type(_G.game)', name = "test.test4")
 
