@@ -198,7 +198,9 @@ static void cgroup_init() {
 	if (_cgroup_mem_required) {
 		cgroup_mem_required = atoi(_cgroup_mem_required);
 	}
-	printf("CGroup memory required: %d\n", cgroup_mem_required);
+	if (!cgroup_mem_required) {
+		printf("WARNING: CGroup memory optional!\n");
+	}
 
 	char cgroup_mem_root[200];
 	sprintf(cgroup_mem_root, "/sys/fs/cgroup/memory/%s/moonhack_cg_%d/", getenv("USER"), getpid());
