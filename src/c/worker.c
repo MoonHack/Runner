@@ -34,7 +34,7 @@
 #define EXIT_SOFT_TIMEOUT 6
 #define EXIT_KILLSWITCH 7
 #define EXIT_ERROR 4
-#define EXIT_MEMLIMIT 1
+#define EXIT_MEMLIMIT 3
 
 size_t current_memlimit;
 size_t current_memlimit_hard;
@@ -47,11 +47,12 @@ int lua_prot_depth = 0;
 int lua_exit_on_prot_leave = 0;
 amqp_basic_properties_t props;
 
-#define cgroup_mem_limit "/var/root/cg_mem/memory.limit_in_bytes"
-#define cgroup_mem_usage "/var/root/cg_mem/memory.mem.usage_in_bytes"
-#define cgroup_memsw_limit "/var/root/cg_mem/memory.memsw.limit_in_bytes"
-#define cgroup_memsw_usage "/var/root/cg_mem/memory.memsw.usage_in_bytes"
-#define cgroup_mem_tasks "/var/root/cg_mem/tasks"
+char cgroup_mem_limit[256];
+char cgroup_memsw_limit[256];
+char cgroup_mem_tasks[256];
+//#define cgroup_mem_limit "/var/root/cg_mem/memory.limit_in_bytes"
+//#define cgroup_memsw_limit "/var/root/cg_mem/memory.memsw.limit_in_bytes"
+//#define cgroup_mem_tasks "/var/root/cg_mem/tasks"
 
 #define WRITE_AMQP(_str, _len) \
 	message_bytes.bytes = _str; \
@@ -78,9 +79,16 @@ static void noop_hdlr() {
 }
 
 static int pcall_interrhdl(lua_State *L) {
-	luaL_traceback(L, L, lua_tostring(L, -1), 1);
+	luaJIT_set_memory_limits(L, 0, 0);
+	const char *errStr = lua_tostring(L, -1);
+	if (strcmp(errStr, "not enough memory") == 0) {
+		exit(EXIT_MEMLIMIT);
+		return 0;
+	}
+	luaL_traceback(L, L, errStr, 1);
 	printf("Internal Lua error: %s\n", lua_tostring(L, -1));
 	exit(1);
+	return 0;
 }
 
 static void sigalrm_recvd() {
@@ -136,7 +144,7 @@ static void add_task_to_cgroup(pid_t pid) {
 
 void lua_enterprot() {
 	if (++lua_prot_depth == 1) {
-		luaJIT_set_memory_limits(L, 0, 0);
+		luaJIT_set_memory_limits(L, current_memlimit, 0);
 	}
 }
 
@@ -175,23 +183,18 @@ static void lua_init() {
 	lua_gc(L, LUA_GCCOLLECT, 0);
 	lua_gc(L, LUA_GCCOLLECT, 0);
 
+	lua_atpanic(L, pcall_interrhdl);
 	luaJIT_set_memory_limits(L, current_memlimit, current_memlimit_hard);
 }
 
 static int cgroup_init() {
-	char cgroup_mem_root[256];
+	char cgroup_mem_root[200];
 	sprintf(cgroup_mem_root, "/sys/fs/cgroup/memory/%s/moonhack_cg_%d/", getenv("USER"), getpid());
+	sprintf(cgroup_mem_limit, "%smemory.limit_in_bytes", cgroup_mem_root);
+	sprintf(cgroup_memsw_limit, "%smemory.memsw.limit_in_bytes", cgroup_mem_root);
+	sprintf(cgroup_mem_tasks, "%stasks", cgroup_mem_root);
 
 	mkdir(cgroup_mem_root, 0700);
-	if (mkdir("/var/root/cg_mem", 0700)) {
-		perror("mkdir_cg_mem");
-		return 1;
-	}
-
-	if (mount(cgroup_mem_root, "/var/root/cg_mem", "bind", MS_BIND, "")) {
-		perror("mount_cg_mem");
-		return 1;
-	}
 
 	FILE *fd;
 
@@ -214,6 +217,10 @@ static int cgroup_init() {
 }
 
 static int secure_me(int uid, int gid) {
+	if (cgroup_init()) {
+		return 1;
+	}
+
 	if (unshare(CLONE_NEWUSER)) {
 		perror("CLONE_NEWUSER");
 		return 1;
@@ -264,20 +271,6 @@ static int secure_me(int uid, int gid) {
 
 	if (mkdir("/var/root", 0755)) {
 		perror("mkdir_root");
-		return 1;
-	}
-
-	if (symlink(".", "/var/root/root")) {
-		perror("symlink_var_root_root");
-		return 1;
-	}
-
-	if (symlink(".", "/var/root/var")) {
-		perror("symlink_var_root_var");
-		return 1;
-	}
-
-	if (cgroup_init()) {
 		return 1;
 	}
 
@@ -433,6 +426,8 @@ int main() {
 
 		subworker = fork();
 		if (subworker == 0) {
+			add_task_to_cgroup(getpid());
+
 			close(stdout_pipe[0]);
 			pipe_fh = fdopen(stdout_pipe[1], "w");
 
@@ -448,8 +443,6 @@ int main() {
 			signal(SIGINT, SIG_IGN);
 			signal(SIGHUP, SIG_IGN);
 			alarm(TASK_HARD_TIMEOUT);
-
-			add_task_to_cgroup(getpid());
 
 			if (secure_me_sub(uid, gid)) {
 				exit(1);
