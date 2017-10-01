@@ -3,8 +3,6 @@ local roTable = require("rotable")
 local safeError = require("safe_error")
 local json = require("json_patched")
 local util = require("util")
-local secureRandom = require("random")
-local bit = require("bit")
 
 return {
 	assert = assert,
@@ -35,7 +33,7 @@ return {
 	newproxy = newproxy,
 	next = next,
 	math = math,
-	bit = bit,
+	bit = require("bit"),
 	os = {
 		clock = os.clock,
 		date = os.date,
@@ -56,7 +54,8 @@ return {
 			PRIVATE = 1,
 		}
 	},
-	secureRandom = secureRandom,
+	resources = require("resmon"),
+	secureRandom = require("random"),
 	util = {
 		freeze = roTable.freeze,
 		deepFreeze = roTable.deepFreeze,

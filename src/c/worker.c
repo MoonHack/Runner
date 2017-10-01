@@ -34,6 +34,8 @@
 #define EXIT_KILLSWITCH 7
 #define EXIT_ERROR 4
 
+uint32_t current_memlimit;
+
 FILE *pipe_fh;
 pid_t worker_pid;
 lua_State *L;
@@ -43,7 +45,9 @@ int lua_exit_on_prot_leave = 0;
 amqp_basic_properties_t props;
 
 #define cgroup_mem_limit "/var/root/cg_mem/memory.limit_in_bytes"
+#define cgroup_mem_usage "/var/root/cg_mem/memory.mem.usage_in_bytes"
 #define cgroup_memsw_limit "/var/root/cg_mem/memory.memsw.limit_in_bytes"
+#define cgroup_memsw_usage "/var/root/cg_mem/memory.memsw.usage_in_bytes"
 #define cgroup_mem_tasks "/var/root/cg_mem/tasks"
 
 #define WRITE_AMQP(_str, _len) \
@@ -89,7 +93,7 @@ static void sigalrm_killchild_rcvd() {
 	kill(worker_pid, SIGKILL);
 }
 
-void notify_user(const char *name, const char *data) {
+void lua_notify_user(const char *name, const char *data) {
 	if (amqp_basic_publish(aconn,
 			1,
 			aexchange_notify,
@@ -107,6 +111,28 @@ void lua_writeln(const char *str) {
 	if (fwrite(str, strlen(str), 1, pipe_fh)) {
 		fflush(pipe_fh);
 	}
+}
+
+static uint32_t read_num_file(const char *filename) {
+	FILE *fd = fopen(filename, "r");
+	if (!fd) {
+		perror("fopen_read_ull_file");
+		return 0;
+	}
+	char buff[20];
+	buff[0] = 0;
+	fgets(buff, 20, fd);
+	uint32_t ret = strtoul(buff, NULL, 10);
+	fclose(fd);
+	return ret;
+}
+
+uint32_t lua_get_memory_limit() {
+	return current_memlimit;
+}
+
+uint32_t lua_get_memory_usage() {
+	return read_num_file(cgroup_memsw_usage);
 }
 
 static void set_memory_limit(const char *memlimit) {
@@ -127,6 +153,8 @@ static void set_memory_limit(const char *memlimit) {
 	}
 	fputs(memlimit, fd);
 	fclose(fd);
+
+	current_memlimit = read_num_file(cgroup_memsw_limit);
 }
 
 static void add_task_to_cgroup(pid_t pid) {
