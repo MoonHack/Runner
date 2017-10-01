@@ -43,10 +43,11 @@ FILE *pipe_fh;
 pid_t worker_pid;
 lua_State *L;
 int lua_main;
-int lua_prot_depth = 0;
-int lua_exit_on_prot_leave = 0;
+int lua_prot_depth;
+int lua_exit_on_prot_leave;
 amqp_basic_properties_t props;
 
+int cgroup_mem_enable;
 char cgroup_mem_limit[256];
 char cgroup_memsw_limit[256];
 char cgroup_mem_tasks[256];
@@ -133,6 +134,10 @@ size_t lua_get_memory_usage() {
 }
 
 static void add_task_to_cgroup(pid_t pid) {
+	if (!cgroup_mem_enable) {
+		return;
+	}
+
 	FILE *fd = fopen(cgroup_mem_tasks, "w");
 	if (!fd) {
 		perror("fopen_cgroup_mem_tasks");
@@ -187,7 +192,14 @@ static void lua_init() {
 	luaJIT_set_memory_limits(L, current_memlimit, current_memlimit_hard);
 }
 
-static int cgroup_init() {
+static void cgroup_init() {
+	const char* _cgroup_mem_required = getenv("CGROUP_MEM_REQUIRED");
+	int cgroup_mem_required = 0;
+	if (_cgroup_mem_required) {
+		cgroup_mem_required = atoi(_cgroup_mem_required);
+	}
+	printf("CGroup memory required: %d\n", cgroup_mem_required);
+
 	char cgroup_mem_root[200];
 	sprintf(cgroup_mem_root, "/sys/fs/cgroup/memory/%s/moonhack_cg_%d/", getenv("USER"), getpid());
 	sprintf(cgroup_mem_limit, "%smemory.limit_in_bytes", cgroup_mem_root);
@@ -200,27 +212,29 @@ static int cgroup_init() {
 
 	fd = fopen(cgroup_mem_limit, "w");
 	if (!fd) {
-		perror("fopen_cgroup_mem_limit");
-		exit(1);
+		printf("WARNING: cgroup memory->mem unavailable\n");
+		cgroup_mem_enable = 0;
+		if (cgroup_mem_required) {
+			exit(1);
+		}
+		return;
 	}
 	fputs(TASK_MEMORY_LIMIT_HIGH, fd);
 	fclose(fd);
 
 	fd = fopen(cgroup_memsw_limit, "w");
 	if (!fd) {
-		perror("fopen_cgroup_memsw_limit");
-		exit(1);
+		printf("WARNING: cgroup memory->memsw unavailable\n");
+		if (cgroup_mem_required) {
+			exit(1);
+		}
+		return;
 	}
 	fputs(TASK_MEMORY_LIMIT_HIGH, fd);
 	fclose(fd);
-	return 0;
 }
 
 static int secure_me(int uid, int gid) {
-	if (cgroup_init()) {
-		return 1;
-	}
-
 	if (unshare(CLONE_NEWUSER)) {
 		perror("CLONE_NEWUSER");
 		return 1;
@@ -307,11 +321,16 @@ static int secure_me_sub(int uid, int gid) {
 }
 
 int main() {
+	lua_prot_depth = 0;
+	lua_exit_on_prot_leave = 0;
+
 	int uid = getuid();
 	int gid = getgid();
 
 	current_memlimit = TASK_MEMORY_LIMIT;
 	current_memlimit_hard = current_memlimit + (1 * 1024 * 1024);
+
+	cgroup_init();
 
 	if (secure_me(uid, gid)) {
 		return 1;
