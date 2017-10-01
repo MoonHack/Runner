@@ -17,11 +17,10 @@ endmacro()
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(RABBITMQ REQUIRED librabbitmq)
-pkg_search_module(LUAJIT REQUIRED luajit)
 pkg_search_module(UUID REQUIRED uuid)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lua)
-file(GLOB_RECURSE LUAFILES src/lua *.lua)
+file(GLOB_RECURSE LUAFILES src/lua/*.lua)
 foreach(in_f IN LISTS LUAFILES)
 	file(RELATIVE_PATH out_f ${CMAKE_CURRENT_SOURCE_DIR}/src ${in_f})
 	get_filename_component(dir_f ${out_f} DIRECTORY)
@@ -45,10 +44,18 @@ foreach(in_f IN LISTS LUAFILES)
 	list(APPEND LUAFILES_OUT ${out_f})
 endforeach()
 
+set(luajit_dir ${CMAKE_CURRENT_SOURCE_DIR}/LuaJIT)
+set(luajit_a ${luajit_dir}/src/libluajit.a)
+add_custom_command(
+	OUTPUT ${luajit_a}
+	COMMAND make -C ${luajit_dir})
+
 add_executable (simple_master src/c/simple_master.c)
-add_executable (worker src/c/worker.c src/c/rmq_util.c ${LUAFILES_OUT})
+add_executable (worker src/c/worker.c src/c/rmq_util.c ${LUAFILES_OUT} ${luajit_a})
 add_executable (run src/c/run.c src/c/rmq_util.c)
 
+target_include_directories(worker PUBLIC ${luajit_dir}/src)
+target_link_libraries(worker ${luajit_a} dl m)
+
 simple_add_lib(RABBITMQ worker run)
-simple_add_lib(LUAJIT worker)
 simple_add_lib(UUID worker run)

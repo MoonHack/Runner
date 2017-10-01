@@ -1,0 +1,4 @@
+[submodule "LuaJIT"]
+	path = LuaJIT
+	url = git@github.com:Doridian/LuaJIT
+	branch = moonhack
