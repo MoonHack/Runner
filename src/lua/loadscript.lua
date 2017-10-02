@@ -184,7 +184,7 @@ local function loadScriptInternal(ctx, script, compile)
 				local ok
 				local code, cType = data.code
 				if type(code) ~= "string" then
-					code = code:unpack()
+					code, cType = code:unpack()
 					if cType ~= CODE_TEXT_TYPE then
 						return false, "Invalid binary data for source"
 					end
