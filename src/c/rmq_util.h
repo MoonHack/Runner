@@ -14,6 +14,7 @@ struct command_request_t {
 	uint32_t caller_len;
 	uint32_t script_len;
 	uint32_t args_len;
+	uint32_t info_len;
 };
 #pragma pack(pop)
 

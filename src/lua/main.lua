@@ -40,6 +40,8 @@ local load = load
 local xpcall = xpcall
 local exit = os.exit
 
+local _p = io.write
+
 deepFreeze(_G, true)
 
 local NULL_ENV = treadonly(killSwitch.boobyTrap({}))
@@ -60,14 +62,20 @@ end
 
 local _ENV = NULL_ENV
 
-local function __run(caller, scriptName, args)
+local function __run(caller, scriptName, args, info)
 	local coreScript
 
 	do
 		mrandomseed(random.int64())
 
+		if info and info ~= "" then
+			loadScript.setInfo(json.decode(info))
+		else
+			loadScript.setInfo({})
+		end
+
 		local ok
-		ok, coreScript =  loadScript({
+		ok, coreScript =  loadScript.load({
 			caller = caller,
 			cli = true
 		}, caller, scriptName, false)

@@ -347,8 +347,8 @@ int main() {
 	amqp_basic_consume(aconn, 1, aqueue, amqp_empty_bytes, 0, 0, 0, amqp_empty_table);
 	die_on_amqp_error(amqp_get_rpc_reply(aconn), "Consuming");
 
-	char *caller, *script, *args;
-	int caller_len, script_len, args_len;
+	char *caller, *script, *args, *info;
+	int caller_len, script_len, args_len, info_len;
 
 	int stdout_pipe[2];
 
@@ -406,12 +406,13 @@ int main() {
 		caller_len = command->caller_len;
 		script_len = command->script_len;
 		args_len = command->args_len;
+		info_len = command->info_len;
 
 		pos = sizeof(struct command_request_t);
 		memcpy(arepqueue.bytes + 25, envelope.message.body.bytes + pos, RUN_ID_LEN);
 		pos += RUN_ID_LEN;
 
-		if (pos + caller_len + script_len + args_len != envelope.message.body.len) {
+		if (pos + caller_len + script_len + args_len + info_len != envelope.message.body.len) {
 			WRITE_AMQP("\1WRONGLEN\n", 10);
 			amqp_destroy_envelope(&envelope);
 			continue;
@@ -420,6 +421,7 @@ int main() {
 		COPYIN(caller);
 		COPYIN(script);
 		COPYIN(args);
+		COPYIN(info);
 
 		amqp_destroy_envelope(&envelope);
 
@@ -428,6 +430,7 @@ int main() {
 			free(caller);
 			free(script);
 			free(args);
+			free(info);
 			waitpid(subworker_master, &exitstatus, 0);
 			continue;
 		} else if (subworker_master < 0) {
@@ -477,12 +480,14 @@ int main() {
 			lua_pushlstring(L, caller, caller_len);
 			lua_pushlstring(L, script, script_len);
 			lua_pushlstring(L, args, args_len);
+			lua_pushlstring(L, info, info_len);
 
 			free(caller);
 			free(script);
 			free(args);
+			free(info);
 
-			if (lua_pcall(L, 3, 0, -5)) {
+			if (lua_pcall(L, 4, 0, -6)) {
 				exit(1);
 			}
 			exit(0);
@@ -493,6 +498,7 @@ int main() {
 		free(caller);
 		free(script);
 		free(args);
+		free(info);
 
 		close(stdout_pipe[1]);
 

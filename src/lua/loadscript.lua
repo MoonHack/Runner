@@ -53,6 +53,11 @@ local function loadCoreScript(name, accessLevel)
 	end
 end
 
+local info
+local function setInfo(_info)
+	info = deepFreeze(_info)
+end
+
 loadCoreScript("notifications.send")
 loadCoreScript("notifications.recent")
 
@@ -107,6 +112,7 @@ local function loadScriptInternal(ctx, script, compile)
 
 		PROTECTED_SUB_ENV.constants = util.deepCopy(TEMPLATE_SUB_ENV.constants)
 		PROTECTED_SUB_ENV.constants.START_TIME, PROTECTED_SUB_ENV.constants.KILL_TIME = timeUtil.getTimes()
+		PROTECTED_SUB_ENV.constants.info = info
 
 		PROTECTED_SUB_ENV._G = PROTECTED_SUB_ENV
 
@@ -245,4 +251,7 @@ loadScript = function(ctx, parentOwner, script, onlyInformative)
 	return true, info
 end
 
-return loadScript
+return {
+	load = loadScript,
+	setInfo = setInfo
+}

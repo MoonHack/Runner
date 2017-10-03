@@ -48,6 +48,7 @@ int _main(int argc, char **argv) {
 	command.caller_len = strlen(caller);
 	command.script_len = strlen(script);
 	command.args_len = strlen(args);
+	command.info_len = 0;
 
 	int pos = sizeof(command);
 	int msg_len = pos + command.run_id_len + command.caller_len + command.script_len + command.args_len;

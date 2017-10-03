@@ -15,8 +15,10 @@ local function freeze(tbl)
 	if not mt then
 		mt = {}
 	end
-	mt.__metatable = "PROTECTED"
-	mt = treadonly(mt)
+	if not tisreadonly(mt) then
+		mt.__metatable = "PROTECTED"
+		mt = treadonly(mt)
+	end
 	dsetmetatable(tbl, mt)
 	if type(tbl) == "table" then
 		tbl = treadonly(tbl)
