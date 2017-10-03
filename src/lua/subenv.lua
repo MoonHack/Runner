@@ -52,7 +52,8 @@ return {
 			PUBLIC = 3,
 			HIDDEN = 2,
 			PRIVATE = 1,
-		}
+		},
+		escapes = util.escapes,
 	},
 	resources = require("resmon"),
 	secureRandom = require("random"),
@@ -63,6 +64,7 @@ return {
 		shallowCopy = util.shallowCopy,
 		deepCopy = util.deepCopy,
 		microtime = timeUtil.time,
-		sleep = timeUtil.sleep
+		sleep = timeUtil.sleep,
+		escape = util.escape,
 	}
 }

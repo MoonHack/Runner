@@ -1,6 +1,19 @@
 local strmatch = string.match
 local next = next
 local type = type
+local sgsub = string.gsub
+
+local escapes = require("rotable").deepFreeze({
+	["<"] = "È",
+	[">"] = "É",
+})
+
+local function escape(str)
+	for k, v in next, escapes do
+		str = sgsub(str, k, v)
+	end
+	return str
+end
 
 local function shallowCopy(tbl)
 	local ret = {}
@@ -48,5 +61,7 @@ return {
 	getUserFromScript = getUserFromScript,
 	compileScript = compileScript,
 	flagSet = flagSet,
-	scriptPrint = scriptPrint
+	scriptPrint = scriptPrint,
+	escape = escape,
+	escapes = escapes
 }
