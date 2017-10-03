@@ -51,9 +51,6 @@ int cgroup_mem_enable;
 char cgroup_mem_limit[256];
 char cgroup_memsw_limit[256];
 char cgroup_mem_tasks[256];
-//#define cgroup_mem_limit "/var/root/cg_mem/memory.limit_in_bytes"
-//#define cgroup_memsw_limit "/var/root/cg_mem/memory.memsw.limit_in_bytes"
-//#define cgroup_mem_tasks "/var/root/cg_mem/tasks"
 
 #define WRITE_AMQP(_str, _len) \
 	message_bytes.bytes = _str; \
@@ -179,7 +176,7 @@ static void lua_init() {
 		exit(1);
 	}
 
-	// caller, script, args
+	// caller, script, args, info
 	lua_main = luaL_ref(L, LUA_REGISTRYINDEX);
 
 	// By not popping it from the stack here, we can use it in the main function's runner
@@ -358,7 +355,6 @@ int main() {
 
 	struct command_request_t *command;
 
-	// The 61 here suppresses the nullbyte, which is unnecessary
 	char arepqueue_bytes[] = "moonhack_command_results_00000000-0000-0000-0000-000000000000";
 	amqp_bytes_t arepqueue;
 	arepqueue.bytes = arepqueue_bytes;
@@ -472,7 +468,7 @@ int main() {
 				exit(1);
 			}
 
-			 // By not popping it from the stack in lua_init, we don't need to push it here
+			// By not popping it from the stack in lua_init, we don't need to push it here
 			//lua_pushcfunction(L, pcall_interrhdl);
 
 			lua_rawgeti(L, LUA_REGISTRYINDEX, lua_main);
