@@ -16,6 +16,7 @@ return {
 	rawequal = rawequal,
 	rawget = rawget,
 	rawset = rawset,
+	rawlen = rawlen,
 	unpack = unpack,
 	json = {
 		encode = function(obj)
