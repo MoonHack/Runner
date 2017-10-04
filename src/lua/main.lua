@@ -53,6 +53,7 @@ do
 	killSwitch.boobyTrap(__G)
 	treadonly(__G)
 
+	setfenv(0, NULL_ENV)
 	setfenv(1, NULL_ENV)
 end
 
