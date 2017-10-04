@@ -6,7 +6,6 @@ local json = require("json_patched")
 local writeln = require("writeln")
 
 local function compileScript(code, name)
-	local _ENV = {}
 	if not strfind(code, "^function *%(") then
 		error("Code must begin with \"function(\"")
 	end

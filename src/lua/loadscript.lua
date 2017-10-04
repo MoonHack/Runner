@@ -120,9 +120,6 @@ local function loadScriptInternal(ctx, script, compile)
 		PROTECTED_SUB_ENV.loadstring = function(str)
 			return load(str, script .. "->load", "t", PROTECTED_SUB_ENV)
 		end
-		if setfenv then
-			setfenv(PROTECTED_SUB_ENV.loadstring, PROTECTED_SUB_ENV)
-		end
 		PROTECTED_SUB_ENV.load = PROTECTED_SUB_ENV.loadstring
 
 		local function loadScriptGame(scriptName, flags)
@@ -173,7 +170,6 @@ local function loadScriptInternal(ctx, script, compile)
 		PROTECTED_SUB_ENV = deepFreeze(PROTECTED_SUB_ENV)
 
 		do
-			local _ENV = {}
 			local func
 
 			if data.codeBinary and data.codeDate == data.codeBinaryDate then
@@ -211,15 +207,9 @@ local function loadScriptInternal(ctx, script, compile)
 				})
 			end
 
-			if setfenv then
-				setfenv(func, _ENV)
-			end
 			data.__func = func()
 		end
-		data.__ENV = PROTECTED_SUB_ENV
-		if setfenv then
-			setfenv(data.__func, PROTECTED_SUB_ENV)
-		end
+		setfenv(data.__func, PROTECTED_SUB_ENV)
 	end
 	return true, data
 end
@@ -243,7 +233,6 @@ loadScript = function(ctx, parentOwner, script, onlyInformative)
 		end
 
 		info.run = function(args)
-			local _ENV = data.__ENV
 			checkTimeout()
 			return data.__func(ctx, args)
 		end

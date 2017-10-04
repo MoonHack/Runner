@@ -55,12 +55,8 @@ do
 	killSwitch.boobyTrap(__G)
 	treadonly(__G)
 
-	if setfenv then
-		setfenv(1, NULL_ENV)
-	end
+	setfenv(1, NULL_ENV)
 end
-
-local _ENV = NULL_ENV
 
 local function __run(caller, scriptName, args, info)
 	local coreScript
@@ -95,7 +91,6 @@ local function __run(caller, scriptName, args, info)
 
 	timeUtil.setTimes(timeUtil.time(), 5000)
 
-	local _ENV = {}
 	local res = {safePcall(coreScript.run, args)}
 	local _res
 	if res[1] then
