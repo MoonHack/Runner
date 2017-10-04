@@ -40,13 +40,11 @@ local load = load
 local xpcall = xpcall
 local exit = os.exit
 
-local _p = io.write
-
-deepFreeze(_G, true)
-
-local NULL_ENV = treadonly(killSwitch.boobyTrap({}))
-
 do
+	deepFreeze(_G, true)
+
+	local NULL_ENV = treadonly(killSwitch.boobyTrap({}))
+
 	local setfenv = setfenv
 	local __G = _G
 	for k, _ in next, __G do

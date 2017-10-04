@@ -6,7 +6,7 @@ local dtraceback = debug.traceback
 local print = io.write
 
 local function killSwitch(a,b)
-	print(dtraceback())
+	print(dtraceback().."\n")
 	exit(7) -- EXIT_KILLSWITCH
 end
 
