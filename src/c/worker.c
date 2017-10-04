@@ -380,12 +380,6 @@ int main() {
 
 		first_loop = 0;
 
-		if (envelope.redelivered) {
-			printf("REDELIVERED\n");
-			amqp_destroy_envelope(&envelope);
-			continue;
-		}
-
 		if (envelope.message.body.len < sizeof(struct command_request_t)) {
 			printf("TOOSHORT\n");
 			amqp_destroy_envelope(&envelope);
@@ -407,6 +401,12 @@ int main() {
 		pos = sizeof(struct command_request_t);
 		memcpy(arepqueue.bytes + 25, envelope.message.body.bytes + pos, RUN_ID_LEN);
 		pos += RUN_ID_LEN;
+
+		if (envelope.redelivered) {
+			WRITE_AMQP("\1REDELIVERED\n", 13);
+			amqp_destroy_envelope(&envelope);
+			continue;
+		}
 
 		if (pos + caller_len + script_len + args_len + info_len != envelope.message.body.len) {
 			WRITE_AMQP("\1WRONGLEN\n", 10);
