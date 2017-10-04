@@ -6,6 +6,7 @@ local util = require("util")
 
 return {
 	assert = assert,
+	coroutine = coroutine,
 	tostring = tostring,
 	tonumber = tonumber,
 	ipairs = ipairs,
@@ -67,5 +68,6 @@ return {
 		microtime = timeUtil.time,
 		sleep = timeUtil.sleep,
 		escape = util.escape,
-	}
+	},
+	_VERSION = _VERSION,
 }
