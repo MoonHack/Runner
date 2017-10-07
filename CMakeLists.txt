@@ -6,7 +6,7 @@ find_program(MY_C_LTO_AR llvm-ar-4.0 llvm-ar)
 
 set(CMAKE_C_COMPILER "${MY_C_COMPILER}")
 
-set(CMAKE_LDFLAGS "-flto")
+set(CMAKE_LDFLAGS "-flto -s")
 set(CMAKE_AR "${MY_C_LTO_AR}")
 
 set(CMAKE_C_FLAGS "-Wall -Werror -O3 -flto -DNDEBUG -D_FORTIFY_SOURCE=2 -march=native -fPIC")
@@ -30,7 +30,7 @@ set(luajit_exe ${luajit_dir}/src/luajit)
 
 add_custom_command(
 	OUTPUT ${luajit_a} ${luajit_exe}
-	COMMAND env CMAKE_C_COMPILER=${CMAKE_C_COMPILER} CMAKE_AR=${CMAKE_AR} CMAKE_LDFLAGS=${CMAKE_LDFLAGS} make -C ${luajit_dir})
+	COMMAND env CMAKE_C_COMPILER=${CMAKE_C_COMPILER} CMAKE_AR=${CMAKE_AR} CMAKE_CFLAGS="-flto" CMAKE_LDFLAGS=${CMAKE_LDFLAGS} make -C ${luajit_dir})
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lua)
 file(GLOB_RECURSE LUAFILES src/lua/*.lua)
