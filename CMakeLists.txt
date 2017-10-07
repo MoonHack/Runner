@@ -30,7 +30,7 @@ set(luajit_exe ${luajit_dir}/src/luajit)
 
 add_custom_command(
 	OUTPUT ${luajit_a} ${luajit_exe}
-	COMMAND env CMAKE_C_COMPILER=${CMAKE_C_COMPILER} make -C ${luajit_dir})
+	COMMAND env CMAKE_C_COMPILER=${CMAKE_C_COMPILER} CMAKE_AR=${CMAKE_AR} CMAKE_LDFLAGS=${CMAKE_LDFLAGS} make -C ${luajit_dir})
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lua)
 file(GLOB_RECURSE LUAFILES src/lua/*.lua)
