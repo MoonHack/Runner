@@ -29,6 +29,8 @@ local _trapMt = treadonly({
 	__call = killSwitch,
 	__tostring = killSwitch,
 	__tojson = killSwitch,
+	__pairs = killSwitch,
+	__ipairs = killSwitch,
 	__metatable = "PROTECTED"
 })
 
