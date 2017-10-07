@@ -2,10 +2,15 @@ cmake_minimum_required (VERSION 2.8.11)
 project (MoonHack_Runner C)
 
 find_program(MY_C_COMPILER clang-4.0 clang)
+find_program(MY_C_LTO_AR llvm-ar)
 
 set(CMAKE_C_COMPILER "${MY_C_COMPILER}")
-set(CMAKE_C_FLAGS "-Wall -Werror")
-set(CMAKE_C_FLAGS_RELEASE "-O3 -flto -DNDEBUG -D_FORTIFY_SOURCE=2 -march=native -fPIC")
+
+set(CMAKE_LDFLAGS "-flto")
+set(CMAKE_AR "${MY_C_LTO_AR}")
+
+set(CMAKE_C_FLAGS "-Wall -Werror -O3 -flto -DNDEBUG -D_FORTIFY_SOURCE=2 -march=native -fPIC")
+set(CMAKE_C_LINK_EXECUTABLE "${MY_C_COMPILER} ${CMAKE_LDFLAGS} <FLAGS> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 
 macro(simple_add_lib lib)
 	foreach(arg IN ITEMS ${ARGN})
@@ -19,6 +24,14 @@ find_package(PkgConfig REQUIRED)
 pkg_search_module(RABBITMQ REQUIRED librabbitmq)
 pkg_search_module(UUID REQUIRED uuid)
 
+set(luajit_dir ${CMAKE_CURRENT_SOURCE_DIR}/LuaJIT)
+set(luajit_a ${luajit_dir}/src/libluajit.a)
+set(luajit_exe ${luajit_dir}/src/luajit)
+
+add_custom_command(
+	OUTPUT ${luajit_a} ${luajit_exe}
+	COMMAND env CMAKE_C_COMPILER=${CMAKE_C_COMPILER} make -C ${luajit_dir})
+
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lua)
 file(GLOB_RECURSE LUAFILES src/lua/*.lua)
 foreach(in_f IN LISTS LUAFILES)
@@ -30,8 +43,9 @@ foreach(in_f IN LISTS LUAFILES)
 		add_custom_command(
 					OUTPUT ${out_f}
 					DEPENDS ${in_f}
+					DEPENDS ${luajit_exe}
 					COMMAND mkdir -p ${out_d}
-					COMMAND luajit -b ${in_f} ${out_f}
+					COMMAND ${luajit_exe} -b ${in_f} ${out_f}
 					)
 	else (CMAKE_BUILD_TYPE MATCHES "Release")
 		add_custom_command(
@@ -43,12 +57,6 @@ foreach(in_f IN LISTS LUAFILES)
 	endif (CMAKE_BUILD_TYPE MATCHES "Release")
 	list(APPEND LUAFILES_OUT ${out_f})
 endforeach()
-
-set(luajit_dir ${CMAKE_CURRENT_SOURCE_DIR}/LuaJIT)
-set(luajit_a ${luajit_dir}/src/libluajit.a)
-add_custom_command(
-	OUTPUT ${luajit_a}
-	COMMAND env CMAKE_C_COMPILER=${CMAKE_C_COMPILER} make -C ${luajit_dir})
 
 add_executable (simple_master src/c/simple_master.c)
 add_executable (worker src/c/worker.c src/c/rmq_util.c ${LUAFILES_OUT} ${luajit_a})
