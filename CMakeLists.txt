@@ -6,10 +6,10 @@ find_program(MY_C_LTO_AR llvm-ar-4.0 llvm-ar)
 
 set(CMAKE_C_COMPILER "${MY_C_COMPILER}")
 
-set(CMAKE_LDFLAGS "-flto -s")
+set(CMAKE_LDFLAGS "-flto -s -fPIC -fPIE -pie -Wl,-z,relro -Wl,-z,now -fsanitize=safe-stack")
 set(CMAKE_AR "${MY_C_LTO_AR}")
 
-set(CMAKE_C_FLAGS "-Wall -Werror -O3 -flto -DNDEBUG -D_FORTIFY_SOURCE=2 -march=native -fPIC")
+set(CMAKE_C_FLAGS "-Wall -Werror -O3 -flto -DNDEBUG -D_FORTIFY_SOURCE=2 -march=native -fPIC -fPIE -fsanitize=safe-stack")
 set(CMAKE_C_LINK_EXECUTABLE "${MY_C_COMPILER} ${CMAKE_LDFLAGS} <FLAGS> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 
 macro(simple_add_lib lib)
@@ -30,7 +30,7 @@ set(luajit_exe ${luajit_dir}/src/luajit)
 
 add_custom_command(
 	OUTPUT ${luajit_a} ${luajit_exe}
-	COMMAND env CMAKE_C_COMPILER=${CMAKE_C_COMPILER} CMAKE_AR=${CMAKE_AR} CMAKE_CFLAGS="-flto" CMAKE_LDFLAGS=${CMAKE_LDFLAGS} make -C ${luajit_dir})
+	COMMAND env CMAKE_C_COMPILER=${CMAKE_C_COMPILER} CMAKE_AR=${CMAKE_AR} CMAKE_CFLAGS='-fPIC -fPIE -flto -fsanitize=safe-stack' CMAKE_LDFLAGS=${CMAKE_LDFLAGS} make -C ${luajit_dir})
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lua)
 file(GLOB_RECURSE LUAFILES src/lua/*.lua)
