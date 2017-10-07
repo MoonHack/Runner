@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.8.11)
 project (MoonHack_Runner C)
 
 find_program(MY_C_COMPILER clang-4.0 clang)
-find_program(MY_C_LTO_AR llvm-ar)
+find_program(MY_C_LTO_AR llvm-ar-4.0 llvm-ar)
 
 set(CMAKE_C_COMPILER "${MY_C_COMPILER}")
 
