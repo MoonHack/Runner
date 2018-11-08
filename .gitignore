@@ -1,5 +1,3 @@
 /build/*
 !/build/.keep
-/src/lua/config.lua
-/src/c/config.h
 __pycache__

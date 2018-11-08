@@ -3,6 +3,11 @@
 #ifndef _MH_RMQ_UTIL_H
 #define _MH_RMQ_UTIL_H 1
 
+const char* RMQ_HOST;
+int RMQ_PORT;
+const char* RMQ_USER;
+const char* RMQ_PASS;
+
 amqp_bytes_t aqueue;
 amqp_socket_t *asocket;
 amqp_connection_state_t aconn;

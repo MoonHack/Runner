@@ -1,12 +1,9 @@
 #ifndef _MH_CONFIG_H
 #define _MH_CONFIG_H 1
 
-#define RMQ_HOST "127.0.0.1"
-#define RMQ_PORT 5672
-#define RMQ_USER "guest"
-#define RMQ_PASS "guest"
-
 #define TASK_HARD_TIMEOUT 8
 #define TASK_MEMORY_LIMIT (8 * 1024 * 1024)
 #define TASK_MEMORY_LIMIT_HIGH "16M"
+
 #endif
+

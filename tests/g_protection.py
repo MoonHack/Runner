@@ -19,7 +19,7 @@ test.create_script('''
 ''', name = "test.test2")
 
 test.create_script('return _G.game == game, _G == _G._G, _G[args]', name = 'test.test3')
-test.create_script('local g = game; game = nil; return game == g, _G.game == g, type(game), type(_G.game)', name = "test.test4")
+test.create_script('local g = game; pcall(function() game = nil end); pcall(function() _G.game = nil end); return game == g, _G.game == g, type(game), type(_G.game)', name = "test.test4")
 
 test.new_execution('Read non-existant, verify _G table basics', script = 'test.test3', args = 'meow')
 test.expect_return([True, True])

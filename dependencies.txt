@@ -2,7 +2,8 @@ librabbitmq
 	libssl
 uuid
 luajit
-	lua-cjson
+	dkjson
 	lua-mongo
 		mongoc 1.7.0 (./configure --disable-automatic-init-and-cleanup --disable-shm-counters)
 	uuid
+

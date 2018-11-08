@@ -3,7 +3,7 @@ db.notifications.dropIndexes();
 db.notifications.createIndex({
 	date: 1,
 }, {
-	expiresAfterSeconds: 2592000,
+	expireAfterSeconds: 2592000,
 });
 db.notifications.createIndex({
 	to: 1,
@@ -51,7 +51,7 @@ db.money_log.createIndex({
 db.money_log.createIndex({
 	date: 1,
 }, {
-	expiresAfterSeconds: 2592000,
+	expireAfterSeconds: 2592000,
 });
 
 // program_log
@@ -65,5 +65,5 @@ db.program_log.createIndex({
 db.program_log.createIndex({
 	date: 1,
 }, {
-	expiresAfterSeconds: 2592000,
+	expireAfterSeconds: 2592000,
 });

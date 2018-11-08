@@ -486,6 +486,7 @@ int main() {
 			if (lua_pcall(L, 4, 0, -6)) {
 				exit(1);
 			}
+
 			exit(0);
 		} else if(subworker < 0) {
 			exit(1);
@@ -520,6 +521,7 @@ int main() {
 					WRITE_AMQP("\1HARD_MEMORY_LIMIT\n", 19);
 					break;
 				default:
+					printf("SIGNALED %d\n", WTERMSIG(exitstatus));
 					WRITE_AMQP("\1INTERNAL\n", 10);
 					break;
 			}
@@ -542,8 +544,8 @@ int main() {
 					WRITE_AMQP("\1SOFT_MEMORY_LIMIT\n", 19);
 					break;
 				default:
-					WRITE_AMQP("\1INTERNAL\n", 10);
 					printf("EXITED %d\n", WEXITSTATUS(exitstatus));
+					WRITE_AMQP("\1INTERNAL\n", 10);
 					break;
 			}
 		}

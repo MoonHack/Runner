@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "./config.h"
 #include "./rmq_util.h"
@@ -49,7 +50,21 @@ void die_on_amqp_error(amqp_rpc_reply_t x, char const *context) {
 	exit(1);
 }
 
+const char* _getenv_perm(const char *var) {
+	const char *res = getenv(var);
+	if (!res) {
+		fprintf(stderr, "Missing variable: %s\n", var);
+		exit(1);
+	}
+	return strdup(res);
+}
+
 void _util_init_rmq() {
+	RMQ_HOST = _getenv_perm("RMQ_HOST");
+	RMQ_PORT = atoi(getenv("RMQ_PORT"));
+	RMQ_USER = _getenv_perm("RMQ_USER");
+	RMQ_PASS = _getenv_perm("RMQ_PASS");
+
 	int status;
 
 	aqueue = amqp_cstring_bytes("moonhack_command_jobs");
