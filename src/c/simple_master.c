@@ -9,8 +9,13 @@
 int worker_count;
 pid_t *workers;
 
-static void all_exit() {
+static void all_exit_code(int code) {
 	kill(-getpid(), SIGTERM);
+	exit(code);
+}
+
+static void all_exit() {
+	all_exit_code(0);
 }
 
 static pid_t spawn_worker() {
@@ -27,8 +32,8 @@ static pid_t spawn_worker() {
 	} else if (worker > 0) {
 		return worker;
 	} else {
-		all_exit();
 		perror("fork_worker");
+		all_exit_code(1);
 		return worker;
 	}
 }
@@ -85,6 +90,7 @@ int main(int argc, char **argv) {
 	signal(SIGCHLD, sigchld_recvd);
 	signal(SIGINT, all_exit);
 	signal(SIGHUP, all_exit);
+	signal(SIGTERM, all_exit);
 
 	int i;
 	for (i = 0; i < worker_count; ++i) {
