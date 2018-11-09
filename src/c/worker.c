@@ -283,26 +283,11 @@ static int secure_me(int uid, int gid) {
 		return 1;
 	}
 
-	if (mount("none", "/var", "tmpfs", MS_NOSUID | MS_NOEXEC | MS_NOATIME, "")) {
-		perror("mount_var");
-		return 1;
-	}
-
-	if (mkdir("/var/root", 0755)) {
-		perror("mkdir_root");
-		return 1;
-	}
-
-	if (mount("none", "/var", "tmpfs", MS_RDONLY | MS_REMOUNT | MS_NOSUID | MS_NOEXEC | MS_NOATIME, "")) {
-		perror("remount_ro_var");
-		return 1;
-	}
-
 	return 0;
 }
 
 static int secure_me_sub(int uid, int gid) {
-	if (chroot("/var/root")) {
+	if (chroot("/opt/runnertmp/root")) {
 		perror("chroot");
 		return 1;
 	}
