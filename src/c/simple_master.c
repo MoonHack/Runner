@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <sys/types.h>
 #include <signal.h>
 #include <unistd.h>
@@ -68,19 +70,19 @@ int main(int argc, char **argv) {
 	if (argc > 3) {
 		int uid = atoi(argv[2]);
 		int gid = atoi(argv[3]);
-		if (setregid(gid, gid)) {
-			perror("setregid");
+		if (setresgid(gid, gid, gid)) {
+			perror("setresgid");
 		}
-		if (setreuid(uid, uid)) {
-			perror("setreuid");
+		if (setresuid(uid, uid, uid)) {
+			perror("setresuid");
 		}
 	} else if (argc > 2) {
 		int uidgid = atoi(argv[2]);
-		if (setregid(uidgid, uidgid)) {
-			perror("setregid");
+		if (setresgid(uidgid, uidgid, uidgid)) {
+			perror("setresgid");
 		}
-		if (setreuid(uidgid, uidgid)) {
-			perror("setreuid");
+		if (setresuid(uidgid, uidgid, uidgid)) {
+			perror("setresuid");
 		}
 	}
 
