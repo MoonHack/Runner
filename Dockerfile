@@ -2,7 +2,7 @@ FROM doridian/alpine-builder AS builder
 RUN echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories
 RUN echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/main/" >> /etc/apk/repositories
 
-RUN apk add rabbitmq-c-dev luarocks5.1 lua5.1-dev lua-uuid mongo-c-driver-dev@testing libbson@testing mongo-c-driver@testing libbson-dev@testing
+RUN apk add --no-cache rabbitmq-c-dev luarocks5.1 lua5.1-dev lua-uuid mongo-c-driver-dev@testing libbson@testing mongo-c-driver@testing libcrypto1.1@edge libssl1.1@edge
 
 RUN mkdir -p /root/Runner/build/
 COPY CMakeLists.txt dockercompile.sh /root/Runner/
@@ -15,7 +15,7 @@ FROM alpine
 RUN echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories
 RUN echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/main/" >> /etc/apk/repositories
 
-RUN apk add --no-cache rabbitmq-c lua-uuid mongo-c-driver@testing libbson@testing shadow
+RUN apk add --no-cache rabbitmq-c lua-uuid mongo-c-driver@testing libbson@testing shadow libcrypto1.1@edge libssl1.1@edge
 
 RUN useradd runner
 
