@@ -18,7 +18,7 @@ static pid_t spawn_worker() {
 	pid_t worker = fork();
 	if (worker == 0) {
 		if (chdir("./lua")) {
-			return 1;
+			_exit(1);
 		}
 		signal(SIGINT, SIG_IGN);
 		signal(SIGHUP, SIG_IGN);
@@ -29,7 +29,8 @@ static pid_t spawn_worker() {
 		return worker;
 	} else {
 		all_exit();
-		return 1;
+		perror("fork_worker");
+		return worker;
 	}
 }
 
@@ -44,7 +45,11 @@ static void sigchld_recvd() {
 		for (i = 0; i < worker_count; i++) {
 			if (workers[i] == pid) {
 				workers[i] = spawn_worker();
-				break;
+				if (workers[i] < 0) {
+					all_exit();
+					exit(workers[i]);
+					return;
+				}
 			}
 		}
 	}
@@ -68,6 +73,10 @@ int main(int argc, char **argv) {
 	int i;
 	for (i = 0; i < worker_count; ++i) {
 		workers[i] = spawn_worker();
+		if (workers[i] < 0) {
+			all_exit();
+			return workers[i];
+		}
 	}
 
 	printf("Simple master startup done\n");

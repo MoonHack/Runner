@@ -216,10 +216,10 @@ static void cgroup_init() {
 		if (cgroup_mem_required) {
 			exit(1);
 		}
-		return;
+	} else {
+		fputs(TASK_MEMORY_LIMIT_HIGH, fd);
+		fclose(fd);
 	}
-	fputs(TASK_MEMORY_LIMIT_HIGH, fd);
-	fclose(fd);
 
 	fd = fopen(cgroup_memsw_limit, "w");
 	if (!fd) {
@@ -227,10 +227,10 @@ static void cgroup_init() {
 		if (cgroup_mem_required) {
 			exit(1);
 		}
-		return;
+	} else {
+		fputs(TASK_MEMORY_LIMIT_HIGH, fd);
+		fclose(fd);
 	}
-	fputs(TASK_MEMORY_LIMIT_HIGH, fd);
-	fclose(fd);
 }
 
 static int secure_me(int uid, int gid) {
@@ -335,11 +335,17 @@ int main() {
 		return 1;
 	}
 
+	fprintf(stderr, "Sec init done\n");
+
 	lua_init();
+
+	fprintf(stderr, "Lua init done\n");
 
 	signal(SIGCHLD, noop_hdlr);
 
 	_util_init_rmq();
+
+	fprintf(stderr, "RMQ init done\n");
 
 	amqp_basic_consume(aconn, 1, aqueue, amqp_empty_bytes, 0, 0, 0, amqp_empty_table);
 	die_on_amqp_error(amqp_get_rpc_reply(aconn), "Consuming");
@@ -370,6 +376,8 @@ int main() {
 	pid_t subworker, subworker_master;
 
 	amqp_envelope_t envelope;
+
+	fprintf(stderr, "Main loop entry\n");
 
 	while (1) {
 		if (!first_loop) { // Means second loop iteration
