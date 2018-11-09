@@ -205,13 +205,19 @@ static void cgroup_init() {
 	sprintf(cgroup_memsw_limit, "%smemory.memsw.limit_in_bytes", cgroup_mem_root);
 	sprintf(cgroup_mem_tasks, "%stasks", cgroup_mem_root);
 
-	mkdir(cgroup_mem_root, 0700);
+	if (mkdir(cgroup_mem_root, 0700)) {
+		perror("cgroup mkdir");
+		if (cgroup_mem_required) {
+			exit(1);
+		}
+		return;
+	}
 
 	FILE *fd;
 
 	fd = fopen(cgroup_mem_limit, "w");
 	if (!fd) {
-		printf("WARNING: cgroup memory->mem unavailable\n");
+		perror("cgroup memory->mem");
 		cgroup_mem_enable = 0;
 		if (cgroup_mem_required) {
 			exit(1);
@@ -223,7 +229,7 @@ static void cgroup_init() {
 
 	fd = fopen(cgroup_memsw_limit, "w");
 	if (!fd) {
-		printf("WARNING: cgroup memory->memsw unavailable\n");
+		perror("cgroup memory->memsw");
 		if (cgroup_mem_required) {
 			exit(1);
 		}

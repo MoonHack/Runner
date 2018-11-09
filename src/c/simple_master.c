@@ -8,7 +8,6 @@
 
 int worker_count;
 pid_t *workers;
-char *backend_socket;
 
 static void all_exit() {
 	kill(-getpid(), SIGTERM);
@@ -61,10 +60,27 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
+	if (argc > 3) {
+		int uid = atoi(argv[2]);
+		int gid = atoi(argv[3]);
+		if (setregid(gid, gid)) {
+			perror("setregid");
+		}
+		if (setreuid(uid, uid)) {
+			perror("setreuid");
+		}
+	} else if (argc > 2) {
+		int uidgid = atoi(argv[2]);
+		if (setregid(uidgid, uidgid)) {
+			perror("setregid");
+		}
+		if (setreuid(uidgid, uidgid)) {
+			perror("setreuid");
+		}
+	}
+
 	worker_count = atoi(argv[1]);
 	workers = malloc(sizeof(pid_t) * worker_count);
-
-	backend_socket = argv[1];
 
 	signal(SIGCHLD, sigchld_recvd);
 	signal(SIGINT, all_exit);

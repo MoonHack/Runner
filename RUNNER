@@ -1,3 +1,5 @@
+docker build -t mhack/runner .
+
 docker stop mhack_runner
 docker rm mhack_runner
 docker run -d --security-opt apparmor:unconfined --cap-add SYS_ADMIN --name mhack_runner -e RMQ_HOST=172.17.0.1 -e RMQ_PORT=5672 -e RMQ_USER=moonhack -e RMQ_PASS=moonhack -e MONGODB_CORE="mongodb://172.17.0.1/moonhack_core" -e MONGODB_USERS="mongodb://172.17.0.1/moonhack_users" -e PORT=3000 -e SESSION_SECRET=meow  -it mhack/runner
