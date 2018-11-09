@@ -9,7 +9,7 @@ local function getenvstr(var)
 	if not res then
 		error("Missing environment variable "..var)
 	end
-	return ffi.string(var)
+	return ffi.string(res)
 end
 
 return {
