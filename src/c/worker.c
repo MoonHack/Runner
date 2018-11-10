@@ -200,7 +200,7 @@ static void cgroup_init() {
 	}
 
 	char cgroup_mem_root[200];
-	sprintf(cgroup_mem_root, "/sys/fs/cgroup/memory/%s/moonhack_cg_%d/", getenv("CGROUPDIR"), getpid());
+	sprintf(cgroup_mem_root, "%s/moonhack_cg_%d/", getenv("CGROUPDIR"), getpid());
 	sprintf(cgroup_mem_limit, "%smemory.limit_in_bytes", cgroup_mem_root);
 	sprintf(cgroup_memsw_limit, "%smemory.memsw.limit_in_bytes", cgroup_mem_root);
 	sprintf(cgroup_mem_tasks, "%stasks", cgroup_mem_root);

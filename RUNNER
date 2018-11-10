@@ -1,7 +1,15 @@
 #docker build -t mhack/runner .
 
+export CGROUPDIR_REL="mhack/runner"
+export CGROUPDIR_HOST="/sys/fs/cgroup/memory/$CGROUPDIR_REL"
+sudo mkdir -p "$CGROUPDIR_HOST"
+sudo chown root:root "$CGROUPDIR_HOST"
+
+export CGROUPDIR="/opt/cgroup/$CGROUPDIR_REL"
+
 docker stop mhack_runner; docker rm mhack_runner
-docker run -d --tmpfs /opt/runnertmp --mount type=bind,src=/sys/fs/cgroup/memory,dst=/sys/fs/cgroup/memory --cap-add SYS_ADMIN --name mhack_runner -e RMQ_HOST=172.17.0.1 -e RMQ_PORT=5672 -e RMQ_USER=moonhack -e RMQ_PASS=moonhack -e MONGODB_CORE="mongodb://172.17.0.1/moonhack_core" -e MONGODB_USERS="mongodb://172.17.0.1/moonhack_users" -t mhack/runner
+
+docker run -d --tmpfs /opt/runnertmp --mount "type=bind,src=$CGROUPDIR_HOST,dst=$CGROUPDIR" --cap-add SYS_ADMIN --name mhack_runner -e RMQ_HOST=172.17.0.1 -e RMQ_PORT=5672 -e RMQ_USER=moonhack -e RMQ_PASS=moonhack -e MONGODB_CORE="mongodb://172.17.0.1/moonhack_core" -e CGROUPDIR="$CGROUPDIR" -e MONGODB_USERS="mongodb://172.17.0.1/moonhack_users" -t mhack/runner
 
 
 
