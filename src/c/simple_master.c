@@ -36,7 +36,7 @@ static pid_t spawn_worker() {
 	} else {
 		perror("fork_worker");
 		all_exit_code(1);
-		return worker;
+		return 1;
 	}
 }
 
@@ -52,8 +52,7 @@ static void sigchld_recvd() {
 			if (workers[i] == pid) {
 				workers[i] = spawn_worker();
 				if (workers[i] < 0) {
-					all_exit();
-					exit(workers[i]);
+					all_exit_code(1);
 					return;
 				}
 			}
@@ -98,8 +97,8 @@ int main(int argc, char **argv) {
 	for (i = 0; i < worker_count; ++i) {
 		workers[i] = spawn_worker();
 		if (workers[i] < 0) {
-			all_exit();
-			return workers[i];
+			all_exit_code(1);
+			return 1;
 		}
 	}
 
