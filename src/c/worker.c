@@ -548,6 +548,9 @@ int main() {
 					WRITE_AMQP("\1INTERNAL\n", 10);
 					break;
 			}
+		} else {
+			printf("WAITPID %d\n", exitstatus);
+			WRITE_AMQP("\1INTERNAL\n", 10);			
 		}
 
 		exit(0);
