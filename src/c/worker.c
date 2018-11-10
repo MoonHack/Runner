@@ -318,8 +318,8 @@ int main() {
 	lua_prot_depth = 0;
 	lua_exit_on_prot_leave = 0;
 
-	int uid = getuid();
-	int gid = getgid();
+	const int uid = getuid();
+	const int gid = getgid();
 
 	current_memlimit = TASK_MEMORY_LIMIT;
 	current_memlimit_hard = current_memlimit + (1 * 1024 * 1024);

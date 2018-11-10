@@ -8,7 +8,7 @@ export CGROUPDIR="/opt/cgroup/memory"
 
 docker stop mhack_runner; docker rm mhack_runner
 
-docker run -d --tmpfs /opt/runnertmp --mount "type=bind,src=$CGROUPDIR_HOST,dst=$CGROUPDIR" --cap-add SYS_ADMIN --name mhack_runner -e RMQ_HOST=172.17.0.1 -e RMQ_PORT=5672 -e RMQ_USER=moonhack -e RMQ_PASS=moonhack -e MONGODB_CORE="mongodb://172.17.0.1/moonhack_core" -e CGROUPDIR="$CGROUPDIR" -e MONGODB_USERS="mongodb://172.17.0.1/moonhack_users" -t mhack/runner
+docker run -d --mount "type=bind,src=$CGROUPDIR_HOST,dst=$CGROUPDIR" --cap-add SYS_ADMIN --name mhack_runner -e RMQ_HOST=172.17.0.1 -e RMQ_PORT=5672 -e RMQ_USER=moonhack -e RMQ_PASS=moonhack -e MONGODB_CORE="mongodb://172.17.0.1/moonhack_core" -e CGROUPDIR="$CGROUPDIR" -e MONGODB_USERS="mongodb://172.17.0.1/moonhack_users" -t mhack/runner
 
 
 

@@ -18,7 +18,7 @@ RUN echo "@edge http://dl-cdn.alpinelinux.org/alpine/edge/main/" >> /etc/apk/rep
 RUN apk add --no-cache rabbitmq-c lua-uuid mongo-c-driver@testing libbson@testing shadow libcrypto1.1@edge libssl1.1@edge
 
 RUN useradd runner
-RUN mkdir -p /opt/runnertmp /opt/runnertmp_rw /opt/cgroup
+RUN mkdir -p /opt/runnertmp /opt/cgroup
 
 COPY dockerrun.sh /opt/Runner/
 COPY --from=builder /root/Runner/build/worker /root/Runner/build/run /root/Runner/build/simple_master /opt/Runner/
