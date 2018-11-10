@@ -1,11 +1,10 @@
 #docker build -t mhack/runner .
 
-export CGROUPDIR_REL="mhack/runner"
-export CGROUPDIR_HOST="/sys/fs/cgroup/memory/$CGROUPDIR_REL"
+export CGROUPDIR_HOST="/sys/fs/cgroup/memory/mhack/runner"
 sudo mkdir -p "$CGROUPDIR_HOST"
 sudo chown root:root "$CGROUPDIR_HOST"
 
-export CGROUPDIR="/opt/cgroup/$CGROUPDIR_REL"
+export CGROUPDIR="/opt/cgroup/memory"
 
 docker stop mhack_runner; docker rm mhack_runner
 

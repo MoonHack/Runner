@@ -9,5 +9,5 @@ export MONGODB_USERS="mongodb://127.0.0.1/moonhack_users"
 
 export PORT=3000
 export SESSION_SECRET="meow"
-export CGROUPDIR="$USER"
+export CGROUPDIR="/sys/fs/cgroup/memory/$USER"
 

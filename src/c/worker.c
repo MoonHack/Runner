@@ -69,8 +69,16 @@ char cgroup_mem_tasks[256];
 
 #define COPYIN(VAR) \
 	VAR = malloc(VAR ## _len); \
-	memcpy(VAR, envelope.message.body.bytes + pos, VAR ## _len); \
+	if (VAR) { \
+		memcpy(VAR, envelope.message.body.bytes + pos, VAR ## _len); \
+	} \
 	pos += VAR ## _len;
+
+#define FREEALL() \
+	free(caller); \
+	free(script); \
+	free(args); \
+	free(info);
 
 static void noop_hdlr() {
 
@@ -416,12 +424,15 @@ int main() {
 
 		amqp_destroy_envelope(&envelope);
 
+		if (!caller || !script || !args || !info) {
+			FREEALL();
+			WRITE_AMQP("\1TOOLARGE\n", 10);
+			continue;
+		}
+
 		subworker_master = fork();
 		if (subworker_master > 0) {
-			free(caller);
-			free(script);
-			free(args);
-			free(info);
+			FREEALL();
 			waitpid(subworker_master, &exitstatus, 0);
 			continue;
 		} else if (subworker_master < 0) {
@@ -473,10 +484,7 @@ int main() {
 			lua_pushlstring(L, args, args_len);
 			lua_pushlstring(L, info, info_len);
 
-			free(caller);
-			free(script);
-			free(args);
-			free(info);
+			FREEALL();
 
 			if (lua_pcall(L, 4, 0, -6)) {
 				exit(1);
@@ -487,10 +495,7 @@ int main() {
 			exit(1);
 		}
 
-		free(caller);
-		free(script);
-		free(args);
-		free(info);
+		FREEALL();
 
 		close(stdout_pipe[1]);
 
